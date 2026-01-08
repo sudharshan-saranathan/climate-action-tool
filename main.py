@@ -26,11 +26,11 @@ class ClimactApplication(QtWidgets.QApplication):
         bounds = screen.availableGeometry()
 
         # Set style:
-        qss_file = QtCore.QFile(":/theme/dark.qss")
-        qss_file.open(QtCore.QFile.OpenModeFlag.ReadOnly | QtCore.QFile.OpenModeFlag.Text)
-        contents = str(qss_file.readAll())
+        qss_file = QtCore.QFile(":/theme/dark.qss") # Requires a compiled resource file!
+        if qss_file.open(QtCore.QFile.OpenModeFlag.ReadOnly):
 
-        self.setStyleSheet(contents)
+            contents = QtCore.QTextStream(qss_file).readAll()
+            self.setStyleSheet(contents)
 
         # Instantiate and display the main user interface:
         self._win = QtWidgets.QMainWindow()
