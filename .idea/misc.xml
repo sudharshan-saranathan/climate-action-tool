@@ -6,6 +6,7 @@
   <component name="EditMigrationStateService">
     <option name="migrationStatus" value="COMPLETED" />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="py313-cat" project-jdk-type="Python SDK" />
   <component name="PythonCompatibilityInspectionAdvertiser">
     <option name="version" value="3" />
   </component>

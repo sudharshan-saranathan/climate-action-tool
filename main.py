@@ -6,11 +6,13 @@
 # Imports (standard):
 from __future__ import annotations
 import logging
-import assets
 import sys
 
 # Imports (3rd party):
 from PySide6 import QtGui, QtCore, QtWidgets # noqa: PyUnresolvedReferences
+
+# Imports (local):
+import resources    # Icons, style-files, and other assets
 
 # Class ClimactApplication:
 class ClimactApplication(QtWidgets.QApplication):
@@ -24,10 +26,11 @@ class ClimactApplication(QtWidgets.QApplication):
         bounds = screen.availableGeometry()
 
         # Set style:
-        qss_file = ":/theme/dark.qss"
-        with open(qss_file, "r") as f:
-            qss = f.read()
-            self.setStyleSheet(qss)
+        qss_file = QtCore.QFile(":/theme/dark.qss")
+        qss_file.open(QtCore.QFile.OpenModeFlag.ReadOnly | QtCore.QFile.OpenModeFlag.Text)
+        contents = str(qss_file.readAll())
+
+        self.setStyleSheet(contents)
 
         # Instantiate and display the main user interface:
         self._win = QtWidgets.QMainWindow()
