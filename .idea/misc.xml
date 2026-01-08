@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Black">
-    <option name="sdkName" value="py314" />
+    <option name="enabledOnReformat" value="true" />
+    <option name="enabledOnSave" value="true" />
+    <option name="sdkName" value="climate-action-tool" />
   </component>
-  <component name="EditMigrationStateService">
-    <option name="migrationStatus" value="COMPLETED" />
-  </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="py313-cat" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="climate-action-tool" project-jdk-type="Python SDK" />
   <component name="PythonCompatibilityInspectionAdvertiser">
     <option name="version" value="3" />
+  </component>
+  <component name="RuffConfiguration">
+    <option name="enabled" value="true" />
   </component>
 </project>
