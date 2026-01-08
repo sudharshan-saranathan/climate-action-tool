@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import logging
+import platform
 import sys
 
 # Imports (3rd party):
@@ -27,14 +28,19 @@ class ClimateActionTool(QtWidgets.QApplication):
         # Shorthand for default options:
         bezel = DefaultOpts.bezel
         theme = DefaultOpts.theme
+        font = DefaultOpts.font
 
         # Get screen geometry to compute application window size:
         screen = QtWidgets.QApplication.primaryScreen()
         bounds = screen.availableGeometry()
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
-        # Apply the stylesheet:
-        self.apply_style(theme)
+        # Apply style and font:
+        self.set_style(theme)
+        self.set_font()
+
+        # Instantiate the startup window:
+        self._show_startup()
 
         # Instantiate and display the main user interface:
         self._win = QtWidgets.QMainWindow()
@@ -43,7 +49,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         self._win.show()
 
     # Private method called from `__init__()`:
-    def apply_style(self, path: str) -> None:
+    def set_style(self, path: str) -> None:
         """
         Read and apply the stylesheet from the specified file.
 
@@ -56,6 +62,38 @@ class ClimateActionTool(QtWidgets.QApplication):
         if qss_file.open(QtCore.QFile.OpenModeFlag.ReadOnly):
             contents = QtCore.QTextStream(qss_file).readAll()
             self.setStyleSheet(contents)
+
+    # Private method called from `__init__()`:
+    def set_font(self) -> None:
+        """
+        Set the application's default font.
+
+        :return: None
+        """
+
+        font = DefaultOpts.font
+        envr = platform.system().lower()
+
+        # Exit if the platform is not supported:
+        if envr not in font:
+            logging.warning(f"Unsupported platform: {envr}")
+            return
+
+        self.setFont(QtGui.QFont(font[envr].family, font[envr].pointSize))
+
+    # Show the startup window:
+    @staticmethod
+    def _show_startup() -> None:
+        """
+        Displays the startup window.
+        :return: None
+        """
+
+        # Import the startup window:
+        from gui.startup.dialog import StartupDialog
+
+        startup = StartupDialog()
+        startup.exec()
 
 
 # Main:
