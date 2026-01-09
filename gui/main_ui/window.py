@@ -74,8 +74,11 @@ class MainWindow(QtWidgets.QMainWindow):
             iconSize=QtCore.QSize(20, 20),
             trailing=False,
             actions=[
+                (qta_icon('ph.layout-fill', color='#efefef'), "Show Dock", self._on_action_triggered),
                 (qta_icon('mdi.folder-plus', color='#ffcb00'), "Open", self._on_action_triggered),
-                (qta_icon('mdi.floppy', color='#59bff2'), "Save", self._on_action_triggered)
+                (qta_icon('mdi.floppy', color='#59bff2'), "Save", self._on_action_triggered),
+                (qta_icon('mdi.language-python', color='#967ab8'), "Optimize", self._on_action_triggered),
+                (qta_icon('mdi.chart-box', color='#ffcb00'), "Results", self._on_action_triggered),
             ]
         )
 
