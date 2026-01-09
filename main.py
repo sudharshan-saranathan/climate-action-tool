@@ -28,7 +28,6 @@ class ClimateActionTool(QtWidgets.QApplication):
         # Shorthand for default options:
         bezel = DefaultOpts.bezel
         theme = DefaultOpts.theme
-        font = DefaultOpts.font
 
         # Get screen geometry to compute application window size:
         screen = QtWidgets.QApplication.primaryScreen()
@@ -36,8 +35,8 @@ class ClimateActionTool(QtWidgets.QApplication):
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
         # Apply style and font:
-        self.set_style(theme)
-        self.set_font()
+        self.set_style(theme)  # `theme` refers to the default qss filepath
+        self._init_font()  # Set an application-wide font
 
         # Instantiate the startup window:
         self._show_startup()
@@ -64,22 +63,22 @@ class ClimateActionTool(QtWidgets.QApplication):
             self.setStyleSheet(contents)
 
     # Private method called from `__init__()`:
-    def set_font(self) -> None:
+    def _init_font(self) -> None:
         """
         Set the application's default font.
 
         :return: None
         """
 
-        font = DefaultOpts.font
-        envr = platform.system().lower()
+        fonts = DefaultOpts.fonts
+        envir = platform.system().lower()
 
         # Exit if the platform is not supported:
-        if envr not in font:
-            logging.warning(f"Unsupported platform: {envr}")
+        if envir not in fonts:
+            logging.warning(f"Unsupported platform: {envir}")
             return
 
-        self.setFont(QtGui.QFont(font[envr].family, font[envr].pointSize))
+        self.setFont(QtGui.QFont(fonts[envir].family, fonts[envir].pointSize))
 
     # Show the startup window:
     @staticmethod
