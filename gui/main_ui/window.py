@@ -4,6 +4,7 @@
 
 # Imports (standard):
 from __future__ import annotations
+
 import dataclasses
 
 # Imports (3rd party):
@@ -13,8 +14,13 @@ from PySide6 import QtCore, QtGui, QtWidgets
 @dataclasses.dataclass
 class MainWindowOpts:
     border: QtGui.QPen = dataclasses.field(default_factory=lambda: QtGui.QPen())
-    background: QtGui.QColor = dataclasses.field(default_factory=lambda: QtGui.QColor(0x232a2e))
-    foreground: QtGui.QColor = dataclasses.field(default_factory=lambda: QtGui.QColor(0xefefef))
+    background: QtGui.QColor = dataclasses.field(
+        default_factory=lambda: QtGui.QColor(0x232A2E)
+    )
+    foreground: QtGui.QColor = dataclasses.field(
+        default_factory=lambda: QtGui.QColor(0xEFEFEF)
+    )
+
 
 # Class MainWindow:
 class MainWindow(QtWidgets.QMainWindow):
@@ -39,6 +45,9 @@ class MainWindow(QtWidgets.QMainWindow):
     # The class's constructor:
     def __init__(self):
         super().__init__()
+
+        # Customize visual flags:
+        # self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
         # Add child widgets, toolbars, etc. to the GUI:
         self._init_menubar()
@@ -74,25 +83,45 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Import the custom toolbar:
         from qtawesome import icon as qta_icon
+
         from gui.widgets.toolbar import ToolBar
 
         toolbar = ToolBar(
             self,
-            style='QToolBar QToolButton {margin: 2px;}',
-            orientation=QtCore.Qt.Orientation.Vertical, # Vertical toolbar
+            style="QToolBar QToolButton {margin: 2px;}",
+            orientation=QtCore.Qt.Orientation.Vertical,  # Vertical toolbar
             iconSize=QtCore.QSize(24, 24),
             trailing=False,
             actions=[
-                (qta_icon('ph.layout-fill', color='#efefef'), "Show Dock", self._on_action_triggered),
-                (qta_icon('mdi.folder-plus', color='#ffcb00'), "Open", self._on_action_triggered),
-                (qta_icon('mdi.floppy', color='#59bff2'), "Save", self._on_action_triggered),
-                (qta_icon('mdi.language-python', color='#967ab8'), "Optimize", self._on_action_triggered),
-                (qta_icon('mdi.chart-box', color='#ffcb00'), "Results", self._on_action_triggered),
-            ]
+                (
+                    qta_icon("ph.layout-fill", color="#efefef"),
+                    "Show Dock",
+                    self._on_action_triggered,
+                ),
+                (
+                    qta_icon("mdi.folder-plus", color="#ffcb00"),
+                    "Open",
+                    self._on_action_triggered,
+                ),
+                (
+                    qta_icon("mdi.floppy", color="#59bff2"),
+                    "Save",
+                    self._on_action_triggered,
+                ),
+                (
+                    qta_icon("mdi.language-python", color="#967ab8"),
+                    "Optimize",
+                    self._on_action_triggered,
+                ),
+                (
+                    qta_icon("mdi.chart-box", color="#ffcb00"),
+                    "Results",
+                    self._on_action_triggered,
+                ),
+            ],
         )
 
         self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar)
-
 
     # Invoked by the class's constructor:
     def _init_sidebar(self) -> None:
@@ -128,7 +157,6 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         self.setCentralWidget(self._tabs)
 
-
     # Toolbar action handler:
     @QtCore.Slot()
     def _on_action_triggered(self):
@@ -153,7 +181,7 @@ class MainWindow(QtWidgets.QMainWindow):
         painter = QtGui.QPainter(self)
         painter.setPen(self._opts.border)
         painter.setBrush(self._opts.background)
-        painter.drawRect(self.rect())
+        painter.drawRect(self.rect().adjusted(-1, -1, 1, 1))
 
         # Invoke the super-class's implementation:
         super().paintEvent(event)

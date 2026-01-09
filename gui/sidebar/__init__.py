@@ -1,9 +1,9 @@
-from .sidebar import SideBar
+from .geo_query import GeoQuery
 from .setting import GlobalSettings
-from .mapdata import MapData
+from .sidebar import SideBar
 
 __all__ = [
     "SideBar",
     "GlobalSettings",
-    "MapData",
+    "GeoQuery",
 ]

@@ -19,7 +19,7 @@ class DefaultOpts:
     theme = ":/theme/dark.qss"  # The qss-file to use as the default theme.
     bezel = 64  # Initial padding around the main window at application startup.
     fonts = {
-        "windows": types.SimpleNamespace(family="Fira Code", pointSize=10),
-        "darwin": types.SimpleNamespace(family="Menlo", pointSize=10),
-        "linux": types.SimpleNamespace(family="Noto Sans", pointSize=10),
+        "windows": types.SimpleNamespace(family="Fira Code", pointSize=8),
+        "darwin": types.SimpleNamespace(family="Menlo", pointSize=11),
+        "linux": types.SimpleNamespace(family="Noto Sans", pointSize=11),
     }  # The keys should match the values returned by `platform.system()`, NOT `sys.platform()`.

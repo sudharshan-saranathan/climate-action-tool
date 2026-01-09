@@ -10,7 +10,6 @@ from PySide6 import QtWidgets
 
 # Class Sidebar:
 class SideBar(QtWidgets.QDockWidget):
-
     #   Default constructor:
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -25,7 +24,6 @@ class SideBar(QtWidgets.QDockWidget):
 
     #   Title-bar widget (a QComboBox):
     def _init_titlebar(self):
-
         # Import ComboBox:
         from gui.widgets.combobox import ComboBox
 
@@ -33,7 +31,7 @@ class SideBar(QtWidgets.QDockWidget):
             combo := ComboBox(
                 self,
                 items=[
-                    ("mdi.map", "Map"),
+                    ("mdi.map", "Map Query"),
                     ("mdi.sitemap", "Schematic"),
                     ("mdi.cog", "Settings"),
                     ("mdi.chat", "Assistant"),
@@ -47,19 +45,18 @@ class SideBar(QtWidgets.QDockWidget):
 
     #   Initialize the stacked widget:
     def _init_stack(self):
-
-        from .mapdata import MapData
+        from .geo_query import GeoQuery
         from .setting import GlobalSettings
 
         self._stack = QtWidgets.QStackedWidget(self)
 
         # Add pages in order matching ComboBox:
         # 0: Map, 1: Schematic, 2: Settings, 3: Assistant, 4: Database
-        self._stack.addWidget(MapData(self))      # 0: Map
-        self._stack.addWidget(QtWidgets.QWidget(self)) # 1: Schematic (placeholder)
-        self._stack.addWidget(GlobalSettings(self))    # 2: Settings
-        self._stack.addWidget(QtWidgets.QWidget(self)) # 3: Assistant (placeholder)
-        self._stack.addWidget(QtWidgets.QWidget(self)) # 4: Database (placeholder)
+        self._stack.addWidget(GeoQuery(self))  # 0: Map
+        self._stack.addWidget(QtWidgets.QWidget(self))  # 1: Schematic (placeholder)
+        self._stack.addWidget(GlobalSettings(self))  # 2: Settings
+        self._stack.addWidget(QtWidgets.QWidget(self))  # 3: Assistant (placeholder)
+        self._stack.addWidget(QtWidgets.QWidget(self))  # 4: Database (placeholder)
 
         self.setWidget(self._stack)
 
