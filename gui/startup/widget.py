@@ -4,27 +4,23 @@
 
 # Imports (standard)
 from __future__ import annotations
+
 from pathlib import Path
 
+from PySide6 import QtCore, QtGui, QtWidgets
 
 # Imports (third party)
 from qtawesome import icon as qta_icon
-from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
-
 
 # Imports (local)
-import gui.custom as custom
+import gui.widgets as custom
 import opts
 
 
 # Widget representing a single file/project, added to the FileTable:
 class FileWidget(QtWidgets.QWidget):
-
     # Default constructor:
     def __init__(self, name: str, **kwargs):
-
         # Super-class initialization:
         super().__init__(None)
         super().setMouseTracking(True)
@@ -45,13 +41,16 @@ class FileWidget(QtWidgets.QWidget):
     # Project actions:
     @staticmethod
     def _project_actions():
-
-        toolbar = custom.ToolBar(
+        toolbar = widgets.ToolBar(
             iconSize=QtCore.QSize(20, 20),
             actions=[
                 (qta_icon("mdi.share", color="#efefef"), "Share Project", None),
                 (qta_icon("mdi.pencil", color="#efefef"), "Edit Project", None),
-                (qta_icon("mdi.dots-horizontal", color="#efefef"), "More Options", None),
+                (
+                    qta_icon("mdi.dots-horizontal", color="#efefef"),
+                    "More Options",
+                    None,
+                ),
             ],
         )
 
@@ -69,10 +68,8 @@ class FileWidget(QtWidgets.QWidget):
 
 # Table of models:
 class FileTable(QtWidgets.QTableWidget):
-
     # Default constructor:
     def __init__(self, parent: QtWidgets.QWidget | None = None):
-
         # Base-class initialization:
         super().__init__(parent, columnCount=2)
 
@@ -81,7 +78,9 @@ class FileTable(QtWidgets.QTableWidget):
         self.setAlternatingRowColors(True)
         self.setIconSize(QtCore.QSize(16, 16))
         self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setSelectionBehavior(
+            QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows
+        )
 
         self.setHorizontalHeaderLabels([f"Directory", "Last Modified"])
         self.verticalHeader().setVisible(False)
@@ -89,15 +88,15 @@ class FileTable(QtWidgets.QTableWidget):
         # Adjust column resizing policy:
         header = self.horizontalHeader()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents
+        )
 
     #   Reimplementation of QTableWidget.paintEvent():
     def paintEvent(self, event):
-
         super().paintEvent(event)  # Call base-class implementation
 
         if self.rowCount() == 0:  # If the table is empty:
-
             painter = QtGui.QPainter(self.viewport())
             painter.setOpacity(0.2)
             icon = QtGui.QIcon(":/png/empty.png")
@@ -112,7 +111,6 @@ class FileTable(QtWidgets.QTableWidget):
 
     #   Reimplementation of QTableWidget.mousePressEvent():
     def mousePressEvent(self, event):
-
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             item = self.itemAt(event.pos())
             if item is None:
@@ -122,14 +120,15 @@ class FileTable(QtWidgets.QTableWidget):
 
     # Method to add a new row:
     def add_item(self, path: Path, time: str):
-
         row = self.rowCount()  # Get the current row count
         self.insertRow(self.rowCount())  # Insert a new row at the end
 
         # The second column displays the last modified time:
         item_second_column = QtWidgets.QTableWidgetItem(time)
         item_second_column.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        item_second_column.setFlags(item_second_column.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        item_second_column.setFlags(
+            item_second_column.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable
+        )
 
         # Change the icon based on whether the item is a directory or not:
         item_first_column = QtWidgets.QTableWidgetItem(
@@ -143,10 +142,9 @@ class FileTable(QtWidgets.QTableWidget):
 
     # Show all models in the specified directory:
     def populate(self, directory: str, pattern: str):
-
         # Import pathlib:
-        from pathlib import Path
         from datetime import datetime
+        from pathlib import Path
 
         # Check validity of directory:
         base = Path(directory)

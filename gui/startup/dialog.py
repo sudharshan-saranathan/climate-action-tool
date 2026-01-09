@@ -10,9 +10,10 @@ from PySide6 import QtCore, QtWidgets
 # Imports (3rd party):
 from qtawesome import icon as qta_icon
 
-# Imports (local):
-from gui.custom import HLayout, VLayout
 from gui.startup import widget
+
+# Imports (local):
+from gui.widgets import HLayout, VLayout
 
 
 # Result Codes:
@@ -194,7 +195,7 @@ class StartupDialog(QtWidgets.QDialog):
         _open.setObjectName("Open")
 
         _open.setDisabled(True)
-        _open.setStyleSheet("margin: 12px 12px 12px 2px;")
+        _open.setStyleSheet("margin: 4px 4px 4px 4px;")
         _open.setFixedWidth(100)
         _open.clicked.connect(self.accept)
         _quit.setFixedWidth(80)
@@ -202,7 +203,7 @@ class StartupDialog(QtWidgets.QDialog):
 
         # Subdirectory:
         subdir = "models"
-        pattern = "*.clim"
+        pattern = "*.h5"
 
         # Create the table:
         table = widget.FileTable(self)
