@@ -43,14 +43,22 @@ class TabView(QtWidgets.QTabWidget):
         QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Close, self, self.remove_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+R"), self, self.rename_tab)
 
-        # Create an initial tab with a placeholder:
+        # Create the initial map tab:
         self.create_tab(
-            widget=self._create_placeholder(),
-            label="Welcome",
-            icon=qta_icon("mdi.home", color="lightblue"),
+            widget=self._create_map_view(),
+            label="Map",
+            icon=qta_icon("mdi.map", color="lightgreen"),
         )
 
-    # Create a placeholder widget for empty tabs
+    # Create the map view widget:
+    def _create_map_view(self) -> QtWidgets.QWidget:
+        """Create a Viewer with the map Scene."""
+        from gui.maps import Scene
+        from gui.widgets.viewer import Viewer
+
+        return Viewer(Scene())
+
+    # Create a placeholder widget for empty tabs:
     def _create_placeholder(self) -> QtWidgets.QWidget:
         placeholder = QtWidgets.QLabel("Open a project or create a new model to get started.")
         placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)

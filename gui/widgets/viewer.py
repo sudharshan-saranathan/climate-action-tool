@@ -66,6 +66,10 @@ class Viewer(QtWidgets.QGraphicsView):
         self._openGL_viewport.setMouseTracking(True)
         self.setViewport(self._openGL_viewport)
 
+        # Set update mode for OpenGL (prevents zoom artifacts):
+        self.setViewportUpdateMode(QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
+        self.setCacheMode(QtWidgets.QGraphicsView.CacheModeFlag.CacheNone)
+
         # Define shortcuts
         # Zoom in/out shortcuts:
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+="), self, lambda: self.execute_zoom(1.2, True))

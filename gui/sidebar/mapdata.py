@@ -14,7 +14,6 @@ from gui.widgets import VLayout, CollapsibleSection
 
 # Class LegendItem:
 class LegendItem(QtWidgets.QWidget):
-    """A single legend item with color swatch, label, and count."""
 
     # Initializer:
     def __init__(
@@ -39,9 +38,9 @@ class LegendItem(QtWidgets.QWidget):
 
         # Color swatch:
         self._swatch = QtWidgets.QFrame(self)
-        self._swatch.setFixedSize(12, 12)
+        self._swatch.setFixedSize(8, 8)
         self._swatch.setStyleSheet(
-            f"background-color: {self._color}; border-radius: 6px;"
+            f"background-color: {self._color}; border-radius: 4px;"
         )
 
         # Label:
@@ -75,7 +74,7 @@ class LegendSection(CollapsibleSection):
 
     # Initializer:
     def __init__(self, parent: QtWidgets.QWidget | None = None):
-        super().__init__("Legend", parent, expanded=True)
+        super().__init__("Sector(s)", parent, expanded=True)
 
         # Attribute(s):
         self._items: dict[str, LegendItem] = {}
@@ -85,13 +84,7 @@ class LegendSection(CollapsibleSection):
 
     def _init_content(self):
         # Default legend items (can be updated dynamically):
-        default_items = [
-            ("Industrial", "#e74c3c"),
-            ("Commercial", "#3498db"),
-            ("Residential", "#2ecc71"),
-            ("Transport", "#f39c12"),
-            ("Agriculture", "#9b59b6"),
-        ]
+        default_items = []
 
         for label, color in default_items:
             item = LegendItem(label, color, count=0, parent=self)
@@ -178,7 +171,6 @@ class LayersSection(CollapsibleSection):
         default_layers = [
             ("Emission Sources", True),
             ("Grid Boundaries", True),
-            ("Satellite Imagery", False),
             ("Administrative", False),
         ]
 

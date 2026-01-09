@@ -9,7 +9,7 @@ import json
 
 # Imports (third party)
 import geopandas
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 # Imports (local):
 from gui.maps.outline import Outline
@@ -22,6 +22,9 @@ class Scene(QtWidgets.QGraphicsScene):
     # Initializer:
     def __init__(self, parent: QtCore.QObject | None = None):
         super().__init__(parent)
+
+        # Set background brush (prevents ghosting with OpenGL):
+        self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(0xf5f5f5)))
 
         # Attribute(s):
         self.geo_data = None
