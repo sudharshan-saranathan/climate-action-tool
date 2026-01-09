@@ -15,6 +15,7 @@ class DefaultOpts:
     Default asset(s) and resource(s) for the Climate Action Tool.
     """
 
+    logo = ":/logo/logo.png"  # The application's logo
     theme = ":/theme/dark.qss"  # The qss-file to use as the default theme.
     bezel = 64  # Initial padding around the main window at application startup.
     fonts = {

@@ -4,12 +4,17 @@
 
 # Imports (standard):
 from __future__ import annotations
-
-from threading import active_count
+import dataclasses
 
 # Imports (3rd party):
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
+
+@dataclasses.dataclass
+class MainWindowOpts:
+    border: QtGui.QPen = dataclasses.field(default_factory=lambda: QtGui.QPen())
+    background: QtGui.QColor = dataclasses.field(default_factory=lambda: QtGui.QColor(0x232a2e))
+    foreground: QtGui.QColor = dataclasses.field(default_factory=lambda: QtGui.QColor(0xefefef))
 
 # Class MainWindow:
 class MainWindow(QtWidgets.QMainWindow):
@@ -21,6 +26,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # The singleton instance:
     _instance = None
+
+    # Default options:
+    _opts = MainWindowOpts()
 
     # Implementation of `__new__` to enforce the singleton pattern:
     def __new__(cls):
@@ -36,6 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._init_menubar()
         self._init_toolbar()
         self._init_sidebar()
+        self._init_tabview()
 
     # Invoked by the class's constructor:
     def _init_menubar(self) -> None:
@@ -71,7 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             style='QToolBar QToolButton {margin: 2px;}',
             orientation=QtCore.Qt.Orientation.Vertical, # Vertical toolbar
-            iconSize=QtCore.QSize(20, 20),
+            iconSize=QtCore.QSize(24, 24),
             trailing=False,
             actions=[
                 (qta_icon('ph.layout-fill', color='#efefef'), "Show Dock", self._on_action_triggered),
@@ -87,11 +96,37 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # Invoked by the class's constructor:
     def _init_sidebar(self) -> None:
+        """
+        Initializes the main window's sidebar (a subclass of QDockWidget). The dock includes settings panels and other
+        child widgets that are contextual.
+
+        :return: None
+        """
 
         from gui.sidebar import SideBar
 
         self._dock = SideBar(self)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._dock)
+
+    # Invoked by the class's constructor:
+    def _init_tabview(self) -> None:
+        """
+        Initializes `TabView` - a subclass of `QTabWidget` and sets it as the central widget.
+
+        :return: None
+        """
+
+        # Imports (local):
+        from gui.widgets import TabView
+
+        # Instantiate `TabView` with keywords:
+        self._tabs = TabView(
+            self,
+            tabsClosable=True,
+            tabPosition=QtWidgets.QTabWidget.TabPosition.North,
+            movable=True,
+        )
+        self.setCentralWidget(self._tabs)
 
 
     # Toolbar action handler:
@@ -104,3 +139,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         :return: None
         """
+
+    # Reimplement paintEvent to draw the background:
+    def paintEvent(self, event):
+        """
+        Reimplemented paintEvent that draws the app's background.
+
+        :param event:
+        :return:
+        """
+
+        # Initialize a painter. Paint with the app's default background color:
+        painter = QtGui.QPainter(self)
+        painter.setPen(self._opts.border)
+        painter.setBrush(self._opts.background)
+        painter.drawRect(self.rect())
+
+        # Invoke the super-class's implementation:
+        super().paintEvent(event)

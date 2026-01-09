@@ -162,15 +162,12 @@ QSpinBox::down-button {
 
 QMenuBar {          /* Default appearance of all widgets */
     color                      : white;
-    /*
     background: qlineargradient(
         x1: 0, y1: 0,
         x2: 1, y2: 0,
         stop: 0 #393e41,
         stop: 1 lightslategray
     );
-    */
-    background                  : #232a2e;
 
     padding                     : 4px;
     border-top-left-radius      : 8px;
@@ -232,7 +229,7 @@ QDockWidget::title {                           /* Dock widget title bar style */
 */
 
 QTabWidget::pane {                              /* Tab pane style */
-    background                  : transparent;
+    background                  : #232a2e;
     border-radius               : 4px;
 }
 

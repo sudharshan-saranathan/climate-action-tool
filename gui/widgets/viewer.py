@@ -77,11 +77,13 @@ class Viewer(QtWidgets.QGraphicsView):
         QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Copy, self, self._shortcut_handler)
         QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Paste, self, self._shortcut_handler)
 
-        # Handle item focus signals:
-        from core.bus import EventsBus
-
-        bus = EventsBus.instance()
-        bus.sig_item_focused.connect(self._on_item_focused)
+        # Handle item focus signals (optional - EventsBus may not exist yet):
+        try:
+            from core.bus import EventsBus
+            bus = EventsBus.instance()
+            bus.sig_item_focused.connect(self._on_item_focused)
+        except ImportError:
+            pass
 
     # Filter the shift key to activate panning mode
     def keyPressEvent(self, event, /):
