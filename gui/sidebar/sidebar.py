@@ -33,8 +33,9 @@ class SideBar(QtWidgets.QDockWidget):
             combo := ComboBox(
                 self,
                 items=[
-                    ("mdi.cog", "Settings"),
+                    ("mdi.map", "Map"),
                     ("mdi.sitemap", "Schematic"),
+                    ("mdi.cog", "Settings"),
                     ("mdi.chat", "Assistant"),
                     ("mdi.database", "Database"),
                 ],
@@ -42,13 +43,31 @@ class SideBar(QtWidgets.QDockWidget):
         )
 
         self.titleBarWidget().setStyleSheet("margin: 2px 0px 2px 0px;")
+        self.titleBarWidget().currentIndexChanged.connect(self._on_page_changed)
 
     #   Initialize the stacked widget:
     def _init_stack(self):
 
+        from .mapdata import MapData
         from .setting import GlobalSettings
 
-        settings = GlobalSettings(self)
         self._stack = QtWidgets.QStackedWidget(self)
-        self._stack.addWidget(settings)
+
+        # Add pages in order matching ComboBox:
+        # 0: Map, 1: Schematic, 2: Settings, 3: Assistant, 4: Database
+        self._stack.addWidget(MapData(self))      # 0: Map
+        self._stack.addWidget(QtWidgets.QWidget(self)) # 1: Schematic (placeholder)
+        self._stack.addWidget(GlobalSettings(self))    # 2: Settings
+        self._stack.addWidget(QtWidgets.QWidget(self)) # 3: Assistant (placeholder)
+        self._stack.addWidget(QtWidgets.QWidget(self)) # 4: Database (placeholder)
+
         self.setWidget(self._stack)
+
+    #   Handle page change:
+    def _on_page_changed(self, index: int):
+        self._stack.setCurrentIndex(index)
+
+    #   Access to MapData:
+    @property
+    def map_data(self):
+        return self._stack.widget(0)
