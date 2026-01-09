@@ -87,7 +87,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # Invoked by the class's constructor:
     def _init_sidebar(self) -> None:
-        pass
+
+        from gui.sidebar import SideBar
+
+        self._dock = SideBar(self)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._dock)
 
 
     # Toolbar action handler:
