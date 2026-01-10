@@ -165,8 +165,8 @@ QMenuBar {          /* Default appearance of all widgets */
     background: qlineargradient(
         x1: 0, y1: 0,
         x2: 1, y2: 0,
-        stop: 0 #393e41,
-        stop: 1 lightslategray
+        stop: 0 #232a2e,
+        stop: 1 #393e41
     );
 
     padding                     : 4px;
@@ -176,13 +176,13 @@ QMenuBar {          /* Default appearance of all widgets */
 
 QMenuBar::item {   /* Menu bar item style */
     background                  : transparent;
-    padding                     : 4px 8px 4px 2px;
-    margin                      : 2px 8px 2px 0px;
+    padding                     : 2px 6px 2px 2px;
+    margin                      : 2px 6px 2px 4px;
     border                      : none;
 }
 
 QMenuBar::item:hover, QMenuBar::item:selected { /* Hover effect for menu bar items */
-    padding                     : 4px 8px 3px 2px;
+    padding                     : 2px 6px 1px 2px;
     border-bottom               : 2px solid #ffcb00;
 }
 
@@ -315,13 +315,11 @@ QToolBar#traffic-lights QToolButton:hover {
  -- QToolButton customization
     The following section customizes the appearance of standalone QToolButton widgets
     (outside of toolbars). It defines styles for normal, hover, pressed, and checked states.
-*/
 
 QToolButton {
     background                  : transparent;
     border-radius               : 4px;
-    padding                     : 4px;
-    margin                      : 2px;
+    padding                     : 2px;
     color                       : white;
     border                      : 1px solid transparent;
     outline                     : 0px;
@@ -347,6 +345,7 @@ QToolButton:disabled {
     color                       : #5a5a5a;
     background                  : transparent;
 }
+*/
 
 /*
 ------------------------------------------------------------------------------------------------------------------------

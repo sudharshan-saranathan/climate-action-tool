@@ -9,20 +9,6 @@ from gui.sidebar import SideBar
 from gui.widgets import TabView, ToolBar
 
 
-@dataclasses.dataclass
-class MainWindowOpts:
-    """
-    Default options for the main window.
-    """
-
-    border: QtGui.QPen = dataclasses.field(
-        default_factory=lambda: QtCore.Qt.PenStyle.NoPen
-    )
-    background: QtGui.QColor = dataclasses.field(
-        default_factory=lambda: QtGui.QColor(0x232A2E)
-    )
-
-
 class MainWindow(QtWidgets.QMainWindow):
     """
     The main user interface (UI) of Climate Action Tool (subclassed from QMainWindow). This class initializes the UI's
@@ -30,15 +16,24 @@ class MainWindow(QtWidgets.QMainWindow):
     only one instance of this class can exist at any given time.
     """
 
-    _instance = None
-    _settings = MainWindowOpts()
+    # Options:
+    @dataclasses.dataclass
+    class Options:
+        border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
+        background: QtGui.QBrush = dataclasses.field(
+            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0x232A2E))
+        )
 
-    def __new__(cls):
+    # Singleton pattern instance:
+    _instance: MainWindow | None = None
+
+    # Singleton pattern adopted:
+    def __new__(cls, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, project: str | None = None, **kwargs):
+    def __init__(self, **kwargs):
         # Prevent reinitialization for singleton pattern:
         if hasattr(self, "_initialized"):
             return
@@ -56,6 +51,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._init_sidebar()
         self._init_tabview()
 
+        self._options = MainWindow.Options()
         self._initialized = True
 
     def _init_menubar(self) -> None:
@@ -90,7 +86,7 @@ class MainWindow(QtWidgets.QMainWindow):
             actions=[
                 (
                     qta_icon("ph.layout-fill", color="#efefef"),
-                    "Toggle Dock",
+                    "Dock",
                     self._on_action_triggered,
                 ),
                 (
@@ -156,8 +152,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
 
         painter = QtGui.QPainter(self)
-        painter.setPen(MainWindow._settings.border)
-        painter.setBrush(MainWindow._settings.background)
+        painter.setPen(self._options.border)
+        painter.setBrush(self._options.background)
         painter.drawRoundedRect(self.rect(), 8, 8)
         painter.end()
 

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import logging
 import platform
 import sys
+import types
 
 from PySide6 import QtCore, QtGui, QtWidgets  # noqa: PyUnresolvedReferences
 
@@ -18,35 +20,53 @@ class ClimateActionTool(QtWidgets.QApplication):
     be instantiated before any widgets are created.
     """
 
-    backend_flag = True  # Whether to use the backend optimization module.
-    startup_flag = True  # Whether to show the startup window.
+    backend_flag = True  # Flag to enable/disable the backend optimization module.
+    startup_flag = True  # Flag to enable/disable the startup dialog.
     startup_file = None  # The path to the project file to open on startup (if any).
     startup_code = StartupCode.New
 
-    _settings = DefaultOpts()
+    @dataclasses.dataclass
+    class Options:
+        """
+        Default asset(s) and resource(s) for the Climate Action Tool.
+        """
+
+        image: str = ":/logo/logo.png"  # The application's logo
+        theme: str = ":/theme/dark.qss"  # The qss-file to use as the default theme.
+        bezel: int = (
+            64  # Initial padding around the main window at application startup.
+        )
+        fonts = {  # Keys should match values returned by `platform.system()`.
+            "windows": types.SimpleNamespace(family="Fira Code", pointSize=8),
+            "darwin": types.SimpleNamespace(family="Menlo", pointSize=11),
+            "linux": types.SimpleNamespace(family="Noto Sans", pointSize=11),
+        }
 
     def __init__(self):
         super().__init__(sys.argv)
+        super().setObjectName("climate-action-tool")
 
-        bezel = self._settings.bezel
-        theme = self._settings.theme
+        self._opts = ClimateActionTool.Options()
+        image = self._opts.image  # Application logo.
+        bezel = self._opts.bezel  # Initial padding around the main window.
+        theme = self._opts.theme  # Application-wide theme.
 
+        # Compute window geometry by padding screen bounds with bezel.
+        # Example: 1920x1080 screen yields 1720x880 for a bezel of 100 pixels.
         screen = QtWidgets.QApplication.primaryScreen()
         bounds = screen.availableGeometry()
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
-        self._init_args()  # Parse cmd-line arguments and sets appropriate flags.
+        self._init_args()  # Parse arguments first to allow user-modified styling in the future.
         self._init_font()
         self._init_style(theme)
+        self.setWindowIcon(QtGui.QIcon(image))
 
-        # When the `--no-startup` cmd-line option is used, the self.startup_flag is set to `False` and the startup
-        # dialog is not shown:
+        # `self.startup_flag` is True by default, False when `--no-startup` is passed:
         if self.startup_flag:
             self.startup_code, self.startup_file = self._show_startup()
 
-        # At this point, the `self.startup_code` will either be its default value or can potentially become negative
-        # or zero, in which case the application will quit. For positive values, the application will proceed to init
-        # the main interface:
+        # `self.startup_code` is non-zero by default, <=0 when the user cancels or quits:
         if self.startup_code:
             self._win = MainWindow(project=self.startup_file)
             self._win.setWindowTitle("Climate Action Tool")
@@ -118,6 +138,10 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         result: int = startup.result()
         return result, None
+
+    @property
+    def options(self) -> Options:
+        return self._opts
 
 
 def main():

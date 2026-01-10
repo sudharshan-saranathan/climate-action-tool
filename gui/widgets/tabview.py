@@ -1,26 +1,21 @@
-# Encoding: utf-8
-# Module name: tabview
-# Description: A tab-switching widget for the Climate Action Tool
-
-# Imports (standard)
 from __future__ import annotations
+
+import dataclasses
 import logging
 
-# Imports (third party)
+from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
-from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
 
 # Initialize logger
 logger = logging.getLogger(__name__)
 
-TAB_VIEW_OPTS = {
-    "max-tabs": 8,
-}
+
+@dataclasses.dataclass
+class TabViewOpts:
+    max_tabs: int = 8
 
 
-# Tab switcher class:
+# A QTabWidget subclass with
 class TabView(QtWidgets.QTabWidget):
     """
     A tab-switching widget based on QtWidgets.QTabWidget.
@@ -45,24 +40,21 @@ class TabView(QtWidgets.QTabWidget):
 
         # Create the initial map tab:
         self.create_tab(
-            widget=self._create_map_view(),
+            widget=TabView._create_map_view(),
             label="Map",
             icon=qta_icon("mdi.map", color="lightgreen"),
         )
 
-    # Create the map view widget:
-    def _create_map_view(self) -> QtWidgets.QWidget:
-        """Create a Viewer with the map Scene."""
+    @staticmethod
+    def _create_map_view() -> QtWidgets.QWidget:
+        """
+        Instantiates `Viewer` and sets a map-scene.
+        """
+
         from gui.maps import Scene
         from gui.widgets.viewer import Viewer
 
         return Viewer(Scene())
-
-    # Create a placeholder widget for empty tabs:
-    def _create_placeholder(self) -> QtWidgets.QWidget:
-        placeholder = QtWidgets.QLabel("Open a project or create a new model to get started.")
-        placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        return placeholder
 
     # Create a new tab:
     def create_tab(
@@ -80,19 +72,18 @@ class TabView(QtWidgets.QTabWidget):
         """
 
         # Check if maximum tabs reached:
-        if self.count() >= TAB_VIEW_OPTS["max-tabs"]:
+        if self.count() >= TabViewOpts().max_tabs:
             QtWidgets.QApplication.beep()
             return
 
         count = self.count()
         label = label or f"Tab {count + 1}"
-        widget = widget or self._create_placeholder()
+        widget = widget or QtWidgets.QFrame()
 
         self.addTab(widget, label)
         self.setTabIcon(count, icon or qta_icon("mdi.tab", color="gray"))
         self.setCurrentIndex(count)
 
-    # Remove the current tab:
     def remove_tab(self) -> None:
         """
         Remove the current tab.
@@ -114,7 +105,10 @@ class TabView(QtWidgets.QTabWidget):
             index = self.currentIndex()
 
         # If no name is provided, get name from user:
-        name = name or QtWidgets.QInputDialog.getText(self, "Tab Rename", "Enter new label:")[0]
+        name = (
+            name
+            or QtWidgets.QInputDialog.getText(self, "Tab Rename", "Enter new label:")[0]
+        )
 
         # Rename the tab:
         if 0 <= index < self.count() and name:
