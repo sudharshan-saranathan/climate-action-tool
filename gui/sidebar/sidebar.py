@@ -40,8 +40,8 @@ class SideBar(QtWidgets.QDockWidget):
             )
         )
 
-        self.titleBarWidget().setStyleSheet("margin: 2px 0px 2px 0px;")
-        self.titleBarWidget().currentIndexChanged.connect(self._on_page_changed)
+        combo.setStyleSheet("margin: 2px 0px 1px 0px;")
+        combo.currentIndexChanged.connect(self._on_page_changed)
 
     #   Initialize the stacked widget:
     def _init_stack(self):
@@ -51,7 +51,7 @@ class SideBar(QtWidgets.QDockWidget):
         self._stack = QtWidgets.QStackedWidget(self)
 
         # Add pages in order matching ComboBox:
-        # 0: Map, 1: Schematic, 2: Settings, 3: Assistant, 4: Database
+        # 0: Geo Query, 1: Schematic, 2: Settings, 3: Assistant, 4: Database
         self._stack.addWidget(GeoQuery(self))  # 0: Map
         self._stack.addWidget(QtWidgets.QWidget(self))  # 1: Schematic (placeholder)
         self._stack.addWidget(GlobalSettings(self))  # 2: Settings

@@ -1,74 +1,65 @@
-# Encoding: utf-8
-# Filename: main.py
-# Description: Entry point for the application
-# Module: N/A
-
-# Imports (compatibility):
 from __future__ import annotations
 
-# Imports (standard):
+import argparse
 import logging
 import platform
 import sys
 
-# Imports (3rd party):
 from PySide6 import QtCore, QtGui, QtWidgets  # noqa: PyUnresolvedReferences
 
-# Imports (local):
 import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
 from gui import MainWindow, StartupCode, StartupDialog
 from opts import DefaultOpts
 
 
-# Class ClimateActionTool:
 class ClimateActionTool(QtWidgets.QApplication):
-    # Application-wide flags:
-    backend_flag = True  # Whether the backend-module should be loaded.
-    startup_flag = True  # Whether the startup window should be displayed.
-    startup_file = True  # Whether the startup closed with a file-selection.
-    startup_code = StartupCode.New  # Result code returned by the startup dialog
+    """
+    QtWidgets.QApplication subclass that initializes the application's window geometry and style. This class needs to
+    be instantiated before any widgets are created.
+    """
 
-    # Initializer:
+    backend_flag = True  # Whether to use the backend optimization module.
+    startup_flag = True  # Whether to show the startup window.
+    startup_file = None  # The path to the project file to open on startup (if any).
+    startup_code = StartupCode.New
+
     def __init__(self):
-        super().__init__(sys.argv)  # Required!
+        super().__init__(sys.argv)
 
-        # Shorthand for default options:
         bezel = DefaultOpts.bezel
         theme = DefaultOpts.theme
 
-        # Get screen geometry to compute application window size:
         screen = QtWidgets.QApplication.primaryScreen()
         bounds = screen.availableGeometry()
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
-        # Apply style and font:
-        self._init_args()  # Parse command-line arguments
-        self._init_style(theme)  # `theme` refers to the default qss filepath
-        self._init_font()  # Set an application-wide font
+        self._init_args()  # Parse cmd-line arguments and sets appropriate flags.
+        self._init_font()
+        self._init_style(theme)
 
-        # Get startup flag:
+        # When the `--no-startup` cmd-line option is used, the self.startup_flag is set to `False` and the startup
+        # dialog is not shown:
         if self.startup_flag:
-            self.startup_code = self._show_startup()
+            self.startup_code, self.startup_file = self._show_startup()
 
-        # If the startup window was closed with a file selection or a new project, begin the main application:
+        # At this point, the `self.startup_code` will either be its default value or can potentially become negative
+        # or zero, in which case the application will quit. For positive values, the application will proceed to init
+        # the main interface:
         if self.startup_code:
-            self._win = MainWindow()
+            self._win = MainWindow(project=self.startup_file)
             self._win.setWindowTitle("Climate Action Tool")
             self._win.setGeometry(padded)
             self._win.show()
 
-        else:
+        else:  # Manually exit the application. Otherwise, the event-loop will continue without an interface:
             sys.exit(0)
 
-    # Private method called from `__init__()`:
-    def _init_args(self):
+    def _init_args(self) -> None:
         """
-        Parse command-line arguments and set appropriate flags.
-        :return:
+        Parses command-line arguments and updates the application's flags accordingly. The flags do the following:
+        1. `--no-startup`: Skips the startup window.
+        2. `--no-backend`: Disables the backend optimization module.
         """
-
-        # Imports (standard):
-        import argparse
 
         parser = argparse.ArgumentParser()
         parser.add_argument("--version", action="version", version="%(prog)s 0.1")
@@ -79,63 +70,63 @@ class ClimateActionTool(QtWidgets.QApplication):
         self.startup_flag = args.startup
         self.backend_flag = args.backend
 
-    # Private method called from `__init__()`:
     def _init_font(self) -> None:
         """
-        Set the application's default font.
-
-        :return: None
+        Sets the application's default font.
         """
 
-        fonts = DefaultOpts.fonts  # Default fonts for each platform
-        envir = platform.system().lower()  # Get the current platform
+        fonts = DefaultOpts.fonts
+        envir = platform.system().lower()
 
-        # Exit if the platform is not supported:
         if envir not in fonts:
             logging.warning(f"Unsupported platform: {envir}")
             return
 
         self.setFont(QtGui.QFont(fonts[envir].family, fonts[envir].pointSize))
 
-    # Private method called from `__init__()`:
     def _init_style(self, path: str) -> None:
         """
-        Read and apply the stylesheet from the specified file.
+        Reads the provided QSS stylesheet and applies it to the application.
+        Does not throw an exception if the file doesn't exist or cannot be read.
 
-        :param path: Path to the stylesheet file.
-        :return: None
+        Args:
+            path (str): The path to the stylesheet file.
         """
 
-        # Read and apply the stylesheet:
-        qss_file = QtCore.QFile(path)  # Requires a compiled resource file!
+        qss_file = QtCore.QFile(path)
         if qss_file.open(QtCore.QFile.OpenModeFlag.ReadOnly):
             contents = QtCore.QTextStream(qss_file).readAll()
             self.setStyleSheet(contents)
+            logging.info("Stylesheet applied successfully.")
 
         else:
             logging.warning("Failed to read stylesheet file.")
 
-    # Show the startup window:
     @staticmethod
-    def _show_startup() -> int:
+    def _show_startup() -> tuple[int, str | None]:
         """
         Displays the startup window.
-        :return: None
+
+        Returns:
+            result (int): The result code returned by the startup dialog.
         """
 
         startup = StartupDialog()
         startup.exec()
 
-        return startup.result()
+        result: int = startup.result()
+        return result, None
 
 
-# Main:
 def main():
-    # Instantiate the application and enter its event loop:
+    """
+    Instantiates `ClimateActionTool` and enters its event loop.
+    """
+
     application = ClimateActionTool()
     application.exec()
+    sys.exit(0)
 
 
-# Invoke `main`:
 if __name__ == "__main__":
     main()

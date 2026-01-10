@@ -9,7 +9,7 @@ from __future__ import annotations
 from PySide6 import QtCore, QtWidgets
 
 # Imports (local)
-from gui.widgets import HLayout, VLayout
+from gui.widgets import CollapsibleSection, HLayout, VLayout
 
 
 # Class GeoView:
@@ -20,8 +20,19 @@ class GeoQuery(QtWidgets.QTreeWidget):
 
     # Initializer:
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__(parent)  # Pass parent to super-class constructor
 
-        # Define top-level items:
-        self.addTopLevelItem(QtWidgets.QTreeWidgetItem(["Sectors"]))
-        self.addTopLevelItem(QtWidgets.QTreeWidgetItem(["Filters"]))
+        # Customize behaviour:
+        self.setHeaderHidden(True)
+        self.setUniformRowHeights(True)
+
+        # Collapsible sections:
+        self._sectors = CollapsibleSection("Sectors")
+        self._filters = CollapsibleSection("Filters")
+
+        # Add the collapsible sections to the layout:
+        layout = VLayout(spacing=0)
+        layout.addWidget(self._sectors)
+        layout.addWidget(self._filters)
+        layout.addStretch(10)
+        self.setLayout(layout)

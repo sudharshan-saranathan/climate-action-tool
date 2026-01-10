@@ -1,23 +1,22 @@
 # Encoding: utf-8
-# Module name: viewer
-# Description: A QGraphicsView-based graph viewer for the Climact application
+# Filename: viewer.py
+# Description: A QGraphicsView-based graph viewer for the Climate Action Tool
 
+# Imports (compatibility):
+from __future__ import annotations
 
-# Import - standard
-import types
+# Imports (standard):
 import dataclasses
+import types
 
 # Import(s) - third party:
-from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
-from PySide6 import QtOpenGLWidgets
+from PySide6 import QtCore, QtGui, QtOpenGLWidgets, QtWidgets
 
 
-# Dataclass
+# Default options for the Viewer widget:
 @dataclasses.dataclass
 class ViewerOpts:
-    zoom_max: float = 3.0
+    zoom_max: float = 2.0
     zoom_min: float = 0.2
     zoom_exp: float = 1.4
 
@@ -25,16 +24,14 @@ class ViewerOpts:
 # Class Viewer: A QGraphicsView-based graph viewer
 class Viewer(QtWidgets.QGraphicsView):
     """
-    A QGraphicsView-based viewer for displaying graphics scenes in the Climact application. The viewer supports
-    smooth zooming and panning animations, uses an OpenGL viewport for hardware acceleration, and handles mouse
-    and keyboard events for intuitive navigation and item selection. The viewer also defines standard shortcuts
-    that are passed onto the scene.
+    A QGraphicsView-based viewer for displaying graphics scenes. The viewer supports smooth zooming, animations,
+    and panning. It features an OpenGL viewport (supports hardware acceleration), handles mouse and keyboard events
+    for intuitive navigation and item selection, and defines standard shortcuts that are forwarded to the scene.
     """
 
     def __init__(self, canvas: QtWidgets.QGraphicsScene, **kwargs):
-
         # These keywords (`zoom_max`, `zoom_min` and `zoom_exp`) must be popped from kwargs before calling
-        # the base-class constructor. Otherwise, an exception is raised.
+        # the base-class constructor. Otherwise, an exception will be raised.
         zoom_max = kwargs.pop("zoom_max", ViewerOpts.zoom_max)
         zoom_min = kwargs.pop("zoom_min", ViewerOpts.zoom_min)
         zoom_exp = kwargs.pop("exp", ViewerOpts.zoom_exp)
@@ -46,7 +43,9 @@ class Viewer(QtWidgets.QGraphicsView):
         super().setCornerWidget(QtWidgets.QFrame())
 
         # Initialize zoom and zoom-animation attribute(s):
-        self._zoom = types.SimpleNamespace(scale=1.0, min=zoom_min, max=zoom_max, exp=zoom_exp)
+        self._zoom = types.SimpleNamespace(
+            scale=1.0, min=zoom_min, max=zoom_max, exp=zoom_exp
+        )
 
         # Zoom animation:
         self._zoom_anim = QtCore.QPropertyAnimation(self, b"zoom")
@@ -67,23 +66,38 @@ class Viewer(QtWidgets.QGraphicsView):
         self.setViewport(self._openGL_viewport)
 
         # Set update mode for OpenGL (prevents zoom artifacts):
-        self.setViewportUpdateMode(QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
+        self.setViewportUpdateMode(
+            QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate
+        )
         self.setCacheMode(QtWidgets.QGraphicsView.CacheModeFlag.CacheNone)
 
         # Define shortcuts
         # Zoom in/out shortcuts:
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+="), self, lambda: self.execute_zoom(1.2, True))
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+-"), self, lambda: self.execute_zoom(0.8, True))
+        QtGui.QShortcut(
+            QtGui.QKeySequence("Ctrl+="), self, lambda: self.execute_zoom(1.2, True)
+        )
+        QtGui.QShortcut(
+            QtGui.QKeySequence("Ctrl+-"), self, lambda: self.execute_zoom(0.8, True)
+        )
 
         # Scene-actions:
-        QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Undo, self, self._shortcut_handler)
-        QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Redo, self, self._shortcut_handler)
-        QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Copy, self, self._shortcut_handler)
-        QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Paste, self, self._shortcut_handler)
+        QtGui.QShortcut(
+            QtGui.QKeySequence.StandardKey.Undo, self, self._shortcut_handler
+        )
+        QtGui.QShortcut(
+            QtGui.QKeySequence.StandardKey.Redo, self, self._shortcut_handler
+        )
+        QtGui.QShortcut(
+            QtGui.QKeySequence.StandardKey.Copy, self, self._shortcut_handler
+        )
+        QtGui.QShortcut(
+            QtGui.QKeySequence.StandardKey.Paste, self, self._shortcut_handler
+        )
 
         # Handle item focus signals (optional - EventsBus may not exist yet):
         try:
             from core.bus import EventsBus
+
             bus = EventsBus.instance()
             bus.sig_item_focused.connect(self._on_item_focused)
         except ImportError:
@@ -91,6 +105,12 @@ class Viewer(QtWidgets.QGraphicsView):
 
     # Filter the shift key to activate panning mode
     def keyPressEvent(self, event, /):
+        """
+        Reimplements the keyPressEvent method to capture Shift and Control presses.
+
+        Args:
+            event (QtGui.QKeyEvent): Event object instantiated and internally managed by Qt.
+        """
 
         # When the Ctrl key is pressed, switch to selection mode:
         if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier:
@@ -105,6 +125,12 @@ class Viewer(QtWidgets.QGraphicsView):
 
     # When the Shift key is released, switch back to hand-drag mode
     def keyReleaseEvent(self, event, /):
+        """
+        Reimplements the keyReleaseEvent method to reset the drag mode and cursor.
+
+        Args:
+            event (QtGui.QKeyEvent): Event object instantiated and internally managed by Qt.
+        """
 
         # Reset to no-drag mode and unset cursor:
         self.setDragMode(QtWidgets.QGraphicsView.DragMode.RubberBandDrag)
@@ -112,13 +138,21 @@ class Viewer(QtWidgets.QGraphicsView):
 
         super().keyReleaseEvent(event)
 
-    # QWheelEvent
+    # When the mouse or trackpad is scrolled:
     def wheelEvent(self, event, /):
+        """
+        Reimplements the wheelEvent method to zoom in/out based on the scroll direction.
+
+        Args:
+            event (QtGui.QWheelEvent): Event object instantiated and internally managed by Qt.
+        """
 
         delta = event.angleDelta().y()
         delta = self._zoom.exp ** (delta / 100.0)
 
-        self.execute_zoom(delta, event.deviceType() == QtGui.QInputDevice.DeviceType.Mouse)
+        self.execute_zoom(
+            delta, event.deviceType() == QtGui.QInputDevice.DeviceType.Mouse
+        )
 
     # Shortcut handler
     @QtCore.Slot()
@@ -165,14 +199,12 @@ class Viewer(QtWidgets.QGraphicsView):
     # Set the zoom level
     @zoom.setter
     def zoom(self, value: float):
-
         factor = value / self._zoom.scale
         self.scale(factor, factor)
         self._zoom.scale = value
 
     # Zoom execution:
     def execute_zoom(self, factor, animate=True, /):
-
         # Stop any ongoing animation:
         if self._zoom_anim.state() == QtCore.QPropertyAnimation.State.Running:
             self._zoom_anim.stop()
@@ -201,7 +233,6 @@ class Viewer(QtWidgets.QGraphicsView):
 
     # This method implements the centering animation for graphics items:
     def _on_item_focused(self, item: QtWidgets.QGraphicsObject):
-
         item_pos = item.mapToScene(item.boundingRect().center())
         view_pos = self.mapToScene(self.viewport().rect().center())
 

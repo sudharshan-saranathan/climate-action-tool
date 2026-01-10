@@ -1,5 +1,5 @@
 * {
-    background                  : #232a2e;
+    background                  : transparent;
 }
 
 QMainWindow::separator {
@@ -312,6 +312,44 @@ QToolBar#traffic-lights QToolButton:hover {
 
 /*
 ------------------------------------------------------------------------------------------------------------------------
+ -- QToolButton customization
+    The following section customizes the appearance of standalone QToolButton widgets
+    (outside of toolbars). It defines styles for normal, hover, pressed, and checked states.
+*/
+
+QToolButton {
+    background                  : transparent;
+    border-radius               : 4px;
+    padding                     : 4px;
+    margin                      : 2px;
+    color                       : white;
+    border                      : 1px solid transparent;
+    outline                     : 0px;
+}
+
+QToolButton:hover {
+    background                  : #4a556d;
+    border                      : 1px solid #5a6580;
+    outline                     : 0px;
+}
+
+QToolButton:pressed {
+    background                  : #3d4a5a;
+    border                      : 1px solid #5a6580;
+}
+
+QToolButton:checked {
+    background                  : #547778;
+    border                      : 1px solid #ffcb00;
+}
+
+QToolButton:disabled {
+    color                       : #5a5a5a;
+    background                  : transparent;
+}
+
+/*
+------------------------------------------------------------------------------------------------------------------------
 -- Dialog customization
 */
 
@@ -379,7 +417,7 @@ QMenu::right-arrow {                                    /* Submenu arrow style *
 */
 
 QTreeWidget {
-    background                  : #40474d;
+    background                  : transparent;
     border                      : none;
     outline                     : 0px;
     border-radius               : 4px;
@@ -401,7 +439,7 @@ QTreeWidget QHeaderView::section:last {
 QTreeWidget::item {
     background                  : transparent;
     margin                      : 0px;
-    padding                     : 1px;
+    padding                     : 4px;
     color                       : lightgray;
     height                      : 28px;
     border                      : none;
@@ -522,7 +560,7 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-li
 
 QComboBox {
     color                           : white;
-    height                          : 28px;
+    height                          : 27px;
     border-radius                   : 4px;
     background                      : #4a556d;
     padding                         : 0px 4px 0px 4px;
@@ -540,6 +578,15 @@ QComboBox::down-arrow {
     width                           : 16px;
     image                           : url(assets/icons/pack-png/caret-down.png);
     margin-right                    : 4px;
+}
+
+QComboBox QAbstractItemView {
+    background                      : #393e41;
+    margin-top                      : 2px;
+    color                           : white;
+    border                          : 1px solid #3a4a5a;
+    border-radius                   : 2px;
+    selection-background-color      : #4a556d;
 }
 
 /*

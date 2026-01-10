@@ -4,29 +4,27 @@
 
 
 # Imports (third party)
+from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
-from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
 
 
 # Item delegate for a combo box with a fixed height:
 class FixedHeightDelegate(QtWidgets.QStyledItemDelegate):
-
     # Default constructor:
     def __init__(self, height: int, parent=None):
         super().__init__(parent)
         self._height = int(height)
 
     # Reimplement sizeHint to set fixed height:
-    def sizeHint(self, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex):
+    def sizeHint(
+        self, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex
+    ):
         base = super().sizeHint(option, index)
         return QtCore.QSize(base.width(), self._height)
 
 
 # Class ComboBox:
 class ComboBox(QtWidgets.QComboBox):
-
     # Default constructor:
     def __init__(self, parent=None, **kwargs):
         super().__init__(
@@ -57,6 +55,7 @@ class ComboBox(QtWidgets.QComboBox):
             "QComboBox QAbstractView::item {"
             "width:  80px;"
             "padding: 4px;"
+            "background: #232a2e;"
             "}"
             "QComboBox QAbstractView::item:selected {"
             "background-color: #3874F2;"
@@ -66,8 +65,9 @@ class ComboBox(QtWidgets.QComboBox):
 
         # Add items, if available:
         for item in kwargs.get("items", []):
-
-            if isinstance(item, tuple) and len(item) == 2:  # Items have both icons and labels
+            if (
+                isinstance(item, tuple) and len(item) == 2
+            ):  # Items have both icons and labels
                 icon, label = item
                 self.addItem(qta_icon(icon, color="lightgray"), label)
 
