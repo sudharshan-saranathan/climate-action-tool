@@ -23,11 +23,13 @@ class ClimateActionTool(QtWidgets.QApplication):
     startup_file = None  # The path to the project file to open on startup (if any).
     startup_code = StartupCode.New
 
+    _settings = DefaultOpts()
+
     def __init__(self):
         super().__init__(sys.argv)
 
-        bezel = DefaultOpts.bezel
-        theme = DefaultOpts.theme
+        bezel = self._settings.bezel
+        theme = self._settings.theme
 
         screen = QtWidgets.QApplication.primaryScreen()
         bounds = screen.availableGeometry()
