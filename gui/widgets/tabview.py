@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
+import platform
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
@@ -32,6 +33,15 @@ class TabView(QtWidgets.QTabWidget):
         # Connect the tab widget's signals to appropriate slots:
         self.setIconSize(QtCore.QSize(16, 16))
         self.tabCloseRequested.connect(self._on_tab_close)
+
+        # Set font from application settings to ensure cross-platform consistency
+        app = QtWidgets.QApplication.instance()
+        if app and hasattr(app, "options"):
+            fonts = app.options.fonts
+            envir = platform.system().lower()
+            if envir in fonts:
+                font_spec = fonts[envir]
+                self.setFont(QtGui.QFont(font_spec.family, font_spec.pointSize))
 
         # Shortcuts (using QKeySequence for cross-platform compatibility):
         QtGui.QShortcut(QtGui.QKeySequence.StandardKey.AddTab, self, self.create_tab)

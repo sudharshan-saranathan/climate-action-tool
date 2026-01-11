@@ -4,6 +4,7 @@
 
 
 # Imports (third party)
+import platform
 from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
 
@@ -73,3 +74,12 @@ class ComboBox(QtWidgets.QComboBox):
 
             else:
                 self.addItem(item)  # Only labels
+
+        # Set font from application settings to ensure cross-platform consistency:
+        app = QtWidgets.QApplication.instance()
+        if app and hasattr(app, "options"):
+            fonts = app.options.fonts
+            envir = platform.system().lower()
+            if envir in fonts:
+                font_spec = fonts[envir]
+                self.setFont(QtGui.QFont(font_spec.family, font_spec.pointSize))
