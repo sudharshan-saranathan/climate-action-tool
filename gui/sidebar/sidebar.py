@@ -46,15 +46,15 @@ class SideBar(QtWidgets.QDockWidget):
     #   Initialize the stacked widget:
     def _init_stack(self):
         from .geo_query import GeoQuery
-        from .setting import GlobalSettings
+        from .setting import Preferences
 
         self._stack = QtWidgets.QStackedWidget(self)
 
         # Add pages in order matching ComboBox:
         # 0: Geo Query, 1: Schematic, 2: Settings, 3: Assistant, 4: Database
-        self._stack.addWidget(GeoQuery(self))  # 0: Map
+        self._stack.addWidget(QtWidgets.QFrame(self))  # 0: Map Control (placeholder)
         self._stack.addWidget(QtWidgets.QWidget(self))  # 1: Schematic (placeholder)
-        self._stack.addWidget(GlobalSettings(self))  # 2: Settings
+        self._stack.addWidget(Preferences(self))  # 2: Settings
         self._stack.addWidget(QtWidgets.QWidget(self))  # 3: Assistant (placeholder)
         self._stack.addWidget(QtWidgets.QWidget(self))  # 4: Database (placeholder)
 

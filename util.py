@@ -1,21 +1,13 @@
-# Encoding: utf-8
 # Filename: util.py
 # Description: Utility functions for the application.
 
-# Import (standard)
-import os
-
-# Imports (third party)
-import qtawesome as qta
-from PySide6 import QtCore, QtGui, QtWidgets
+from __future__ import annotations
+from PySide6 import QtCore, QtWidgets
 
 
-# Returns a right justified toolbar:
 def right_justified_toolbar(**kwargs) -> QtWidgets.QToolBar:
     """
     Returns a right justified toolbar.
-    :param kwargs: Additional keyword arguments for the QToolBar.
-    :return: QtWidgets.QToolBar
     """
 
     spacer = QtWidgets.QWidget()
@@ -29,7 +21,6 @@ def right_justified_toolbar(**kwargs) -> QtWidgets.QToolBar:
     return toolbar
 
 
-# Method to show available QtAwesome icons:
 def qt_awesome_icon_browser() -> None:
     """
     Displays the QtAwesome icon browser in a new non-modal window.

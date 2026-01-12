@@ -15,7 +15,7 @@ from gui.widgets.layouts import HLayout
 
 
 # Global settings widget
-class GlobalSettings(QtWidgets.QWidget):
+class Preferences(QtWidgets.QWidget):
 
     # Default constructor:
     def __init__(self, parent: QtWidgets.QWidget | None = None):

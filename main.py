@@ -1,25 +1,23 @@
+# Filename: main.py
+# Description: Entry point for the Climate Action Tool.
+
 from __future__ import annotations
 
-import argparse
 import dataclasses
 import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
+import argparse
 import platform
 import logging
-import sys
 import types
+import sys
+
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 
 
-logging.basicConfig(level=logging.INFO)
-
-
-from PySide6 import (
-    QtCore,
-    QtGui,
-    QtWidgets,
-    __version__,
-)  # noqa: PyUnresolvedReferences
-
-from gui import MainWindow, StartupCode, StartupDialog
+from gui import MainWindow
+from gui import StartupCode, StartupDialog
 
 
 class ClimateActionTool(QtWidgets.QApplication):
@@ -53,10 +51,6 @@ class ClimateActionTool(QtWidgets.QApplication):
     def __init__(self):
         super().__init__(sys.argv)
         super().setObjectName("climate-action-tool")
-        logging.info("Welcome to the Climate Action Tool.")
-        logging.info(f"Command line options:{sys.argv}")
-        logging.info(f"PySide6 version: {__version__}")
-        logging.info(f"Platform: {platform.system()}")
 
         self._opts = ClimateActionTool.Options()
         image = self._opts.image  # Application logo.
@@ -134,7 +128,6 @@ class ClimateActionTool(QtWidgets.QApplication):
         if qss_file.open(QtCore.QFile.OpenModeFlag.ReadOnly):
             contents = QtCore.QTextStream(qss_file).readAll()
             self.setStyleSheet(contents)
-            logging.info("Stylesheet applied successfully.")
 
         else:
             logging.warning("Failed to read stylesheet file.")

@@ -6,7 +6,6 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
 
 from gui.sidebar import SideBar
-from gui.widgets import TabView, ToolBar
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -23,17 +22,17 @@ class MainWindow(QtWidgets.QMainWindow):
             default_factory=lambda: QtGui.QBrush(QtGui.QColor(0x232A2E))
         )
 
-    # Singleton pattern instance:
+    # Singleton instance:
     _instance: MainWindow | None = None
 
-    # Singleton pattern adopted:
+    # Standard implementation of singleton pattern:
     def __new__(cls, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, **kwargs):
-        # Prevent reinitialization for singleton pattern:
+        # Prevent reinitialization of singleton instance:
         if hasattr(self, "_initialized"):
             return
 
@@ -47,8 +46,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._init_menubar()
         self._init_toolbar()
-        self._init_sidebar()
-        self._init_tabview()
+        # self._init_sidebar()
+        # self._init_tabview()
+        self._init_status()
 
         self._options = MainWindow.Options()
         self._initialized = True
@@ -137,6 +137,11 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         self.setCentralWidget(tabs)
+
+    def _init_status(self) -> None:
+
+        self._status = QtWidgets.QStatusBar()
+        self.setStatusBar(self._status)
 
     @QtCore.Slot()
     def _on_action_triggered(self):

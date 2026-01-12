@@ -1,9 +1,7 @@
-from .geo_query import GeoQuery
-from .setting import GlobalSettings
+from .setting import Preferences
 from .sidebar import SideBar
 
 __all__ = [
     "SideBar",
-    "GlobalSettings",
-    "GeoQuery",
+    "Preferences",
 ]

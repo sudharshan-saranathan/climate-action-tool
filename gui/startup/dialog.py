@@ -3,13 +3,15 @@ import enum
 from PySide6 import QtCore, QtWidgets
 from qtawesome import icon as qta_icon
 
-from gui.startup import widget, welcome
+from gui.startup import widget
 from gui.widgets import HLayout, VLayout
 from util import right_justified_toolbar
 
 
 class StartupCode(enum.Enum):
-    """Result codes representing user selections during startup."""
+    """
+    Result codes representing user selections during startup.
+    """
 
     Closed = -1
     Quit = 0
@@ -20,51 +22,37 @@ class StartupCode(enum.Enum):
 
 class StartupDialog(QtWidgets.QDialog):
     """
-    A startup widget with actions/buttons to start a new project, import from templates, or open existing models.
+    A startup and welcome dialog for the Climate Action Tool. The widget displays useful information about the app,
+    along with buttons for starting new projects or loading existing projects.
     """
 
     def __init__(self):
         super().__init__(None)
         super().setObjectName("startup-dialog")  # Used in the QSS stylesheet.
+        super().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+        super().setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
 
         self._startup_choice = QtWidgets.QButtonGroup(exclusive=True)
         self._setup_ui()
 
-        # Frameless window with a translucent background:
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
-
     def _setup_ui(self):
         """
         Adds the following UI components to this dialog:
-        1. `container`: A container widget with integrated welcome screen
+        1. `container`: A container widget
         """
 
         # QDialog is transparent, so we need a non-transparent container for the background.
         # This also enforces rounded corners independent of the platform.
         container = QtWidgets.QFrame(self)
-        container.setFixedSize(1000, 600)
-        container.setObjectName(
-            "startup-dialog-container"
-        )  # DO NOT MODIFY: Used in QSS file.
-
-        # Use the integrated StartupWelcome widget:
-        welcome_widget = welcome.StartupWelcome(self)
-        welcome_widget.new_project.connect(self.accept)
-        welcome_widget.open_project.connect(self._on_open_project)
+        container.setFixedSize(900, 640)
+        container.setObjectName("startup-dialog-container")  # Used in QSS file.
 
         VLayout(self, widgets=[container])
-        VLayout(container, widgets=[welcome_widget])
-
-    def _on_open_project(self, project_name: str):
-        """Handle opening a selected project."""
-        self.setProperty("action", StartupCode.Import.name)
-        self.setProperty("object", project_name)
-        self.done(StartupCode.Import.value)
+        HLayout(container, widgets=[self._init_buttons(), self._init_library()])
 
     def _init_buttons(self) -> QtWidgets.QGroupBox:
         """
-        Creates and returns a QGroupBox with three buttons: `New Project`, `Templates`, and `Models`.
+        Creates and returns a QGroupBox with welcome content and action buttons.
         """
 
         button_style = (
@@ -79,18 +67,17 @@ class StartupDialog(QtWidgets.QDialog):
             "}"
         )
 
-        buttons = QtWidgets.QGroupBox(
+        panel = QtWidgets.QGroupBox(
             flat=True, alignment=QtCore.Qt.AlignmentFlag.AlignRight
         )
-        buttons.setFixedWidth(280)
+        panel.setFixedWidth(360)
 
-        vlayout = VLayout(buttons, spacing=12, margins=(4, 4, 4, 4))
+        vlayout = VLayout(panel, spacing=4, margins=(8, 8, 8, 8))
 
-        vlayout.addStretch(4)
+        # Action buttons:
         vlayout.addWidget(new := QtWidgets.QPushButton("New Project"))
         vlayout.addWidget(hdd := QtWidgets.QPushButton("Templates"))
         vlayout.addWidget(mod := QtWidgets.QPushButton("Models"))
-        vlayout.addStretch(4)
 
         self._startup_choice.addButton(mod)
         self._startup_choice.addButton(hdd)
@@ -111,7 +98,9 @@ class StartupDialog(QtWidgets.QDialog):
         hdd.pressed.connect(self._on_select_template)
         mod.pressed.connect(self._on_select_models)
 
-        return buttons
+        vlayout.addStretch()
+
+        return panel
 
     def _init_library(self) -> QtWidgets.QFrame:
         """
@@ -211,7 +200,10 @@ class StartupDialog(QtWidgets.QDialog):
             self.findChild(QtWidgets.QPushButton, "Open").setDisabled(True)
 
     def _on_search(self, text: str):
-        """Filter table by search text."""
+        """
+        Filter table by search text.
+        """
+
         if isinstance(
             table := self.findChild(QtWidgets.QTableWidget), widget.FileTable
         ):
