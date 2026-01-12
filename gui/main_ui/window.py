@@ -3,9 +3,9 @@
 # Description: Main UI of the Climate Action Tool (CAT).
 
 from __future__ import annotations
-from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
-from gui.sidebar import SideBar
+from PySide6 import QtCore, QtGui, QtWidgets
+from gui.widgets import ToolBar
 
 import dataclasses
 
@@ -121,6 +121,9 @@ class MainWindow(QtWidgets.QMainWindow):
         The dock houses a ComboBox in its title, and a QStackedWidget as the main widget.
         """
 
+        # Import `SideBar`:
+        from .sidebar.sidebar import SideBar
+
         sidebar = SideBar(self)
         sidebar.hide()
 
@@ -131,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Instantiates TabView (a subclass of QTabWidget) and adds it as the central widget of the main window.
         """
 
-        tabs = TabView(
+        tabs = QtWidgets.QTabWidget(
             self,
             tabsClosable=True,
             tabPosition=QtWidgets.QTabWidget.TabPosition.North,

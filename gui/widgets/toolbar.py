@@ -1,33 +1,39 @@
-# Encoding: utf-8
-# Module name: toolbar
+# Filename: toolbar
+# Module name: widgets
 # Description: A custom toolbar for the Climact application with action handling and alignment.
 
-
-# Imports (standard)
-from __future__ import annotations
-from typing import Callable, List, Tuple, Any
+# Imports (standard):
+import dataclasses
 
 
-# Imports (third party)
-from PySide6 import QtGui
+# Imports (3rd party):
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 
-# Class Toolbar
 class ToolBar(QtWidgets.QToolBar):
 
-    # Signals
-    sig_action_triggered = QtCore.Signal(str)
+    # Default options:
+    @dataclasses.dataclass(frozen=True)
+    class Options:
+        iconSize: QtCore.QSize = QtCore.QSize(16, 16)
+        floatable: bool = False
+        trailing: bool = True
+        movable: bool = False
+        orientation: QtCore.Qt.Orientation = QtCore.Qt.Orientation.Horizontal
 
-    # Initializer
     def __init__(self, parent=None, **kwargs):
+
+        # Instantiate default options:
+        self._opts = ToolBar.Options(**kwargs)
+
+        #
         super().__init__(
             parent,
-            movable=False,
-            floatable=False,
-            orientation=QtCore.Qt.Orientation.Horizontal,
-            iconSize=kwargs.get("iconSize", QtCore.QSize(16, 16)),
+            movable=self._opts.movable,
+            floatable=self._opts.floatable,
+            orientation=self._opts.orientation,
+            iconSize=kwargs.get("iconSize", self._opts.iconSize),
         )
 
         items = kwargs.get("actions", [])

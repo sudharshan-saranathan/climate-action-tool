@@ -1,8 +1,6 @@
-# --
-# Encoding: utf-8
-# Module name: layout
+# Filename: layouts
+# Module name: widgets
 # Description: Layout utilities for the Climact application
-# --
 
 # Import(s):
 from PySide6 import QtWidgets

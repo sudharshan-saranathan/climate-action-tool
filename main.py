@@ -1,8 +1,10 @@
 # Filename: main.py
+# Module name: main_ui
 # Description: Entry point for the Climate Action Tool.
 
 from __future__ import annotations
 
+#
 import dataclasses
 import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
 import argparse
@@ -29,7 +31,6 @@ class ClimateActionTool(QtWidgets.QApplication):
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.
     startup_file = None  # The path to the project file to open on startup (if any).
-    startup_code = StartupCode.New
 
     @dataclasses.dataclass
     class Options:
