@@ -16,8 +16,8 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 
-from gui import MainWindow
-from gui import StartupCode, StartupDialog
+from gui.main_ui import MainWindow
+from gui.startup import StartupWindow
 
 
 class ClimateActionTool(QtWidgets.QApplication):
@@ -141,7 +141,7 @@ class ClimateActionTool(QtWidgets.QApplication):
             result (int): The startup window.
         """
 
-        startup = StartupDialog()
+        startup = StartupWindow()
         startup.exec()
 
         result: int = startup.result()

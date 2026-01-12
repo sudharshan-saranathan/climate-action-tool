@@ -1,11 +1,13 @@
+# Filename: window.py
+# Module name: main_ui
+# Description: Main UI of the Climate Action Tool (CAT).
+
 from __future__ import annotations
-
-import dataclasses
-
 from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
-
 from gui.sidebar import SideBar
+
+import dataclasses
 
 
 class MainWindow(QtWidgets.QMainWindow):

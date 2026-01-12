@@ -1,4 +1,4 @@
 from .main_ui.window import MainWindow
-from .startup.dialog import StartupCode, StartupDialog
+from .startup.window import StartupWindow
 
-__all__ = ["MainWindow", "StartupCode", "StartupDialog"]
+__all__ = ["MainWindow"]
