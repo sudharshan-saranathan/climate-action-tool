@@ -2,22 +2,30 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
-import logging
+import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
 import platform
+import logging
 import sys
 import types
 
-from PySide6 import QtCore, QtGui, QtWidgets  # noqa: PyUnresolvedReferences
 
-import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
+logging.basicConfig(level=logging.INFO)
+
+
+from PySide6 import (
+    QtCore,
+    QtGui,
+    QtWidgets,
+    __version__,
+)  # noqa: PyUnresolvedReferences
+
 from gui import MainWindow, StartupCode, StartupDialog
-from opts import DefaultOpts
 
 
 class ClimateActionTool(QtWidgets.QApplication):
     """
-    QtWidgets.QApplication subclass that initializes the application's window geometry and style. This class needs to
-    be instantiated before any widgets are created.
+    Subclass of `QtWidgets.QApplication`. Sets style, font, and initializes the main user interface.
+    Must be instantiated before QtWidgets.
     """
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
@@ -45,6 +53,10 @@ class ClimateActionTool(QtWidgets.QApplication):
     def __init__(self):
         super().__init__(sys.argv)
         super().setObjectName("climate-action-tool")
+        logging.info("Welcome to the Climate Action Tool.")
+        logging.info(f"Command line options:{sys.argv}")
+        logging.info(f"PySide6 version: {__version__}")
+        logging.info(f"Platform: {platform.system()}")
 
         self._opts = ClimateActionTool.Options()
         image = self._opts.image  # Application logo.
@@ -57,9 +69,9 @@ class ClimateActionTool(QtWidgets.QApplication):
         bounds = screen.availableGeometry()
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
-        self._init_args()  # Parse arguments first to allow user-modified styling in the future.
-        self._init_font()
-        self._init_style(theme)
+        self._init_style(theme)  # Apply the theme first.
+        self._init_font()  # Font-setting should succeed style-setting.
+        self._init_args()  # Finally, parse command-line arguments.
         self.setWindowIcon(QtGui.QIcon(image))
 
         # `self.startup_flag` is True by default, False when `--no-startup` is passed:
@@ -94,11 +106,14 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     def _init_font(self) -> None:
         """
-        Sets the application's default font.
+        Sets the application's font based on the platform.
+        Windows - "Fira Code"
+        macOS - "Menlo"
+        Linux - "Ubuntu Sans Mono"
         """
 
-        fonts = DefaultOpts.fonts
-        envir = platform.system().lower()
+        fonts: dict[str, types.SimpleNamespace] = self._opts.fonts
+        envir: str = platform.system().lower()
 
         if envir not in fonts:
             logging.warning(f"Unsupported platform: {envir}")
@@ -130,7 +145,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         Displays the startup window.
 
         Returns:
-            result (int): The result code returned by the startup dialog.
+            result (int): The startup window.
         """
 
         startup = StartupDialog()

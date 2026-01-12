@@ -3,7 +3,7 @@ import enum
 from PySide6 import QtCore, QtWidgets
 from qtawesome import icon as qta_icon
 
-from gui.startup import widget
+from gui.startup import widget, welcome
 from gui.widgets import HLayout, VLayout
 from util import right_justified_toolbar
 
@@ -37,19 +37,30 @@ class StartupDialog(QtWidgets.QDialog):
     def _setup_ui(self):
         """
         Adds the following UI components to this dialog:
-        1. `container`: A container widget
+        1. `container`: A container widget with integrated welcome screen
         """
 
         # QDialog is transparent, so we need a non-transparent container for the background.
         # This also enforces rounded corners independent of the platform.
         container = QtWidgets.QFrame(self)
-        container.setFixedSize(900, 640)
+        container.setFixedSize(1000, 600)
         container.setObjectName(
             "startup-dialog-container"
         )  # DO NOT MODIFY: Used in QSS file.
 
+        # Use the integrated StartupWelcome widget:
+        welcome_widget = welcome.StartupWelcome(self)
+        welcome_widget.new_project.connect(self.accept)
+        welcome_widget.open_project.connect(self._on_open_project)
+
         VLayout(self, widgets=[container])
-        HLayout(container, widgets=[self._init_buttons(), self._init_library()])
+        VLayout(container, widgets=[welcome_widget])
+
+    def _on_open_project(self, project_name: str):
+        """Handle opening a selected project."""
+        self.setProperty("action", StartupCode.Import.name)
+        self.setProperty("object", project_name)
+        self.done(StartupCode.Import.value)
 
     def _init_buttons(self) -> QtWidgets.QGroupBox:
         """

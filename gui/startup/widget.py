@@ -13,7 +13,6 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from qtawesome import icon as qta_icon
 
 # Imports (local)
-from opts import DefaultOpts
 from gui import widgets
 
 
@@ -131,9 +130,7 @@ class FileTable(QtWidgets.QTableWidget):
         )
 
         # Change the icon based on whether the item is a directory or not:
-        item_first_column = QtWidgets.QTableWidgetItem(
-            QtGui.QIcon(DefaultOpts["logo"]), str()
-        )
+        item_first_column = QtWidgets.QTableWidgetItem(str())
 
         self.setRowHeight(row, 36)
         self.setCellWidget(row, 0, FileWidget(path.stem))

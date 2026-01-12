@@ -9,7 +9,7 @@ from __future__ import annotations
 from PySide6 import QtCore, QtWidgets
 
 # Imports (local)
-from gui.widgets import CollapsibleSection, HLayout, VLayout
+from gui.widgets import HLayout, VLayout
 
 
 # Class GeoView:
@@ -26,13 +26,6 @@ class GeoQuery(QtWidgets.QTreeWidget):
         self.setHeaderHidden(True)
         self.setUniformRowHeights(True)
 
-        # Collapsible sections:
-        self._sectors = CollapsibleSection("Sectors")
-        self._filters = CollapsibleSection("Filters")
-
         # Add the collapsible sections to the layout:
         layout = VLayout(spacing=0)
-        layout.addWidget(self._sectors)
-        layout.addWidget(self._filters)
-        layout.addStretch(10)
         self.setLayout(layout)

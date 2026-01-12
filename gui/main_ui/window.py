@@ -16,8 +16,7 @@ class MainWindow(QtWidgets.QMainWindow):
     only one instance of this class can exist at any given time.
     """
 
-    # Options:
-    @dataclasses.dataclass
+    @dataclasses.dataclass  # Options
     class Options:
         border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
         background: QtGui.QBrush = dataclasses.field(
@@ -121,6 +120,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
 
         sidebar = SideBar(self)
+        sidebar.hide()
+
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, sidebar)
 
     def _init_tabview(self) -> None:
