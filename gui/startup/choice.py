@@ -5,8 +5,7 @@
 import dataclasses
 from qtawesome import icon as qta_icon
 from PySide6 import QtWidgets, QtCore
-from gui.widgets import VLayout, ToolBar
-from .banner import StartupBanner
+from gui.widgets import VLayout
 
 class StartupChoice(QtWidgets.QWidget):
 
@@ -34,10 +33,11 @@ class StartupChoice(QtWidgets.QWidget):
             "   background-color: transparent;"
             "}"
             "QPushButton:hover {"
-            "   border-left: 2px solid #ffcb00;"
+            "   color: #efefef;"
             "}"
             "QPushButton:checked {"
-            "   color: #ff5c5c;"
+            "   color: white;"
+            "   font-weight: bold;"
             "}"
         )
 
@@ -55,14 +55,14 @@ class StartupChoice(QtWidgets.QWidget):
         # Buttons:
         button_new = self._create_button(
             self._opts.actions[0],
-            icon_attr={"label": "mdi.folder-plus", "color": "#ffcb00"},
+            attr={"label": "mdi.folder-plus", "color": "#ffcb00"},
             style=self._opts.style,
         )
         button_new.pressed.connect(lambda: self.sig_button_clicked.emit("New Project"))
 
         button_tmp = self._create_button(
             self._opts.actions[1],
-            icon_attr={"label": "mdi.folder-star", "color": "lightblue"},
+            attr={"label": "mdi.folder-star", "color": "lightblue"},
             checkable=True,
             style=self._opts.style,
         )
@@ -70,7 +70,7 @@ class StartupChoice(QtWidgets.QWidget):
 
         button_mod = self._create_button(
             self._opts.actions[2],
-            icon_attr={"label": "mdi.database", "color": "#c73434"},
+            attr={"label": "mdi.database", "color": "#e56b70"},
             checkable=True,
             style=self._opts.style,
         )
@@ -78,7 +78,7 @@ class StartupChoice(QtWidgets.QWidget):
 
         button_quit = self._create_button(
             self._opts.actions[3],
-            icon_attr={"label": "mdi.exit-run", "color": "#efefef"},
+            attr={"label": "mdi.exit-run", "color": "#efefef"},
             style=self._opts.style,
         )
         button_quit.pressed.connect(lambda: self.sig_button_clicked.emit("Quit"))
@@ -89,52 +89,55 @@ class StartupChoice(QtWidgets.QWidget):
         self._group.addButton(button_mod)
         self._group.addButton(button_quit)
 
-        layout = VLayout(
-            self,
-            spacing=4,
-            margins=(12, 12, 12, 12),
-        )
-
-        banner = StartupBanner()
+        layout = VLayout(self)
+        """
         links = ToolBar( # Toolbar with useful links
             self,
             orientation=QtCore.Qt.Orientation.Horizontal,
             iconSize=QtCore.QSize(24, 24),
-            trailing=True,
+            trailing=False,
             actions=[
-                (qta_icon('mdi.github', color='white'), 'Github', None),
-                (qta_icon('ri.youtube-fill', color='red'), 'Tutorial', None),
+                (qta_icon('mdi.github', color='gray', color_active='white'), 'GitHub', None),
+                (qta_icon('mdi.web', color='gray', color_active='white'), 'YouTube', None),
             ],
-            style="QToolButton {align: right; margin: 0px; padding: 0px;}"
         )
-        h_line = QtWidgets.QFrame()
-        h_line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        h_line.setLineWidth(1)
-        h_line.setStyleSheet("QFrame { background-color: #4f4f4f; }")
+        """
 
         layout.addStretch(5)
-        layout.addWidget(banner)
-        layout.addWidget(h_line)
         layout.addWidget(button_new)
         layout.addWidget(button_tmp)
         layout.addWidget(button_mod)
         layout.addWidget(button_quit)
         layout.addStretch(5)
-        layout.addWidget(links)
+
+    @staticmethod
+    def _create_license_label() -> QtWidgets.QLabel:
+        """
+        Creates a clickable license label that opens the MIT license.
+        """
+        label = QtWidgets.QLabel()
+        label.setText(
+            '<a href="https://opensource.org/licenses/MIT" style="color: #aaaaaa; text-decoration: none;">'
+            "© 2025 MIT License"
+            "</a>"
+        )
+        label.setOpenExternalLinks(True)
+        label.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        label.setStyleSheet(
+            "QLabel { color: #aaaaaa; } QLabel:hover { color: #ffcb00; }"
+        )
+        return label
 
     @staticmethod
     def _create_button(
-        text: str, icon_attr: dict[str, str], checkable=False, style: str = str()
+        text: str, attr: dict[str, str], checkable=False, style: str = str()
     ) -> QtWidgets.QPushButton:
         """
         Creates a QPushButton with the given label and QtAwesome icon.
         """
 
-        # Required:
-        from qtawesome import icon as qta_icon
-
-        label = icon_attr.get("label")
-        color = icon_attr.get("color")
+        label = attr.get("label")
+        color = attr.get("color")
 
         button = QtWidgets.QPushButton(text)
         button.setIcon(qta_icon(label, color=color))

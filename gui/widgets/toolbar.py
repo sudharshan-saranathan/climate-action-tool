@@ -63,6 +63,9 @@ class ToolBar(QtWidgets.QToolBar):
             self.add_actions(items)
             self.addWidget(spacer)
 
+        # Apply the stylesheet:
+        self.setStyleSheet(style)
+
     # Add actions to the toolbar, if provided
     def add_actions(self, actions: list) -> None:
 

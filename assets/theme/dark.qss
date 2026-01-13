@@ -282,18 +282,19 @@ QToolBar QToolButton {
     margin                      : 0px;
     color                       : white;
 }
-
-QToolBar QToolButton:hover {                    /* Hover effect for toolbar buttons */
+/*
+QToolBar QToolButton:hover {
     background                  : #4a556d;
 }
 
-QToolBar QToolButton:pressed {                  /* Pressed effect for toolbar buttons */
+QToolBar QToolButton:pressed {
     background                  : #4A556D;
 }
 
 QToolBar QToolButton:checked {
     background                  : lightslategray;
 }
+*/
 
 QToolBar::separator {
     width                       : 2px;
