@@ -45,7 +45,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         )
         fonts = {  # Keys should match values returned by `platform.system()`.
             "windows": types.SimpleNamespace(family="Fira Code", pointSize=8),
-            "darwin": types.SimpleNamespace(family="Menlo", pointSize=11),
+            "darwin": types.SimpleNamespace(family="Spot Mono", pointSize=14),
             "linux": types.SimpleNamespace(family="Ubuntu Sans Mono", pointSize=10),
         }
 

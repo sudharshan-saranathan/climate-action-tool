@@ -2,6 +2,7 @@
   <qresource prefix="/theme">
     <!-- Theme -->
     <file alias="dark.qss">assets/theme/dark.qss</file>
+    <file alias="startup.png">assets/theme/startup.png</file>
   </qresource>
 
   <qresource prefix="/logo">

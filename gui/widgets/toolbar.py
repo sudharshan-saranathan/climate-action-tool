@@ -21,21 +21,30 @@ class ToolBar(QtWidgets.QToolBar):
         trailing: bool = True
         movable: bool = False
         orientation: QtCore.Qt.Orientation = QtCore.Qt.Orientation.Horizontal
+        toolButtonStyle: QtCore.Qt.ToolButtonStyle = QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly
 
     def __init__(self, parent=None, **kwargs):
 
         # Instantiate default options:
-        self._opts = ToolBar.Options(**kwargs)
+        self._opts = ToolBar.Options(
+            iconSize=kwargs.get("iconSize", QtCore.QSize(16, 16)),
+            floatable=kwargs.get("floatable", False),
+            trailing=kwargs.get("trailing", True),
+            movable=kwargs.get("movable", False),
+            orientation=kwargs.get("orientation", QtCore.Qt.Orientation.Horizontal),
+            toolButtonStyle=kwargs.get("toolButtonStyle", QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly),
+        )
 
-        #
         super().__init__(
             parent,
             movable=self._opts.movable,
             floatable=self._opts.floatable,
             orientation=self._opts.orientation,
-            iconSize=kwargs.get("iconSize", self._opts.iconSize),
+            toolButtonStyle=self._opts.toolButtonStyle,
+            iconSize=self._opts.iconSize
         )
 
+        style = kwargs.get('style', "")
         items = kwargs.get("actions", [])
         trail = kwargs.get("trailing", True)
 
