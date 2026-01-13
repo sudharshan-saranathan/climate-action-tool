@@ -32,8 +32,7 @@ build/
 Thumbs.db
 
 # Project specific
-assets/theme/dark.qss
-assets/theme/light.qss
+*.h5
 
 # Large data files (optional - uncomment if you want to exclude them)
 # models/*.xlsx

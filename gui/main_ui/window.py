@@ -27,7 +27,7 @@ class MainWindow(QtWidgets.QMainWindow):
     # Singleton instance:
     _instance: MainWindow | None = None
 
-    # Standard implementation of singleton pattern:
+    # Standard implementation of the singleton pattern:
     def __new__(cls, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)

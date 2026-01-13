@@ -2,17 +2,18 @@
   <qresource prefix="/theme">
     <!-- Theme -->
     <file alias="dark.qss">assets/theme/dark.qss</file>
-    <file alias="startup.png">assets/theme/startup.png</file>
+    <file alias="pattern.png">assets/theme/pattern.png</file>
+  </qresource>
+
+  <qresource prefix="/fonts">
+    <!-- Fonts -->
+    <file alias="MarckScript-Regular.ttf">assets/fonts/Marck/MarckScript-Regular.ttf</file>
+    <file alias="Bilbo-Regular.ttf">assets/fonts/Bilbo/Bilbo-Regular.ttf</file>
   </qresource>
 
   <qresource prefix="/logo">
     <!-- Logo -->
     <file alias="logo.png">assets/icons/logo.png</file>
-  </qresource>
-
-  <qresource prefix="/static">
-    <!-- Background -->
-    <file alias="startup.jpg">assets/icons/startup.jpg</file>
   </qresource>
 
   <qresource prefix="/svg">
@@ -21,11 +22,7 @@
   </qresource>
 
   <qresource prefix="/png">
-    <file alias="empty.png">assets/icons/pack-png/empty.png</file>
-  </qresource>
-
-  <qresource prefix="/video">
-    <file alias="startup.mp4">assets/video/startup.mp4</file>
+    <file alias="empty.png">assets/theme/png/empty.png</file>
   </qresource>
 
   <qresource prefix="/maps">
