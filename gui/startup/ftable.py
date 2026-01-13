@@ -74,17 +74,17 @@ class StartupFileTable(QtWidgets.QTableWidget):
             default_factory=lambda: QtCore.QSize(16, 16)
         )
         empty_icon_opacity: float = 0.2
-        header_labels: list[str] = dataclasses.field(
+        columns: list[str] = dataclasses.field(
             default_factory=lambda: ["Projects", "Last Modified"]
         )
 
-    def __init__(self, parent: QtWidgets.QWidget | None = None):
-
-        # Base-class initialization:
-        super().__init__(parent, columnCount=2)
+    def __init__(self, parent=None):
 
         # Initialize options:
         self._opts = StartupFileTable.Options()
+
+        # Initialize parent class:
+        super().__init__(parent, columnCount=len(self._opts.columns))
 
         # Set attribute(s):
         self.setShowGrid(False)
@@ -93,7 +93,7 @@ class StartupFileTable(QtWidgets.QTableWidget):
         self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
 
         self.setColumnWidth(1, 120)
-        self.setHorizontalHeaderLabels(self._opts.header_labels)
+        self.setHorizontalHeaderLabels(self._opts.columns)
         self.verticalHeader().setVisible(False)
 
         # Adjust column resizing policy:
@@ -170,7 +170,7 @@ class StartupFileTable(QtWidgets.QTableWidget):
         stem = Path(directory).stem  # Get the stem of the directory name
         stem = stem.capitalize()  # Capitalize the first letter
 
-        self.setHorizontalHeaderLabels([stem, self._opts.header_labels[1]])
+        self.setHorizontalHeaderLabels([stem, self._opts.columns[1]])
         for item in Path(directory).glob(pattern):
             stat = item.stat().st_mtime  # Last modified time
             date = datetime.fromtimestamp(stat)  # Convert to datetime
