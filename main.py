@@ -46,7 +46,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         fonts = {  # Keys should match values returned by `platform.system()`.
             "windows": types.SimpleNamespace(family="Fira Code", pointSize=8),
             "darwin": types.SimpleNamespace(family="Spot Mono", pointSize=14),
-            "linux": types.SimpleNamespace(family="Ubuntu Sans Mono", pointSize=10),
+            "linux": types.SimpleNamespace(family="Ubuntu Sans Mono", pointSize=9),
         }
 
     def __init__(self):
