@@ -1,5 +1,5 @@
 * {
-    background                  : transparent;
+    background                  : #232a2e;
 }
 
 QMainWindow::separator {

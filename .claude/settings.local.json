@@ -3,7 +3,8 @@
     "allow": [
       "Bash(tree:*)",
       "Bash(wc:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(pyside6-rcc:*)"
     ]
   }
 }

@@ -2,31 +2,58 @@
 # Module name: startup
 # Description: A modal QDialog subclass that is displayed at startup.
 
-from __future__ import annotations
-from PySide6 import QtCore, QtWidgets, QtGui
 import dataclasses
+from PySide6 import QtCore, QtWidgets, QtGui
+from gui.startup.buttons import StartupButtons
+from gui.widgets import GLayout
 
 
 class StartupWindow(QtWidgets.QDialog):
 
-    @dataclasses.dataclass
+    @dataclasses.dataclass(frozen=True)
     class Options:
-        corner_radius: float = 4.0
-        area_geometry: QtCore.QRect = dataclasses.field(
-            default_factory=lambda: QtCore.QRect(0, 0, 800, 600)
+
+        radius: float = 6.0  # Radius of the rounded corners.
+        border: QtGui.QPen = (
+            dataclasses.field(  # Window border style (default: no border).
+                default_factory=lambda: QtGui.QPen(QtGui.QColor(0x393E41), 2.0)
+            )
+        )
+
+        background: QtGui.QBrush = dataclasses.field(  # Background color and style.
+            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0x232A2E))
+        )
+
+        rect: QtCore.QSize = (
+            dataclasses.field(  # Size of the window (default: 900x640).
+                default_factory=lambda: QtCore.QSize(900, 640)
+            )
         )
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        super()
-        super().setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        super().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
 
-        # Instantiate options:
+        # Instantiate options and set attribute(s):
         self._opts = StartupWindow.Options()
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+        self.resize(self._opts.rect)
+
+        # Initialize UI components:
+        self._buttons = StartupButtons(self)
+        self._background = QtGui.QPixmap(":/static/startup.jpg").scaledToHeight(
+            self._opts.rect.height()
+        )
+
+        layout = GLayout(self, spacing=4, margins=(4, 4, 4, 4))
+        layout.addWidget(self._buttons, 0, 0)
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
 
         painter = QtGui.QPainter(self)
+        painter.setPen(self._opts.border)
+        painter.setBrush(self._opts.background)
+
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-        painter.drawRoundedRect(self.rect())
+        painter.drawRoundedRect(self.rect(), self._opts.radius, self._opts.radius)
+        painter.end()

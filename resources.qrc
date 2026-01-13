@@ -9,6 +9,11 @@
     <file alias="logo.png">assets/icons/logo.png</file>
   </qresource>
 
+  <qresource prefix="/static">
+    <!-- Background -->
+    <file alias="startup.jpg">assets/icons/startup.jpg</file>
+  </qresource>
+
   <qresource prefix="/svg">
     <file alias="arrow.svg">assets/icons/pack-svg/arrow.svg</file>
     <file alias="component.svg">assets/icons/pack-svg/component.svg</file>
@@ -16,6 +21,10 @@
 
   <qresource prefix="/png">
     <file alias="empty.png">assets/icons/pack-png/empty.png</file>
+  </qresource>
+
+  <qresource prefix="/video">
+    <file alias="startup.mp4">assets/video/startup.mp4</file>
   </qresource>
 
   <qresource prefix="/maps">

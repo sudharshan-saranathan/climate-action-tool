@@ -35,7 +35,7 @@ class ClimateActionTool(QtWidgets.QApplication):
     @dataclasses.dataclass
     class Options:
         """
-        Default asset(s) and resource(s) for the Climate Action Tool.
+        Default options for the Climate Action Tool.
         """
 
         image: str = ":/logo/logo.png"  # The application's logo
