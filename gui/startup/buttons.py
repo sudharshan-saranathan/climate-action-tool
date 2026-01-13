@@ -29,6 +29,7 @@ class StartupButtons(QtWidgets.QWidget):
             "   font-size: 12px;"
             "   color: #efefef;"
             "   text-align: right;"
+            "   border-left: 2px solid transparent;"
             "   border-radius: 0px;"
             "   background-color: transparent;"
             "}"

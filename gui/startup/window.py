@@ -21,7 +21,17 @@ class StartupWindow(QtWidgets.QDialog):
         )
 
         background: QtGui.QBrush = dataclasses.field(  # Background color and style.
-            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0x232A2E))
+            default_factory=lambda: QtGui.QBrush(
+                QtGui.QColor(0x232A2E),
+                QtCore.Qt.BrushStyle.SolidPattern,
+            )
+        )
+
+        foreground: QtGui.QBrush = dataclasses.field(
+            default_factory=lambda: QtGui.QBrush(
+                QtGui.QColor(0x393E41),
+                QtCore.Qt.BrushStyle.Dense1Pattern,
+            )
         )
 
         rect: QtCore.QSize = (
@@ -47,13 +57,17 @@ class StartupWindow(QtWidgets.QDialog):
 
         layout = GLayout(self, spacing=4, margins=(4, 4, 4, 4))
         layout.addWidget(self._buttons, 0, 0)
+        layout.addWidget(QtWidgets.QTableWidget(self), 0, 1)
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
 
         painter = QtGui.QPainter(self)
         painter.setPen(self._opts.border)
-        painter.setBrush(self._opts.background)
-
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+
+        painter.setBrush(self._opts.background)
+        painter.drawRoundedRect(self.rect(), self._opts.radius, self._opts.radius)
+
+        painter.setBrush(self._opts.foreground)
         painter.drawRoundedRect(self.rect(), self._opts.radius, self._opts.radius)
         painter.end()
