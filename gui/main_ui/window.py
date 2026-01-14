@@ -209,7 +209,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Handle mouse press events for window dragging.
 
-        Stores the initial click position for window dragging via the menubar.
+        Stores the initial left-button click position for use in window dragging via the menubar.
 
         Args:
             event: The mouse press event.
@@ -225,7 +225,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Handle mouse move events for window dragging.
 
-        Moves the window when dragged via the menubar.
+        Moves the window by calculating the delta between the current and initial mouse positions
+        when dragged via the menubar with the left button pressed.
 
         Args:
             event: The mouse move event.
@@ -244,6 +245,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Handle double-click events on the menubar to toggle maximize.
 
+        Double-clicking a blank area of the menubar toggles the window between normal and
+        maximized states, similar to native window manager behavior.
+
         Args:
             event: The double-click event.
         """
@@ -256,6 +260,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
         """
         Handle mouse release events to end window dragging.
+
+        Clears the window dragging state when the left mouse button is released, stopping
+        any active window drag operation.
 
         Args:
             event: The mouse release event.
@@ -270,7 +277,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Filter events from the menubar to enable window dragging.
 
-        Intercepts mouse events on blank areas of the menubar to allow window dragging.
+        Intercepts mouse events on blank areas of the menubar to allow window dragging and
+        maximize toggling. Events that occur over menu items are allowed to pass through normally.
 
         Args:
             watched: The object being watched.
