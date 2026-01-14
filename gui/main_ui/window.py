@@ -1,6 +1,13 @@
 # Filename: window.py
 # Module name: main_ui
-# Description: Main UI of the Climate Action Tool (CAT).
+# Description: Main window interface for the Climate Action Tool.
+
+"""
+Main window interface for the Climate Action Tool.
+
+Provides the primary window with toolbar, menubar, statusbar, and dock widgets.
+Implemented as a singleton to ensure only one window instance exists.
+"""
 
 from __future__ import annotations
 
@@ -11,23 +18,18 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 from gui.widgets import ToolBar
 
-"""
-Main window interface for the Climate Action Tool.
-
-Provides the primary window with toolbar, menubar, statusbar, and dock widgets.
-Implemented as a singleton to ensure only one window instance exists.
-"""
-
 
 class MainWindow(QtWidgets.QMainWindow):
     """
-    The main user interface (UI) of Climate Action Tool (subclassed from QMainWindow). This class initializes the UI's
-    components, child widgets, a left-aligned vertical toolbar, a dock widget, a menubar, and a status bar. Further,
-    only one instance of this class can exist at any given time.
+    Main application window for the Climate Action Tool.
+
+    Initializes and manages the primary UI components including menubar, toolbar, dock widgets,
+    and statusbar. Implemented as a singleton to ensure only one window instance exists at any time.
     """
 
-    @dataclasses.dataclass  # Default window options.
+    @dataclasses.dataclass
     class Options:
+        """Configuration options for the main window."""
         border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
         background: QtGui.QBrush = dataclasses.field(
             default_factory=lambda: QtGui.QBrush(
@@ -36,17 +38,21 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         )
 
-    # Singleton design pattern:
+    # Singleton instance:
     _instance: MainWindow | None = None
 
-    # Implementation of the singleton pattern:
     def __new__(cls, **kwargs):
+        """Enforce singleton pattern by returning the same instance."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, **kwargs):
+        """
+        Initialize the main window.
 
+        Prevents reinitialization by checking the _initialized flag.
+        """
         # Prevent reinitialization of the singleton instance:
         if hasattr(self, "_initialized"):
             return
@@ -69,28 +75,32 @@ class MainWindow(QtWidgets.QMainWindow):
         self._initialized = True
 
     def _init_menubar(self) -> None:
-        """Adds menus to the main window's menubar."""
+        """
+        Initialize the menubar with File, Edit, View, and Help menus.
 
-        menubar = self.menuBar()  # Retrieve the menubar instance.
+        Sets the menubar to use the application's custom menu bar instead of the system's native one.
+        """
+        menubar = self.menuBar()
         menubar.addMenu("File")
         menubar.addMenu("Edit")
         menubar.addMenu("View")
         menubar.addMenu("Help")
 
-        menubar.setNativeMenuBar(False)  # Ignores the system's native menubar.
+        # Use the application's custom menu bar instead of the system's native menu bar:
+        menubar.setNativeMenuBar(False)
 
     def _init_toolbar(self) -> None:
         """
-        Instantiates ToolBar (a subclass of QToolBar) and adds it to the left-aligned toolbar area.
-        Actions include Open, Save, Optimize, and Results.
-        """
+        Initialize the left-aligned toolbar with action buttons.
 
-        # By default, ToolBar is non-floatable and non-movable:
+        Creates a vertical toolbar with action buttons for Dock, Open, Save, Optimize, and Results.
+        The toolbar is non-floatable and non-movable by default.
+        """
         toolbar = ToolBar(
             self,
             style="QToolBar QToolButton {margin: 1px 2px 2px 2px;}",
             orientation=QtCore.Qt.Orientation.Vertical,
-            iconSize=QtCore.QSize(24, 24),  # TODO: Replace this magic number.
+            iconSize=QtCore.QSize(24, 24),
             trailing=False,
             actions=[
                 (
@@ -125,11 +135,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _init_sidebar(self) -> None:
         """
-        Instantiates SideBar (a subclass of QDockWidget) and adds it as a left-aligned dock widget to the main window.
-        The dock houses a ComboBox in its title, and a QStackedWidget as the main widget.
-        """
+        Initialize the sidebar dock widget.
 
-        # Import `SideBar`:
+        Creates a SideBar (QDockWidget subclass) with a ComboBox in the title and QStackedWidget
+        as the main content. Adds it as a left-aligned dock widget and hides it by default.
+        """
         from .sidebar.sidebar import SideBar
 
         sidebar = SideBar(self)
@@ -139,9 +149,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _init_tabview(self) -> None:
         """
-        Instantiates TabView (a subclass of QTabWidget) and adds it as the central widget of the main window.
-        """
+        Initialize the tab view as the central widget.
 
+        Creates a QTabWidget with closable, movable tabs positioned at the top.
+        Sets it as the central widget of the main window.
+        """
         tabs = QtWidgets.QTabWidget(
             self,
             tabsClosable=True,
@@ -152,24 +164,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(tabs)
 
     def _init_status(self) -> None:
-
+        """Initialize the status bar at the bottom of the main window."""
         self._status = QtWidgets.QStatusBar()
         self.setStatusBar(self._status)
 
     @QtCore.Slot()
-    def _on_action_triggered(self):
+    def _on_action_triggered(self) -> None:
         """
-        This slot is invoked when an action from the toolbar is either triggered programmatically or when the user
-        explicitly clicks the toolbar's buttons. The method retrieves the triggered action, using its string label to
-        call additional methods or propagate new signals.
+        Handle toolbar action button clicks.
+
+        This slot is invoked when an action from the toolbar is triggered either programmatically
+        or by user interaction. Implement specific behavior based on the triggered action.
         """
         pass
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         """
-        Reimplements paintEvent to draw the application's background.
-        """
+        Paint the main window with a rounded rectangle background.
 
+        Args:
+            event: The paint event.
+        """
         painter = QtGui.QPainter(self)
         painter.setPen(self._options.border)
         painter.setBrush(self._options.background)
