@@ -45,17 +45,32 @@ class Lights(ToolBar):
                 (
                     qta_icon("ph.circle-fill", color="#28c840", color_active="ph.arrows-out-simple"),
                     "Maximize",
-                    self.sig_maximize_clicked.emit,
+                    self._on_maximize,
                 ),
                 (
                     qta_icon("ph.circle-fill", color="#ffcb00", color_active="ph.minus-circle-fill"),
                     "Minimize",
-                    self.sig_minimize_clicked.emit,
+                    self._on_minimize,
                 ),
                 (
                     qta_icon("ph.circle-fill", color="#ff5f57", color_active="ph.x-circle-fill"),
                     "Close",
-                    self.sig_close_clicked.emit,
+                    self._on_close,
                 ),
             ],
         )
+
+    @QtCore.Slot()
+    def _on_minimize(self) -> None:
+        """Emit minimize signal."""
+        self.sig_minimize_clicked.emit()
+
+    @QtCore.Slot()
+    def _on_maximize(self) -> None:
+        """Emit maximize signal."""
+        self.sig_maximize_clicked.emit()
+
+    @QtCore.Slot()
+    def _on_close(self) -> None:
+        """Emit close signal."""
+        self.sig_close_clicked.emit()
