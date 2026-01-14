@@ -61,7 +61,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         super().setObjectName("main-window")
 
-        # Frameless window with transparent background for custom styling
+        # Frameless window with a transparent background for explicit background control:
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
@@ -303,11 +303,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if menubar is None:
             return super().eventFilter(watched, event)
 
-        # Use global coordinates for consistent hit-testing
+        # Use global coordinates for consistent hit-testing:
         global_pos_f = event.globalPosition()
         global_pos = global_pos_f.toPoint()
 
-        # Always clear menubar drag on release
+        # Always clear menubar drag on release:
         if event_type == QtCore.QEvent.Type.MouseButtonRelease and self.property(
             "dragged_via_menubar"
         ):
@@ -326,7 +326,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.setProperty("mouse_press_pos", None)
             return True
 
-        # Only intercept events over blank areas of the menubar
+        # Only intercept events over blank areas of the menubar:
         action = menubar.actionAt(menubar.mapFromGlobal(global_pos))
         if action is None:
             local_window = QtCore.QPointF(self.mapFromGlobal(global_pos))

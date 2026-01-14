@@ -5,8 +5,7 @@
 """
 Custom combobox widget with enhanced styling and icon support.
 
-Provides a QComboBox subclass with fixed item heights, custom styling, and support
-for icon-label tuples. Optionally auto-populates with flow items from the core module.
+Provides a QComboBox subclass with fixed item heights, custom styling, and support for icon-label tuples.
 """
 
 from qtawesome import icon as qta_icon
@@ -52,16 +51,14 @@ class ComboBox(QtWidgets.QComboBox):
     """
     Custom combo box widget with enhanced styling and icon support.
 
-    Provides a styled combo box with fixed item heights, custom appearance, and support for
-    icon-label pairs. Optionally auto-populates with flow items from the core module.
+    Provides a styled combo box with fixed item heights, custom appearance, and support for icon-label pairs.
     """
 
     def __init__(self, parent=None, **kwargs):
         """
         Initialize the custom combo box widget.
 
-        Configures the combo box with fixed item height, custom styling, and support for
-        icon-label pairs. Optionally auto-populates with flow items if autofill is enabled.
+        Configures the combo box with fixed item height, custom styling, and support for icon-label pairs.
 
         Args:
             parent: Parent widget (optional).
@@ -69,7 +66,7 @@ class ComboBox(QtWidgets.QComboBox):
                 - iconSize: QSize for combo box icon size (default: 16x16)
                 - editable: Whether the combo box is editable (default: False)
                 - items: List of items or (icon, label) tuples to add
-                - autofill: If True, populate with flow items from core module
+                - autofill: If True, populate with flow items from the core module
         """
         super().__init__(
             parent,
@@ -77,7 +74,7 @@ class ComboBox(QtWidgets.QComboBox):
             editable=kwargs.get("editable", False),
         )
 
-        # Create and configure the list view with fixed item height
+        # Create and configure the list view with a fixed item height:
         view = QtWidgets.QListView(self)
         view.setItemDelegate(FixedHeightDelegate(24, view))
         view.setSpacing(2)
@@ -115,11 +112,3 @@ class ComboBox(QtWidgets.QComboBox):
             else:
                 # Item is a simple string label
                 self.addItem(item)
-
-        # Auto-populate with flow items if autofill is enabled
-        if kwargs.get("autofill", False):
-            from core.stream import BasicFlows, ComboFlows
-
-            self.clear()
-            for key, cls in (BasicFlows | ComboFlows).items():
-                self.addItem(QtGui.QIcon(cls.ICON), cls.LABEL)
