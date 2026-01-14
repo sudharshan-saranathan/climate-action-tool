@@ -7,7 +7,9 @@
 
   <qresource prefix="/fonts">
     <!-- Fonts -->
+    <file alias="FiraCode-Regular.ttf">assets/fonts/Fira_Code/static/FiraCode-Regular.ttf</file>
     <file alias="MarckScript-Regular.ttf">assets/fonts/Marck/MarckScript-Regular.ttf</file>
+    <file alias="Marmelad-Regular.ttf">assets/fonts/Marmelad/Marmelad-Regular.ttf</file>
     <file alias="Bilbo-Regular.ttf">assets/fonts/Bilbo/Bilbo-Regular.ttf</file>
   </qresource>
 

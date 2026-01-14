@@ -7,7 +7,6 @@ from PySide6 import QtCore, QtWidgets, QtGui
 
 from gui.startup.choice import StartupChoice
 from gui.startup.ftable import StartupFileTable, FileTableItem
-from gui.startup.recent import RecentProjects
 from gui.widgets import GLayout
 
 
@@ -50,12 +49,11 @@ class StartupWindow(QtWidgets.QDialog):
         super().setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
         # UI components:
-        self._pixmap = QtGui.QPixmap(":/theme/pattern.png")  # Patterened backg
-        self._header = self._init_header()
-        self._h_line = self._init_h_line()
-        self._footer = self._init_footer()
-        self._choice = StartupChoice()
-        self._recent = RecentProjects()
+        self._pixmap = QtGui.QPixmap(":/theme/pattern.png")  # Background pattern.
+        self._header = self._init_header()  # Header displaying title and subtitle.
+        self._h_line = self._init_h_line()  # Light gray separator.
+        self._footer = self._init_footer()  # Footer with clickable external links.
+        self._choice = StartupChoice()  # Buttons
         self._ftable = StartupFileTable()
         self._ftable.populate("library", "*.h5")
         self._current_project_file = None

@@ -113,14 +113,17 @@ class ClimateActionTool(QtWidgets.QApplication):
         envir: str = platform.system().lower()
 
         # Install custom fonts using Qt's font database:
+        QtGui.QFontDatabase.addApplicationFont(":/fonts/FiraCode-Regular.ttf")
         QtGui.QFontDatabase.addApplicationFont(":/fonts/MarckScript-Regular.ttf")
+        QtGui.QFontDatabase.addApplicationFont(":/fonts/Marmelad-Regular.ttf")
         QtGui.QFontDatabase.addApplicationFont(":/fonts/Bilbo-Regular.ttf")
 
         if envir not in fonts:
             logging.warning(f"Unsupported platform: {envir}")
             return
 
-        self.setFont(QtGui.QFont(fonts[envir].family, fonts[envir].pointSize))
+        self.setFont(QtGui.QFont("Fira Code", 8))
+        # self.setFont(QtGui.QFont(fonts[envir].family, fonts[envir].pointSize))
 
     def _init_style(self, path: str) -> None:
         """

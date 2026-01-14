@@ -2,11 +2,7 @@
 # Module name: widgets
 # Description: A custom toolbar with action handling and alignment.
 
-# Imports (standard):
 import dataclasses
-
-
-# Imports (3rd party):
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
