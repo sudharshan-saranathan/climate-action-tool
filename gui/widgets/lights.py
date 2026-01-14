@@ -37,7 +37,7 @@ class Lights(ToolBar):
         """
         super().__init__(
             parent,
-            iconSize=QtCore.QSize(12, 12),
+            iconSize=QtCore.QSize(18, 18),
             floatable=False,
             movable=False,
             trailing=False,
