@@ -39,7 +39,7 @@ class ClimateActionTool(QtWidgets.QApplication):
     startup_flag = True  # Flag to enable/disable the startup dialog.
     startup_file = None  # The path to the project file to open on startup (if any).
 
-    @dataclasses.dataclass
+    @dataclasses.dataclass(frozen=True)
     class Options:
         """Default configuration options for the Climate Action Tool."""
 
@@ -114,6 +114,7 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         # Install custom fonts using Qt's font database:
         QtGui.QFontDatabase.addApplicationFont(":/fonts/FiraCode-Regular.ttf")
+        QtGui.QFontDatabase.addApplicationFont(":/fonts/FiraCode-Bold.ttf")
         QtGui.QFontDatabase.addApplicationFont(":/fonts/MarckScript-Regular.ttf")
         QtGui.QFontDatabase.addApplicationFont(":/fonts/Marmelad-Regular.ttf")
         QtGui.QFontDatabase.addApplicationFont(":/fonts/Bilbo-Regular.ttf")
@@ -127,9 +128,7 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     def _init_style(self, path: str) -> None:
         """
-        Apply a QSS stylesheet to the application.
-
-        Silently fails if the stylesheet file doesn't exist or cannot be read.
+        Apply a QSS stylesheet to the application. Log a warning if the file cannot be found or read.
 
         Args:
             path: Path to the QSS stylesheet file.
@@ -166,8 +165,9 @@ class ClimateActionTool(QtWidgets.QApplication):
 
 def main() -> None:
     """Instantiate the application and enter the event loop."""
+
     application = ClimateActionTool()
-    application.exec()
+    application.exec()  # This call is blocking by default.
     sys.exit(0)
 
 

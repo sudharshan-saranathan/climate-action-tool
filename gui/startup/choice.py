@@ -1,6 +1,13 @@
-# Filename: buttons.py
+# Filename: choice.py
 # Module name: startup
-# Description: A button-group with various buttons shown during the application's startup.
+# Description: Button widgets for startup actions.
+
+"""
+Startup choice buttons widget.
+
+This module provides a vertical button group displayed during startup,
+allowing users to select from various project actions.
+"""
 
 import dataclasses
 from qtawesome import icon as qta_icon
@@ -9,8 +16,14 @@ from gui.widgets import VLayout
 
 
 class StartupChoice(QtWidgets.QWidget):
+    """
+    A widget containing startup action buttons.
 
-    # Signal:
+    Displays a vertical arrangement of buttons for project creation, library browsing,
+    recent projects, and quitting the application. Emits signals when buttons are clicked.
+    """
+
+    # Signals emitted when buttons are clicked:
     sig_button_new_clicked = QtCore.Signal()
     sig_button_tmp_clicked = QtCore.Signal()
     sig_button_mod_clicked = QtCore.Signal()
@@ -18,6 +31,8 @@ class StartupChoice(QtWidgets.QWidget):
 
     @dataclasses.dataclass
     class Options:
+        """Configuration options for the startup choice widget."""
+
         style: str = (
             "QPushButton {"
             "   padding: 4px 0px 4px 0px;"
@@ -48,17 +63,24 @@ class StartupChoice(QtWidgets.QWidget):
         )
 
     def __init__(self, parent=None):
+        """
+        Initialize the startup choice widget.
+
+        Args:
+            parent: Parent widget (optional).
+        """
+
         super().__init__(parent)
 
         self._opts = StartupChoice.Options()
         self._group = QtWidgets.QButtonGroup(self, exclusive=True)
 
-        # Set up UI:
         self._setup_ui()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Create and arrange startup choice buttons."""
 
-        # Buttons:
+        # Create buttons:
         button_new = self._create_button(
             self._opts.actions[0],
             attr={"label": "mdi.folder-plus", "color": "#ffcb00"},
@@ -85,18 +107,19 @@ class StartupChoice(QtWidgets.QWidget):
             style=self._opts.style,
         )
 
-        # Re-emit buttons' signals:
+        # Connect button signals to widget signals:
         button_new.clicked.connect(self.sig_button_new_clicked)
         button_tmp.clicked.connect(self.sig_button_tmp_clicked)
         button_mod.clicked.connect(self.sig_button_mod_clicked)
         button_quit.clicked.connect(self.sig_button_quit_clicked)
 
-        # Add all buttons to the button group:
+        # Add buttons to the exclusive button group:
         self._group.addButton(button_new)
         self._group.addButton(button_tmp)
         self._group.addButton(button_mod)
         self._group.addButton(button_quit)
 
+        # Arrange buttons in a vertical layout with stretching:
         layout = VLayout(self)
         layout.addStretch(5)
         layout.addWidget(button_new)
@@ -107,10 +130,22 @@ class StartupChoice(QtWidgets.QWidget):
 
     @staticmethod
     def _create_button(
-        text: str, attr: dict[str, str], checkable=False, style: str = str()
+        text: str,  # Button label.
+        attr: dict[str, str],  # Icon attributes.
+        checkable=False,  # Checkable flag.
+        style: str = str(),  # Custom stylesheet.
     ) -> QtWidgets.QPushButton:
         """
-        Creates a QPushButton with the given label and QtAwesome icon.
+        Create a styled push button with a QtAwesome icon.
+
+        Args:
+            text: The button text label.
+            attr: Dictionary with 'label' (icon name) and 'color' keys.
+            checkable: Whether the button is checkable (default: False).
+            style: QSS stylesheet to apply (default: empty).
+
+        Returns:
+            A configured QPushButton instance.
         """
 
         label = attr.get("label")

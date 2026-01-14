@@ -2,6 +2,13 @@
 # Module name: startup
 # Description: A QTableWidget subclass that displays projects.
 
+"""
+File table widget for displaying and managing projects.
+
+This module provides widgets for displaying project files in a table format
+with action buttons for opening, cloning, and deleting projects.
+"""
+
 from __future__ import annotations
 from pathlib import Path
 
@@ -14,16 +21,28 @@ from gui.widgets import ToolBar
 
 # Widget representing a single file/project, added to the FileTable:
 class FileTableItem(QtWidgets.QWidget):
+    """
+    A table cell widget representing a single project item.
 
-    # Signals:
+    Displays the project name and action buttons for opening, cloning, and deleting.
+    Action buttons are revealed on mouse hover.
+    """
+
+    # Signals emitted when action buttons are clicked:
     sig_open_project = QtCore.Signal(str)
     sig_clone_project = QtCore.Signal(str)
     sig_delete_project = QtCore.Signal(str)
 
-    # Default constructor:
     def __init__(self, name: str, path: str = "", **kwargs):
+        """
+        Initialize a file table item widget.
 
-        # Super-class initialization:
+        Args:
+            name: The project name to display.
+            path: The project file path (default: empty string).
+            **kwargs: Additional keyword arguments (e.g., buttons list).
+        """
+
         super().__init__(None)
         super().setMouseTracking(True)
         super().setProperty("project", name)
@@ -31,7 +50,7 @@ class FileTableItem(QtWidgets.QWidget):
         self._project_name = name
         self._project_path = path
 
-        # Layout:
+        # Create layout and widgets:
         layout = QtWidgets.QGridLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(0)
@@ -43,8 +62,13 @@ class FileTableItem(QtWidgets.QWidget):
         layout.addWidget(self._project_label, 0, 0)
         layout.addWidget(self._project_acts, 0, 1)
 
-    # Project actions:
-    def _project_actions(self):
+    def _project_actions(self) -> ToolBar:
+        """
+        Create and return a toolbar with project action buttons.
+
+        Returns:
+            A ToolBar with open, safe mode, clone, and delete actions.
+        """
 
         toolbar = ToolBar(
             iconSize=QtCore.QSize(18, 18),
@@ -81,20 +105,39 @@ class FileTableItem(QtWidgets.QWidget):
         toolbar.hide()  # Hide the actions by default.
         return toolbar
 
-    # Reimplementation of QWidget.enterEvent():
-    def enterEvent(self, event, /):
+    def enterEvent(self, event, /) -> None:
+        """
+        Show action buttons when the mouse enters the item.
+
+        Args:
+            event: The enter event.
+        """
+
         self._project_acts.show()
 
-    # Reimplementation of QWidget.leaveEvent():
-    def leaveEvent(self, event, /):
+    def leaveEvent(self, event, /) -> None:
+        """
+        Hide action buttons when the mouse leaves the item.
+
+        Args:
+            event: The leave event.
+        """
+
         self._project_acts.hide()
 
 
 # Table of models:
 class StartupFileTable(QtWidgets.QTableWidget):
+    """
+    A table widget for displaying and managing project files.
+
+    Displays a list of project files with their last modified dates and action buttons.
+    Supports filtering by file pattern and automatically populates from a directory.
+    """
 
     @dataclasses.dataclass
     class Options:
+        """Configuration options for the file table widget."""
         row_height: int = 36
         icon_size: QtCore.QSize = dataclasses.field(
             default_factory=lambda: QtCore.QSize(16, 16)
@@ -105,6 +148,12 @@ class StartupFileTable(QtWidgets.QTableWidget):
         )
 
     def __init__(self, parent=None):
+        """
+        Initialize the file table widget.
+
+        Args:
+            parent: Parent widget (optional).
+        """
 
         # Initialize options:
         self._opts = StartupFileTable.Options()
@@ -112,7 +161,7 @@ class StartupFileTable(QtWidgets.QTableWidget):
         # Initialize parent class:
         super().__init__(parent, columnCount=len(self._opts.columns))
 
-        # Set attribute(s):
+        # Configure table appearance and behavior:
         self.setShowGrid(False)
         self.setIconSize(self._opts.icon_size)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
@@ -121,11 +170,18 @@ class StartupFileTable(QtWidgets.QTableWidget):
         self.setHorizontalHeaderLabels(self._opts.columns)
         self.verticalHeader().setVisible(False)
 
-        # Adjust column resizing policy:
+        # Configure column resizing:
         header = self.horizontalHeader()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
-    def paintEvent(self, event):
+    def paintEvent(self, event) -> None:
+        """
+        Paint the table and display an empty state message if no rows exist.
+
+        Args:
+            event: The paint event.
+        """
+
         super().paintEvent(event)  # Call base-class implementation
 
         # Paint an empty indicator if the table is empty:
@@ -143,17 +199,29 @@ class StartupFileTable(QtWidgets.QTableWidget):
             )
             painter.end()
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event) -> None:
+        """
+        Handle mouse press events and clear selection when clicking empty space.
+
+        Args:
+            event: The mouse press event.
+        """
 
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             item = self.itemAt(event.pos())
             if item is None:
-                self.clearSelection()  # This will also emit the `selectionChanged()` signal to re-disable the "Open" button
+                self.clearSelection()  # Clear selection to re-disable the "Open" button
 
         super().mousePressEvent(event)  # Call base-class implementation
 
-    # Method to add a new row:
-    def add_item(self, path: Path, time: str):
+    def add_item(self, path: Path, time: str) -> None:
+        """
+        Add a new project row to the table.
+
+        Args:
+            path: The project file path.
+            time: The last modified time as a string.
+        """
 
         row = self.rowCount()  # Get the current row count
         self.insertRow(self.rowCount())  # Insert a new row at the end
@@ -176,10 +244,16 @@ class StartupFileTable(QtWidgets.QTableWidget):
         self.setItem(row, 1, item_second_column)
         self.setItem(row, 0, item_first_column)
 
-    # Show all models in the specified directory:
-    def populate(self, directory: str, pattern: str):
+    def populate(self, directory: str, pattern: str) -> None:
+        """
+        Populate the table with project files from a directory.
 
-        # Import pathlib:
+        Args:
+            directory: The directory path to search for files.
+            pattern: A glob pattern to match files (e.g., "*.h5").
+        """
+
+        # Import required modules:
         from pathlib import Path
         from datetime import datetime
 
@@ -191,13 +265,13 @@ class StartupFileTable(QtWidgets.QTableWidget):
         self.clearContents()
         self.setRowCount(0)
 
-        stem = Path(directory).stem  # Get the stem of the directory name
+        stem = Path(directory).stem  # Extract the directory name
         stem = stem.capitalize()  # Capitalize the first letter
 
         self.setHorizontalHeaderLabels([stem, self._opts.columns[1]])
         for item in Path(directory).glob(pattern):
-            stat = item.stat().st_mtime  # Last modified time
-            date = datetime.fromtimestamp(stat)  # Convert to datetime
+            stat = item.stat().st_mtime  # Get last modified time
+            date = datetime.fromtimestamp(stat)  # Convert to datetime object
             time = date.strftime("%Y-%m-%d")  # Format as string
 
             self.add_item(item, time)

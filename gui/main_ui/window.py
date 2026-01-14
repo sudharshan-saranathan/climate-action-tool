@@ -26,23 +26,27 @@ class MainWindow(QtWidgets.QMainWindow):
     only one instance of this class can exist at any given time.
     """
 
-    @dataclasses.dataclass  # Options
+    @dataclasses.dataclass  # Default window options.
     class Options:
         border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
         background: QtGui.QBrush = dataclasses.field(
-            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0x232A2E))
+            default_factory=lambda: QtGui.QBrush(
+                QtGui.QColor(0x232A2E),
+                QtCore.Qt.BrushStyle.SolidPattern,  # Plain color, no texture.
+            )
         )
 
-    # Singleton instance:
+    # Singleton design pattern:
     _instance: MainWindow | None = None
 
-    # Standard implementation of the singleton pattern:
+    # Implementation of the singleton pattern:
     def __new__(cls, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, **kwargs):
+
         # Prevent reinitialization of the singleton instance:
         if hasattr(self, "_initialized"):
             return
@@ -65,20 +69,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self._initialized = True
 
     def _init_menubar(self) -> None:
-        """
-        Adds menus to the main window's menubar.
-        """
+        """Adds menus to the main window's menubar."""
 
-        # QMainWindow already instantiates a menubar. So we retrieve and modify it instead of instantiating a new one:
-        menubar = self.menuBar()
+        menubar = self.menuBar()  # Retrieve the menubar instance.
         menubar.addMenu("File")
         menubar.addMenu("Edit")
         menubar.addMenu("View")
         menubar.addMenu("Help")
 
-        menubar.setNativeMenuBar(
-            False
-        )  # On macOS, native placement of the menubar (top of the desktop) will be ignored.
+        menubar.setNativeMenuBar(False)  # Ignores the system's native menubar.
 
     def _init_toolbar(self) -> None:
         """

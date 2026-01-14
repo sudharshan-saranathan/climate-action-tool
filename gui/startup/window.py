@@ -1,6 +1,13 @@
-# Filename: dialog.py
+# Filename: window.py
 # Module name: startup
 # Description: A modal QDialog subclass that is displayed at startup.
+
+"""
+Startup window interface for the Climate Action Tool.
+
+This module provides a startup dialog that allows users to create new projects,
+browse existing projects in the library, and manage project files.
+"""
 
 import dataclasses
 from PySide6 import QtCore, QtWidgets, QtGui
@@ -89,7 +96,7 @@ class StartupWindow(QtWidgets.QDialog):
 
         header = QtWidgets.QLabel(
             '<span style="color:white; font-family: Bilbo; font-size:30pt;">Climate Action Tool</span><br>'
-            '<span style="color:gray; font-size:9pt; font-weight: bold;">Energy Systems Modeling Platform</span>',
+            '<span style="color:gray; font-weight: bold; font-size: 8pt;">Energy Systems Modeling Platform</span>',
             self,
             alignment=QtCore.Qt.AlignmentFlag.AlignCenter,
         )
@@ -170,14 +177,10 @@ class StartupWindow(QtWidgets.QDialog):
         # Connect StartupChoice button signals:
         self._choice.sig_button_new_clicked.connect(self._on_new_project)
         self._choice.sig_button_tmp_clicked.connect(self._on_library_clicked)
-        self._choice.sig_button_mod_clicked.connect(self._on_recent_clicked)
         self._choice.sig_button_quit_clicked.connect(self._on_quit)
 
         # Connect file table item open signals:
         self._connect_file_table_items()
-
-        # Connect recent projects signals:
-        self._recent.sig_open_recent.connect(self._on_open_project)
 
     def _connect_file_table_items(self) -> None:
         """
@@ -200,12 +203,6 @@ class StartupWindow(QtWidgets.QDialog):
     def _on_library_clicked(self) -> None:
         """Show the library (file table) view."""
         # File table is already visible
-        pass
-
-    @QtCore.Slot()
-    def _on_recent_clicked(self) -> None:
-        """Show the recent projects view."""
-        # Recent projects are already visible
         pass
 
     @QtCore.Slot(str)
@@ -232,6 +229,12 @@ class StartupWindow(QtWidgets.QDialog):
         self.reject()
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
+        """
+        Paint the startup window with a rounded rectangle background.
+
+        Args:
+            event: The paint event.
+        """
 
         painter = QtGui.QPainter(self)
         painter.setPen(self._opts.border)
