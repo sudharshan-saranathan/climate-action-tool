@@ -43,17 +43,17 @@ class Lights(ToolBar):
             trailing=False,
             actions=[
                 (
-                    qta_icon("mdi.minus-circle", color="#ffbd2e"),
-                    "Minimize",
-                    self.sig_minimize_clicked.emit,
-                ),
-                (
-                    qta_icon("mdi.plus-circle", color="#27c93f"),
+                    qta_icon("ph.circle-fill", color="#28c840", color_active="ph.arrows-out-simple"),
                     "Maximize",
                     self.sig_maximize_clicked.emit,
                 ),
                 (
-                    qta_icon("mdi.close-circle", color="#ff5f57"),
+                    qta_icon("ph.circle-fill", color="#ffcb00", color_active="ph.minus-circle-fill"),
+                    "Minimize",
+                    self.sig_minimize_clicked.emit,
+                ),
+                (
+                    qta_icon("ph.circle-fill", color="#ff5f57", color_active="ph.x-circle-fill"),
                     "Close",
                     self.sig_close_clicked.emit,
                 ),

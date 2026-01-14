@@ -16,7 +16,7 @@ import dataclasses
 from qtawesome import icon as qta_icon
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from gui.widgets import ToolBar
+from gui.widgets import ToolBar, Lights
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -58,12 +58,15 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         super().__init__()
-        super().setObjectName("main-window")  # Qt property
+        super().setObjectName("main-window")
 
-        # Frameless window with a transparent background for custom styling.
-        # Note: Window dragging and traffic lights must be implemented manually.
+        # Frameless window with transparent background for custom styling
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+
+        # Window dragging properties
+        self.setProperty("dragged_via_menubar", False)
+        self.setProperty("mouse_press_pos", QtCore.QPointF())
 
         self._init_menubar()
         self._init_toolbar()
@@ -72,22 +75,37 @@ class MainWindow(QtWidgets.QMainWindow):
         self._init_status()
 
         self._options = MainWindow.Options()
+        self._lights = None  # Will be set in _init_menubar
         self._initialized = True
 
     def _init_menubar(self) -> None:
         """
-        Initialize the menubar with File, Edit, View, and Help menus.
+        Initialize the menubar with File, Edit, View, and Help menus and traffic light controls.
 
         Sets the menubar to use the application's custom menu bar instead of the system's native one.
+        Adds traffic light buttons (minimize, maximize, close) as a corner widget.
+        Installs event filter for window dragging via the menubar.
         """
+        # Create and configure the traffic lights widget
+        self._lights = Lights(self)
+        self._lights.sig_minimize_clicked.connect(self.showMinimized)
+        self._lights.sig_maximize_clicked.connect(self._on_maximize)
+        self._lights.sig_close_clicked.connect(self.close)
+
+        # Configure menubar
         menubar = self.menuBar()
         menubar.addMenu("File")
         menubar.addMenu("Edit")
         menubar.addMenu("View")
         menubar.addMenu("Help")
 
-        # Use the application's custom menu bar instead of the system's native menu bar:
+        # Use application's custom menu bar and set traffic lights as corner widget
         menubar.setNativeMenuBar(False)
+        menubar.setCornerWidget(self._lights)
+
+        # Install event filter for window dragging via menubar
+        menubar.installEventFilter(self)
+        self._lights.installEventFilter(self)
 
     def _init_toolbar(self) -> None:
         """
@@ -177,6 +195,160 @@ class MainWindow(QtWidgets.QMainWindow):
         or by user interaction. Implement specific behavior based on the triggered action.
         """
         pass
+
+    @QtCore.Slot()
+    def _on_maximize(self) -> None:
+        """Toggle window between normal and maximized states."""
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()
+
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        """
+        Handle mouse press events for window dragging.
+
+        Stores the initial click position for window dragging via the menubar.
+
+        Args:
+            event: The mouse press event.
+        """
+        super().mousePressEvent(event)
+        if event.isAccepted():
+            return
+
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.setProperty("mouse_press_pos", event.position())
+
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
+        """
+        Handle mouse move events for window dragging.
+
+        Moves the window when dragged via the menubar.
+
+        Args:
+            event: The mouse move event.
+        """
+        if (
+            event.buttons() & QtCore.Qt.MouseButton.LeftButton
+            and self.property("dragged_via_menubar")
+        ):
+            if click_position := self.property("mouse_press_pos"):
+                delta = event.position() - click_position
+                delta_point = delta.toPoint()
+                self.move(self.pos() + delta_point)
+
+        super().mouseMoveEvent(event)
+
+    def mouseDoubleClickEvent(self, event: QtGui.QMouseEvent) -> None:
+        """
+        Handle double-click events on the menubar to toggle maximize.
+
+        Args:
+            event: The double-click event.
+        """
+        if event.button() != QtCore.Qt.MouseButton.LeftButton:
+            return super().mouseDoubleClickEvent(event)
+
+        self._on_maximize()
+        return super().mouseDoubleClickEvent(event)
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+        """
+        Handle mouse release events to end window dragging.
+
+        Args:
+            event: The mouse release event.
+        """
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.setProperty("dragged_via_menubar", False)
+            self.setProperty("mouse_press_pos", None)
+
+        super().mouseReleaseEvent(event)
+
+    def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent) -> bool:
+        """
+        Filter events from the menubar to enable window dragging.
+
+        Intercepts mouse events on blank areas of the menubar to allow window dragging.
+
+        Args:
+            watched: The object being watched.
+            event: The event to filter.
+
+        Returns:
+            True if the event was handled, False otherwise.
+        """
+        if not isinstance(event, QtGui.QMouseEvent):
+            return super().eventFilter(watched, event)
+
+        event_type = event.type()
+        if event_type not in (
+            QtCore.QEvent.Type.MouseButtonPress,
+            QtCore.QEvent.Type.MouseMove,
+            QtCore.QEvent.Type.MouseButtonDblClick,
+            QtCore.QEvent.Type.MouseButtonRelease,
+        ):
+            return super().eventFilter(watched, event)
+
+        menubar = self.menuBar()
+        if menubar is None:
+            return super().eventFilter(watched, event)
+
+        # Use global coordinates for consistent hit-testing
+        global_pos_f = event.globalPosition()
+        global_pos = global_pos_f.toPoint()
+
+        # Always clear menubar drag on release
+        if (
+            event_type == QtCore.QEvent.Type.MouseButtonRelease
+            and self.property("dragged_via_menubar")
+        ):
+            local_window = QtCore.QPointF(self.mapFromGlobal(global_pos))
+            forwarded = QtGui.QMouseEvent(
+                event_type,
+                local_window,
+                local_window,
+                global_pos_f,
+                event.button(),
+                event.buttons(),
+                event.modifiers(),
+            )
+            self.mouseReleaseEvent(forwarded)
+            self.setProperty("dragged_via_menubar", False)
+            self.setProperty("mouse_press_pos", None)
+            return True
+
+        # Only intercept events over blank areas of the menubar
+        action = menubar.actionAt(menubar.mapFromGlobal(global_pos))
+        if action is None:
+            local_window = QtCore.QPointF(self.mapFromGlobal(global_pos))
+            forwarded = QtGui.QMouseEvent(
+                event_type,
+                local_window,
+                local_window,
+                global_pos_f,
+                event.button(),
+                event.buttons(),
+                event.modifiers(),
+            )
+
+            if event_type == QtCore.QEvent.Type.MouseButtonPress:
+                self.setProperty("dragged_via_menubar", True)
+                self.setProperty("mouse_press_pos", local_window)
+                self.mousePressEvent(forwarded)
+                return True
+
+            if event_type == QtCore.QEvent.Type.MouseMove:
+                if self.property("dragged_via_menubar"):
+                    self.mouseMoveEvent(forwarded)
+                    return True
+                return super().eventFilter(watched, event)
+
+            if event_type == QtCore.QEvent.Type.MouseButtonDblClick:
+                self.mouseDoubleClickEvent(forwarded)
+
+        return super().eventFilter(watched, event)
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         """
