@@ -30,6 +30,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @dataclasses.dataclass
     class Options:
         """Configuration options for the main window."""
+
         border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
         background: QtGui.QBrush = dataclasses.field(
             default_factory=lambda: QtGui.QBrush(
@@ -229,9 +230,8 @@ class MainWindow(QtWidgets.QMainWindow):
         Args:
             event: The mouse move event.
         """
-        if (
-            event.buttons() & QtCore.Qt.MouseButton.LeftButton
-            and self.property("dragged_via_menubar")
+        if event.buttons() & QtCore.Qt.MouseButton.LeftButton and self.property(
+            "dragged_via_menubar"
         ):
             if click_position := self.property("mouse_press_pos"):
                 delta = event.position() - click_position
@@ -300,9 +300,8 @@ class MainWindow(QtWidgets.QMainWindow):
         global_pos = global_pos_f.toPoint()
 
         # Always clear menubar drag on release
-        if (
-            event_type == QtCore.QEvent.Type.MouseButtonRelease
-            and self.property("dragged_via_menubar")
+        if event_type == QtCore.QEvent.Type.MouseButtonRelease and self.property(
+            "dragged_via_menubar"
         ):
             local_window = QtCore.QPointF(self.mapFromGlobal(global_pos))
             forwarded = QtGui.QMouseEvent(
@@ -358,9 +357,11 @@ class MainWindow(QtWidgets.QMainWindow):
             event: The paint event.
         """
         painter = QtGui.QPainter(self)
-        painter.setPen(self._options.border)
+        painter.save()
+
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
         painter.setBrush(self._options.background)
         painter.drawRoundedRect(self.rect(), 8, 8)
-        painter.end()
 
+        painter.restore()
         super().paintEvent(event)
