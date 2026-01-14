@@ -1,46 +1,88 @@
-# Encoding: utf-8
-# Module name: combobox
-# Description: Custom combobox widget for the Climact application
+# Filename: combobox.py
+# Module name: widgets
+# Description: Custom combobox widget with fixed item height and icon support.
 
+"""
+Custom combobox widget with enhanced styling and icon support.
 
-# Imports (third party)
+Provides a QComboBox subclass with fixed item heights, custom styling, and support
+for icon-label tuples. Optionally auto-populates with flow items from the core module.
+"""
+
 from qtawesome import icon as qta_icon
-from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
+from PySide6 import QtGui, QtCore, QtWidgets
 
 
-# Item delegate for a combo box with a fixed height:
 class FixedHeightDelegate(QtWidgets.QStyledItemDelegate):
+    """
+    Item delegate for combobox items with fixed height.
 
-    # Default constructor:
+    Overrides the size hint to enforce a consistent item height regardless of content.
+    """
+
     def __init__(self, height: int, parent=None):
+        """
+        Initialize the fixed height delegate.
+
+        Args:
+            height: The fixed height for all items in pixels.
+            parent: Parent widget (optional).
+        """
         super().__init__(parent)
         self._height = int(height)
 
-    # Reimplement sizeHint to set fixed height:
-    def sizeHint(self, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex):
+    def sizeHint(
+        self, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex
+    ) -> QtCore.QSize:
+        """
+        Return the fixed size hint for combo box items.
+
+        Args:
+            option: The style option containing display settings.
+            index: The model index of the item.
+
+        Returns:
+            A QSize with the original width and fixed height.
+        """
         base = super().sizeHint(option, index)
         return QtCore.QSize(base.width(), self._height)
 
 
-# Class ComboBox:
 class ComboBox(QtWidgets.QComboBox):
+    """
+    Custom combo box widget with enhanced styling and icon support.
 
-    # Default constructor:
+    Provides a styled combo box with fixed item heights, custom appearance, and support for
+    icon-label pairs. Optionally auto-populates with flow items from the core module.
+    """
+
     def __init__(self, parent=None, **kwargs):
+        """
+        Initialize the custom combo box widget.
+
+        Configures the combo box with fixed item height, custom styling, and support for
+        icon-label pairs. Optionally auto-populates with flow items if autofill is enabled.
+
+        Args:
+            parent: Parent widget (optional).
+            **kwargs: Configuration options:
+                - iconSize: QSize for combo box icon size (default: 16x16)
+                - editable: Whether the combo box is editable (default: False)
+                - items: List of items or (icon, label) tuples to add
+                - autofill: If True, populate with flow items from core module
+        """
         super().__init__(
             parent,
             iconSize=kwargs.get("iconSize", QtCore.QSize(16, 16)),
             editable=kwargs.get("editable", False),
         )
 
-        # Set custom view with fixed item height:
+        # Create and configure the list view with fixed item height
         view = QtWidgets.QListView(self)
         view.setItemDelegate(FixedHeightDelegate(24, view))
         view.setSpacing(2)
 
-        # Custom style:
+        # Apply custom styling and set the view
         self.setView(view)
         self.setObjectName("ComboBox")
         self.setStyleSheet(
@@ -64,21 +106,19 @@ class ComboBox(QtWidgets.QComboBox):
             "}"
         )
 
-        # Add items, if available:
+        # Add initial items from kwargs (supports both strings and icon-label tuples)
         for item in kwargs.get("items", []):
-
-            if isinstance(item, tuple) and len(item) == 2:  # Items have both icons and labels
+            if isinstance(item, tuple) and len(item) == 2:
+                # Item is a (icon, label) tuple
                 icon, label = item
                 self.addItem(qta_icon(icon, color="lightgray"), label)
-
             else:
-                self.addItem(item)  # Only labels
+                # Item is a simple string label
+                self.addItem(item)
 
-        # Add basic and combo flows if the keyword is set:
+        # Auto-populate with flow items if autofill is enabled
         if kwargs.get("autofill", False):
-
-            from core.stream import BasicFlows
-            from core.stream import ComboFlows
+            from core.stream import BasicFlows, ComboFlows
 
             self.clear()
             for key, cls in (BasicFlows | ComboFlows).items():
