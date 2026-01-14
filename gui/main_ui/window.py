@@ -3,11 +3,20 @@
 # Description: Main UI of the Climate Action Tool (CAT).
 
 from __future__ import annotations
-from qtawesome import icon as qta_icon
-from PySide6 import QtCore, QtGui, QtWidgets
-from gui.widgets import ToolBar
 
 import dataclasses
+
+from qtawesome import icon as qta_icon
+from PySide6 import QtCore, QtGui, QtWidgets
+
+from gui.widgets import ToolBar
+
+"""
+Main window interface for the Climate Action Tool.
+
+Provides the primary window with toolbar, menubar, statusbar, and dock widgets.
+Implemented as a singleton to ensure only one window instance exists.
+"""
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -34,7 +43,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return cls._instance
 
     def __init__(self, **kwargs):
-        # Prevent reinitialization of singleton instance:
+        # Prevent reinitialization of the singleton instance:
         if hasattr(self, "_initialized"):
             return
 

@@ -6,11 +6,17 @@ import dataclasses
 from PySide6 import QtCore, QtWidgets, QtGui
 
 from gui.startup.choice import StartupChoice
-from gui.startup.ftable import StartupFileTable
+from gui.startup.ftable import StartupFileTable, FileTableItem
+from gui.startup.recent import RecentProjects
 from gui.widgets import GLayout
 
 
 class StartupWindow(QtWidgets.QDialog):
+    """
+    This QDialog subclass is a startup window for the Climate Action Tool. It initializes and arranges UI
+    components such as a header, separator, footer, file table, along with startup buttons for starting a
+    new project or loading an existing one. It features a minimal and polished design.
+    """
 
     @dataclasses.dataclass(frozen=True)
     class Options:
@@ -49,7 +55,10 @@ class StartupWindow(QtWidgets.QDialog):
         self._h_line = self._init_h_line()
         self._footer = self._init_footer()
         self._choice = StartupChoice()
+        self._recent = RecentProjects()
         self._ftable = StartupFileTable()
+        self._ftable.populate("library", "*.h5")
+        self._current_project_file = None
 
         self._opts = StartupWindow.Options()
         self._opts.background.setTexture(self._pixmap)
@@ -59,18 +68,21 @@ class StartupWindow(QtWidgets.QDialog):
         layout = GLayout(  # Horizontal layout.
             self,
             spacing=8,
-            margins=(4, 4, 4, 4),
+            margins=(8, 8, 8, 8),
         )
 
-        layout.setVerticalSpacing(16)
+        layout.setVerticalSpacing(8)
         layout.setRowStretch(0, 5)
         layout.addWidget(self._header, 1, 0)
         layout.addWidget(self._h_line, 2, 0)
         layout.addWidget(self._choice, 3, 0)
         layout.addWidget(self._footer, 5, 0)
         layout.addWidget(self._ftable, 0, 1, 6, 1)
-        layout.setRowStretch(4, 5)
+        layout.setRowStretch(4, 4)
         layout.setColumnStretch(1, 2)
+
+        # Connect signals:
+        self._setup_connections()
 
     def _init_header(self) -> QtWidgets.QLabel:
         """
@@ -152,6 +164,74 @@ class StartupWindow(QtWidgets.QDialog):
         footer.addWidget(spacer)
         footer.addWidget(license_label)
         return footer
+
+    def _setup_connections(self) -> None:
+        """
+        Connect button signals to their respective slots.
+        """
+        # Connect StartupChoice button signals:
+        self._choice.sig_button_new_clicked.connect(self._on_new_project)
+        self._choice.sig_button_tmp_clicked.connect(self._on_library_clicked)
+        self._choice.sig_button_mod_clicked.connect(self._on_recent_clicked)
+        self._choice.sig_button_quit_clicked.connect(self._on_quit)
+
+        # Connect file table item open signals:
+        self._connect_file_table_items()
+
+        # Connect recent projects signals:
+        self._recent.sig_open_recent.connect(self._on_open_project)
+
+    def _connect_file_table_items(self) -> None:
+        """
+        Connect signals from all file table items.
+        """
+        for row in range(self._ftable.rowCount()):
+            item = self._ftable.cellWidget(row, 0)
+            if isinstance(item, FileTableItem):
+                item.sig_open_project.connect(self._on_open_project)
+                item.sig_clone_project.connect(self._on_clone_project)
+                item.sig_delete_project.connect(self._on_delete_project)
+
+    @QtCore.Slot()
+    def _on_new_project(self) -> None:
+        """Create a new project and close the startup dialog."""
+        # TODO: Implement new project creation logic
+        self.accept()
+
+    @QtCore.Slot()
+    def _on_library_clicked(self) -> None:
+        """Show the library (file table) view."""
+        # File table is already visible
+        pass
+
+    @QtCore.Slot()
+    def _on_recent_clicked(self) -> None:
+        """Show the recent projects view."""
+        # Recent projects are already visible
+        pass
+
+    @QtCore.Slot(str)
+    def _on_open_project(self, project_path: str) -> None:
+        """Open the selected project and close the startup dialog."""
+        self._current_project_file = project_path
+        self.accept()
+
+    @QtCore.Slot(str)
+    def _on_clone_project(self, project_path: str) -> None:
+        """Clone the selected project."""
+        # TODO: Implement project cloning logic
+        pass
+
+    @QtCore.Slot(str)
+    def _on_delete_project(self, project_path: str) -> None:
+        """Delete the selected project."""
+        # TODO: Implement project deletion logic
+        pass
+
+    @QtCore.Slot()
+    def _on_quit(self) -> None:
+        """Quit the application."""
+        self.reject()
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
 

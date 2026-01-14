@@ -1,6 +1,6 @@
 # Filename: toolbar
 # Module name: widgets
-# Description: A custom toolbar for the Climact application with action handling and alignment.
+# Description: A custom toolbar with action handling and alignment.
 
 # Imports (standard):
 import dataclasses
@@ -21,41 +21,44 @@ class ToolBar(QtWidgets.QToolBar):
         trailing: bool = True
         movable: bool = False
         orientation: QtCore.Qt.Orientation = QtCore.Qt.Orientation.Horizontal
-        toolButtonStyle: QtCore.Qt.ToolButtonStyle = QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly
+        toolButtonStyle: QtCore.Qt.ToolButtonStyle = (
+            QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly
+        )
 
     def __init__(self, parent=None, **kwargs):
 
-        # Instantiate default options:
+        # Instantiate before super class:
         self._opts = ToolBar.Options(
             iconSize=kwargs.get("iconSize", QtCore.QSize(16, 16)),
             floatable=kwargs.get("floatable", False),
             trailing=kwargs.get("trailing", True),
             movable=kwargs.get("movable", False),
             orientation=kwargs.get("orientation", QtCore.Qt.Orientation.Horizontal),
-            toolButtonStyle=kwargs.get("toolButtonStyle", QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly),
+            toolButtonStyle=kwargs.get(
+                "toolButtonStyle", QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly
+            ),
         )
 
-        super().__init__(
+        super().__init__(  # Now `self._opts` can be used.
             parent,
             movable=self._opts.movable,
             floatable=self._opts.floatable,
             orientation=self._opts.orientation,
             toolButtonStyle=self._opts.toolButtonStyle,
-            iconSize=self._opts.iconSize
+            iconSize=self._opts.iconSize,
         )
 
-        style = kwargs.get('style', "")
-        items = kwargs.get("actions", [])
-        trail = kwargs.get("trailing", True)
+        style = kwargs.get("style", "")  # Custom styling.
+        items = kwargs.get("actions", [])  # List of actions to add to the toolbar
+        trail = kwargs.get("trailing", True)  # Position of actions w.r.t to spacer.
 
-        spacer = QtWidgets.QFrame()
+        spacer = QtWidgets.QFrame()  # The spacer aligns the toolbar's actions.
         spacer.setSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
             QtWidgets.QSizePolicy.Policy.Expanding,
         )
 
-        # Add spacer based on alignment
-        if trail:
+        if trail:  # Actions trail the spacer.
             self.addWidget(spacer)
             self.add_actions(items)
 
@@ -63,13 +66,17 @@ class ToolBar(QtWidgets.QToolBar):
             self.add_actions(items)
             self.addWidget(spacer)
 
-        # Apply the stylesheet:
         self.setStyleSheet(style)
 
-    # Add actions to the toolbar, if provided
     def add_actions(self, actions: list) -> None:
+        """
+        Adds the given actions to the toolbar sequentially.
 
-        # Add actions to the toolbar, encapsulated in try-except block
+        Args:
+             actions (list): A list of tuples containing the action's icon, label, and callback method.
+        """
+
+        # Encapsulate in a try-except block:
         try:
             for icon, label, callback in actions:
                 self.addAction(icon, label, callback)

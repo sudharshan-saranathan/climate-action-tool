@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-#
 import dataclasses
 import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
 import argparse
@@ -17,15 +16,23 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-
 from gui.main_ui import MainWindow
 from gui.startup import StartupWindow
+
+"""
+Entry point and application initialization for the Climate Action Tool.
+
+This module instantiates the main application, applies styling and fonts,
+and initializes the user interface based on command-line arguments.
+"""
 
 
 class ClimateActionTool(QtWidgets.QApplication):
     """
-    Subclass of `QtWidgets.QApplication`. Sets style, font, and initializes the main user interface.
-    Must be instantiated before QtWidgets.
+    Main application class for the Climate Action Tool.
+
+    Handles application initialization including style, fonts, and UI setup.
+    This must be instantiated before any other Qt components.
     """
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
@@ -34,12 +41,10 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     @dataclasses.dataclass
     class Options:
-        """
-        Default options for the Climate Action Tool.
-        """
+        """Default configuration options for the Climate Action Tool."""
 
-        image: str = ":/logo/logo.png"  # The application's logo
-        theme: str = ":/theme/dark.qss"  # The qss-file to use as the default theme.
+        image: str = ":/logo/logo.png"  # Application logo path
+        theme: str = ":/theme/dark.qss"  # Default theme stylesheet path
         bezel: int = (
             64  # Initial padding around the main window at application startup.
         )
@@ -85,9 +90,11 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     def _init_args(self) -> None:
         """
-        Parses command-line arguments and updates the application's flags accordingly. The flags do the following:
-        1. `--no-startup`: Skips the startup window.
-        2. `--no-backend`: Disables the backend optimization module.
+        Parse command-line arguments and update application flags.
+
+        Supported flags:
+        - --no-startup: Skip the startup dialog.
+        - --no-backend: Disable the backend optimization module.
         """
 
         parser = argparse.ArgumentParser()
@@ -100,12 +107,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         self.backend_flag = args.backend
 
     def _init_font(self) -> None:
-        """
-        Sets the application's font based on the platform.
-        Windows - "Fira Code"
-        macOS - "Menlo"
-        Linux - "Ubuntu Sans Mono"
-        """
+        """Set the application font based on the current platform."""
 
         fonts: dict[str, types.SimpleNamespace] = self._opts.fonts
         envir: str = platform.system().lower()
@@ -122,11 +124,12 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     def _init_style(self, path: str) -> None:
         """
-        Reads the provided QSS stylesheet and applies it to the application.
-        Does not throw an exception if the file doesn't exist or cannot be read.
+        Apply a QSS stylesheet to the application.
+
+        Silently fails if the stylesheet file doesn't exist or cannot be read.
 
         Args:
-            path (str): The path to the stylesheet file.
+            path: Path to the QSS stylesheet file.
         """
 
         qss_file = QtCore.QFile(path)
@@ -140,10 +143,11 @@ class ClimateActionTool(QtWidgets.QApplication):
     @staticmethod
     def _show_startup() -> tuple[int, str | None]:
         """
-        Displays the startup window.
+        Display the startup dialog and return the result.
 
         Returns:
-            result (int): The startup window.
+            A tuple of (exit_code, project_path) where exit_code indicates
+            success (1) or cancellation (0).
         """
 
         startup = StartupWindow()
@@ -157,11 +161,8 @@ class ClimateActionTool(QtWidgets.QApplication):
         return self._opts
 
 
-def main():
-    """
-    Instantiates `ClimateActionTool` and enters its event loop.
-    """
-
+def main() -> None:
+    """Instantiate the application and enter the event loop."""
     application = ClimateActionTool()
     application.exec()
     sys.exit(0)

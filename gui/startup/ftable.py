@@ -15,44 +15,70 @@ from gui.widgets import ToolBar
 # Widget representing a single file/project, added to the FileTable:
 class FileTableItem(QtWidgets.QWidget):
 
+    # Signals:
+    sig_open_project = QtCore.Signal(str)
+    sig_clone_project = QtCore.Signal(str)
+    sig_delete_project = QtCore.Signal(str)
+
     # Default constructor:
-    def __init__(self, name: str, **kwargs):
+    def __init__(self, name: str, path: str = "", **kwargs):
 
         # Super-class initialization:
         super().__init__(None)
         super().setMouseTracking(True)
         super().setProperty("project", name)
 
+        self._project_name = name
+        self._project_path = path
+
         # Layout:
         layout = QtWidgets.QGridLayout(self)
-        layout.setContentsMargins(2, 2, 2, 2)
+        layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(0)
 
-        self._project_name = QtWidgets.QLabel(name)
+        self._project_label = QtWidgets.QLabel(name)
         self._project_acts = self._project_actions()
         self._buttons = kwargs.get("buttons", [])
 
-        layout.addWidget(self._project_name, 0, 0)
+        layout.addWidget(self._project_label, 0, 0)
         layout.addWidget(self._project_acts, 0, 1)
 
     # Project actions:
-    @staticmethod
-    def _project_actions():
+    def _project_actions(self):
 
         toolbar = ToolBar(
-            iconSize=QtCore.QSize(20, 20),
+            iconSize=QtCore.QSize(18, 18),
             actions=[
-                (qta_icon("mdi.share", color="#efefef"), "Share Project", None),
-                (qta_icon("mdi.pencil", color="#efefef"), "Edit Project", None),
                 (
-                    qta_icon("mdi.dots-horizontal", color="#efefef"),
-                    "More Options",
-                    None,
+                    qta_icon("ph.upload-simple", color="gray", color_active="white"),
+                    "Open Project",
+                    lambda path=self._project_path: self.sig_open_project.emit(path),
+                ),
+                (
+                    qta_icon(
+                        "ph.shield-check-fill", color="gray", color_active="white"
+                    ),
+                    "Open Project (Safe Mode)",
+                    lambda path=self._project_path: self.sig_open_project.emit(path),
+                ),
+                (
+                    qta_icon(
+                        "mdi.plus-circle-multiple-outline",
+                        color="gray",
+                        color_active="white",
+                    ),
+                    "Clone Project",
+                    lambda path=self._project_path: self.sig_clone_project.emit(path),
+                ),
+                (
+                    qta_icon("mdi.delete", color="gray", color_active="red"),
+                    "Delete Project",
+                    lambda path=self._project_path: self.sig_delete_project.emit(path),
                 ),
             ],
         )
 
-        toolbar.hide()  # Hide these icons by default
+        toolbar.hide()  # Hide the actions by default.
         return toolbar
 
     # Reimplementation of QWidget.enterEvent():
@@ -88,7 +114,6 @@ class StartupFileTable(QtWidgets.QTableWidget):
 
         # Set attribute(s):
         self.setShowGrid(False)
-        self.setAlternatingRowColors(True)
         self.setIconSize(self._opts.icon_size)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
 
@@ -100,12 +125,11 @@ class StartupFileTable(QtWidgets.QTableWidget):
         header = self.horizontalHeader()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
-    #   Reimplementation of QTableWidget.paintEvent():
     def paintEvent(self, event):
-
         super().paintEvent(event)  # Call base-class implementation
 
-        if self.rowCount() == 0:  # If the table is empty:
+        # Paint an empty indicator if the table is empty:
+        if self.rowCount() == 0:
 
             painter = QtGui.QPainter(self.viewport())
             painter.setOpacity(self._opts.empty_icon_opacity)
@@ -119,7 +143,6 @@ class StartupFileTable(QtWidgets.QTableWidget):
             )
             painter.end()
 
-    #   Reimplementation of QTableWidget.mousePressEvent():
     def mousePressEvent(self, event):
 
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -148,7 +171,8 @@ class StartupFileTable(QtWidgets.QTableWidget):
         )
 
         self.setRowHeight(row, self._opts.row_height)
-        self.setCellWidget(row, 0, FileTableItem(path.stem))
+        file_item = FileTableItem(path.stem, path=str(path))
+        self.setCellWidget(row, 0, file_item)
         self.setItem(row, 1, item_second_column)
         self.setItem(row, 0, item_first_column)
 
