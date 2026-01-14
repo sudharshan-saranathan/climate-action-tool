@@ -16,8 +16,8 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from gui.main_ui import MainWindow
-from gui.startup import StartupWindow
+from gui.main_ui.window import MainWindow
+from gui.startup.window import StartupWindow
 
 """
 Entry point and application initialization for the Climate Action Tool.
