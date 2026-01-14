@@ -198,7 +198,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def _on_maximize(self) -> None:
-        """Toggle window between normal and maximized states."""
+        """Toggle the window between normal and maximized states."""
         if self.isMaximized():
             self.showNormal()
         else:
