@@ -111,7 +111,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         envir: str = platform.system().lower()
 
         # Install custom fonts using Qt's font database:
-        QtGui.QFontDatabase.addApplicationFont(":/fonts/Marck-Regular.ttf")
+        QtGui.QFontDatabase.addApplicationFont(":/fonts/MarckScript-Regular.ttf")
         QtGui.QFontDatabase.addApplicationFont(":/fonts/Bilbo-Regular.ttf")
 
         if envir not in fonts:

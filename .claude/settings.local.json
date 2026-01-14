@@ -4,7 +4,8 @@
       "Bash(tree:*)",
       "Bash(wc:*)",
       "Bash(python:*)",
-      "Bash(pyside6-rcc:*)"
+      "Bash(pyside6-rcc:*)",
+      "Bash(grep:*)"
     ]
   }
 }
