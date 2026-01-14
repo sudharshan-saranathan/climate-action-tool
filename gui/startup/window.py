@@ -44,7 +44,7 @@ class StartupWindow(QtWidgets.QDialog):
         super().setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
         # UI components:
-        self._pixmap = QtGui.QPixmap(":/theme/pattern.png")
+        self._pixmap = QtGui.QPixmap(":/theme/pattern.png")  # Patterened backg
         self._header = self._init_header()
         self._h_line = self._init_h_line()
         self._footer = self._init_footer()
