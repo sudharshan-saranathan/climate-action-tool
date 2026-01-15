@@ -260,10 +260,17 @@ QTabBar::tab:hover, QTabBar::tab:selected {                         /* Style for
 QTabBar::close-button { /* Close button style */
     subcontrol-position         : right;
     subcontrol-origin           : padding;
-    margin-right                : 2px;
-    image                       : url(:/close.png);
+    margin-right                : 4px;
+    padding                     : 2px;
+    image                       : url(:/png/close.png);
     width                       : 16px;
     height                      : 16px;
+    background-color            : transparent;
+}
+
+QTabBar::close-button:hover {
+    background-color            : #4a556d;
+    border-radius               : 2px;
 }
 
 /*
