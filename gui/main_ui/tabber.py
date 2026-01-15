@@ -40,9 +40,6 @@ class TabWidget(QtWidgets.QTabWidget):
             )
         )
 
-    # Create a default options instance for fallback values
-    _default_opts = Options()
-
     def __init__(self, parent=None, **kwargs):
         """
         Initialize the tab widget with optional configuration.
@@ -55,12 +52,14 @@ class TabWidget(QtWidgets.QTabWidget):
                 - tabsClosable: Whether tabs can be closed (default: True)
                 - movable: Whether tabs can be moved (default: True)
         """
-        # Initialize options before calling super class
+        # Initialize options before calling super class with literal default values
         self._opts = TabWidget.Options(
-            iconSize=kwargs.get("iconSize", self._default_opts.iconSize),
-            movable=kwargs.get("movable", self._default_opts.movable),
-            tabsClosable=kwargs.get("tabsClosable", self._default_opts.tabsClosable),
-            tabPosition=kwargs.get("tabPosition", self._default_opts.tabPosition),
+            iconSize=kwargs.get("iconSize", QtCore.QSize(16, 16)),
+            movable=kwargs.get("movable", True),
+            tabsClosable=kwargs.get("tabsClosable", True),
+            tabPosition=kwargs.get(
+                "tabPosition", QtWidgets.QTabWidget.TabPosition.North
+            ),
         )
 
         super().__init__(  # See QTabWidget documentation for keyword explanation:
@@ -72,7 +71,11 @@ class TabWidget(QtWidgets.QTabWidget):
         )
 
         # Register keyboard shortcuts for tab management
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+T"), self, self.new_tab)
+        QtGui.QShortcut(
+            QtGui.QKeySequence("Ctrl+T"),
+            self,
+            lambda: self.new_tab(QtWidgets.QWidget()),
+        )
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.del_tab)
 
     def new_tab(
