@@ -104,6 +104,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         args = parser.parse_args()
 
         self.startup_flag = args.startup
+        self.startup_code = 1
         self.backend_flag = args.backend
 
     def _init_font(self) -> None:

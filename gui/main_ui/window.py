@@ -237,7 +237,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create the graphics scene with background color
         scene = QtWidgets.QGraphicsScene(self)
         scene.setSceneRect(QtCore.QRectF(0, 0, 5000, 5000))
-        scene.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(0x3a3a3a)))
+        scene.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(0x393E41)))
 
         # Create the graphics view and set the scene
         viewer = QtWidgets.QGraphicsView(scene, self)

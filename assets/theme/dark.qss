@@ -81,7 +81,7 @@ QFrame {
 }
 
 QGraphicsView {                 /* Default appearance of graphics view widgets */
-    background                  : white;
+    background                  : transparent;
     border-radius               : 4px;
     margin                      : 0px 4px 0px 0px;
 }
@@ -541,12 +541,12 @@ QTableWidget::item:selected {
 */
 
 QScrollBar:vertical {                             /* Vertical scrollbar style */
-    background                  : #2a2f33;
+    background                  : transparent;
     width                       : 16px;
 }
 
 QScrollBar:horizontal {                             /* Horizontal scrollbar style */
-    background                  : #2a2f33;
+    background                  : transparent;
     height                      : 16px;
 }
 

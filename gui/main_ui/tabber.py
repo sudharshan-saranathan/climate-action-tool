@@ -10,7 +10,7 @@ Supports creating and deleting tabs with Ctrl+T and Ctrl+W respectively.
 """
 
 import dataclasses
-
+from qtawesome import icon as qta_icon
 from PySide6 import QtGui, QtCore, QtWidgets
 
 
@@ -70,16 +70,11 @@ class TabWidget(QtWidgets.QTabWidget):
             tabsClosable=self._opts.tabsClosable,
         )
 
-        # Register keyboard shortcuts for tab management
-        QtGui.QShortcut(
-            QtGui.QKeySequence("Ctrl+T"),
-            self,
-            lambda: self.new_tab(QtWidgets.QWidget()),
-        )
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.del_tab)
-
     def new_tab(
-        self, widget: QtWidgets.QWidget, icon: QtGui.QIcon = None, label: str = None
+        self,
+        widget: QtWidgets.QWidget,
+        icon: QtGui.QIcon = qta_icon("mdi.tab", color="#efefef"),
+        label: str = None,
     ) -> None:
         """
         Create a new tab with the given widget.

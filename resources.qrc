@@ -25,6 +25,8 @@
   </qresource>
 
   <qresource prefix="/png">
+    <file alias="close-gray.png">assets/icons/pack-png/close-gray.png</file>
+    <file alias="close.png">assets/icons/pack-png/close.png</file>
     <file alias="empty.png">assets/theme/png/empty.png</file>
   </qresource>
 
