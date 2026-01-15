@@ -43,7 +43,8 @@ class MainWindow(QtWidgets.QMainWindow):
     _instance: MainWindow | None = None
 
     def __new__(cls, **kwargs):
-        """Enforce singleton pattern by returning the same instance."""
+        """Enforce singleton design by returning the same instance."""
+
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -71,9 +72,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._init_menubar()
         self._init_toolbar()
-        # self._init_sidebar()
-        # self._init_tabview()
+        self._init_tabview()
         self._init_status()
+        self._init_shortcuts()
 
         self._options = MainWindow.Options()
         self._lights = None  # Will be set in _init_menubar
@@ -115,35 +116,36 @@ class MainWindow(QtWidgets.QMainWindow):
         Creates a vertical toolbar with action buttons for Dock, Open, Save, Optimize, and Results.
         The toolbar is non-floatable and non-movable by default.
         """
+
         toolbar = ToolBar(
             self,
-            style="QToolBar QToolButton {margin: 1px 2px 2px 2px;}",
+            style="QToolBar QToolButton {margin: 1px 1px 2px 1px;}",
             orientation=QtCore.Qt.Orientation.Vertical,
             iconSize=QtCore.QSize(24, 24),
             trailing=False,
             actions=[
                 (
-                    qta_icon("ph.layout-fill", color="#efefef"),
+                    qta_icon("ph.layout-fill", color="#fef9ef"),
                     "Dock",
                     self._on_action_triggered,
                 ),
                 (
-                    qta_icon("mdi.folder-plus", color="#ffcb00"),
+                    qta_icon("mdi.folder-plus", color="#ffcb77"),
                     "Open",
                     self._on_action_triggered,
                 ),
                 (
-                    qta_icon("mdi.floppy", color="#59bff2"),
+                    qta_icon("mdi.floppy", color="#17c3b2"),
                     "Save",
                     self._on_action_triggered,
                 ),
                 (
-                    qta_icon("mdi.language-python", color="#967ab8"),
+                    qta_icon("mdi.language-python", color="#227c9d"),
                     "Optimize",
                     self._on_action_triggered,
                 ),
                 (
-                    qta_icon("mdi.chart-box", color="#ffcb00"),
+                    qta_icon("mdi.chart-box", color="#fe6d73", color_active="#ff3d44"),
                     "Results",
                     self._on_action_triggered,
                 ),
@@ -159,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Creates a SideBar (QDockWidget subclass) with a ComboBox in the title and QStackedWidget
         as the main content. Adds it as a left-aligned dock widget and hides it by default.
         """
-        from .sidebar.sidebar import SideBar
+        from sidebar.sidebar import SideBar
 
         sidebar = SideBar(self)
         sidebar.hide()
@@ -173,19 +175,38 @@ class MainWindow(QtWidgets.QMainWindow):
         Creates a QTabWidget with closable, movable tabs positioned at the top.
         Sets it as the central widget of the main window.
         """
-        tabs = QtWidgets.QTabWidget(
+
+        # Required:
+        from gui.main_ui.tabber import TabWidget
+
+        self._tabs = TabWidget(
             self,
             tabsClosable=True,
             tabPosition=QtWidgets.QTabWidget.TabPosition.North,
             movable=True,
         )
 
-        self.setCentralWidget(tabs)
+        self.setCentralWidget(self._tabs)
+
+        # Show a permanent map tab and make it unclosable:
+        self._tabs.new_tab(
+            QtWidgets.QFrame(), icon=qta_icon("mdi.map", color="lightblue"), label="Map"
+        )
+
+        self._tabs.tabBar().setTabButton(
+            0, QtWidgets.QTabBar.ButtonPosition.RightSide, None
+        )
 
     def _init_status(self) -> None:
         """Initialize the status bar at the bottom of the main window."""
         self._status = QtWidgets.QStatusBar()
         self.setStatusBar(self._status)
+
+    def _init_shortcuts(self) -> None:
+        """Initialize keyboard shortcuts for the main window."""
+
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+T"), self, self._on_new_tab)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self._on_del_tab)
 
     @QtCore.Slot()
     def _on_action_triggered(self) -> None:
@@ -204,6 +225,33 @@ class MainWindow(QtWidgets.QMainWindow):
             self.showNormal()
         else:
             self.showMaximized()
+
+    @QtCore.Slot()
+    def _on_new_tab(self) -> None:
+        """
+        Create a new tab with a graphics view and scene.
+
+        Creates a QGraphicsScene with a dark gray background and adds it to a QGraphicsView.
+        The view is configured for drag-based panning.
+        """
+        # Create the graphics scene with background color
+        scene = QtWidgets.QGraphicsScene(self)
+        scene.setSceneRect(QtCore.QRectF(0, 0, 5000, 5000))
+        scene.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(0x3a3a3a)))
+
+        # Create the graphics view and set the scene
+        viewer = QtWidgets.QGraphicsView(scene, self)
+        viewer.setDragMode(QtWidgets.QGraphicsView.DragMode.ScrollHandDrag)
+
+        self._tabs.new_tab(
+            viewer,
+            qta_icon("mdi.sitemap", color="#efefef"),
+            "Schematic",
+        )
+
+    @QtCore.Slot()
+    def _on_del_tab(self):
+        pass
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         """
