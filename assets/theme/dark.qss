@@ -80,8 +80,8 @@ QFrame {
     border                      : none;
 }
 
-QGraphicsView {                 /* Default appearance of graphics view widgets */
-    background                  : transparent;
+QGraphicsView {                                     /* Default appearance of graphics view widgets */
+    background                  : #393e41;
     border-radius               : 4px;
     margin                      : 0px 4px 0px 0px;
 }
@@ -241,7 +241,6 @@ QTabWidget QTabBar {                                      /* Tab bar style */
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
     height                      : 20px;
-    width                       : 140px;
     color                       : gray;
     background                  : transparent;
     border-radius               : 4px;
@@ -259,8 +258,8 @@ QTabBar::tab:hover, QTabBar::tab:selected {                         /* Style for
 QTabBar::close-button { /* Close button style */
     subcontrol-position         : right center;
     subcontrol-origin           : padding;
-    margin-right                : 0px;
-    margin-top                  : 4px;
+    margin-right                : 2px;
+    margin-top                  : 0px;
     image                       : url(:/png/close-gray.png);
     width                       : 12px;
     height                      : 12px;
