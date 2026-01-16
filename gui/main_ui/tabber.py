@@ -104,17 +104,19 @@ class TabWidget(QtWidgets.QTabWidget):
         """
 
         # Required:
+        # TODO: Import custom scene once available:
         from gui.widgets.viewer import Viewer
 
         count = self.count()
         label = label or f"Tab {count + 1}"
 
         widget = widget or Viewer(
-            scene=QtWidgets.QGraphicsScene(),
+            scene=QtWidgets.QGraphicsScene(),  # TODO: Replace with a custom scene once available.
             parent=self,
             dragMode=QtWidgets.QGraphicsView.DragMode.ScrollHandDrag,
             viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
             renderHints=QtGui.QPainter.RenderHint.Antialiasing,
+            sceneRect=QtCore.QRectF(0, 0, 5000, 5000),
         )
 
         self.addTab(widget, icon, label)
