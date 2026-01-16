@@ -235,18 +235,19 @@ class MainWindow(QtWidgets.QMainWindow):
         The view is configured for drag-based panning.
         """
         # Create the graphics scene with background color
-        scene = QtWidgets.QGraphicsScene(self)
-        scene.setSceneRect(QtCore.QRectF(0, 0, 5000, 5000))
-        scene.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(0x393E41)))
+        scene = QtWidgets.QGraphicsScene(
+            QtCore.QRectF(0, 0, 5000, 5000),
+            parent=self,
+            backgroundBrush=QtGui.QBrush(0x393E41),
+        )
 
         # Create the graphics view and set the scene
         viewer = QtWidgets.QGraphicsView(scene, self)
-        viewer.setDragMode(QtWidgets.QGraphicsView.DragMode.ScrollHandDrag)
 
         self._tabs.new_tab(
             viewer,
-            qta_icon("mdi.sitemap", color="#efefef"),
-            "Schematic",
+            qta_icon("mdi.draw", color="#efefef"),
+            "Canvas",
         )
 
     @QtCore.Slot()
