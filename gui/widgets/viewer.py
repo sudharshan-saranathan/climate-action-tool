@@ -67,13 +67,10 @@ class Viewer(QtWidgets.QGraphicsView):
         Args:
             event: The wheel event.
         """
-        if event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier:
-            delta = event.angleDelta().y()
-            factor = 1.1 if delta > 0 else 0.9
-            self._zoom_by(factor)
-            event.accept()
-        else:
-            super().wheelEvent(event)
+        delta = event.angleDelta().y()
+        factor = self._opts.zoom_factor if delta > 0 else 1.0 / self._opts.zoom_factor
+        self._zoom_by(factor)
+        event.accept()
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         """
