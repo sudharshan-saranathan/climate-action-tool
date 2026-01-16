@@ -76,7 +76,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self._init_toolbar()
         self._init_tabview()
         self._init_status()
-        self._init_shortcuts()
 
         self._options = MainWindow.Options()
         self._lights = None  # Will be set in _init_menubar
@@ -204,12 +203,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self._status = QtWidgets.QStatusBar()
         self.setStatusBar(self._status)
 
-    def _init_shortcuts(self) -> None:
-        """Initialize keyboard shortcuts for the main window."""
-
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+T"), self, self._on_new_tab)
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self._on_del_tab)
-
     @QtCore.Slot()
     def _on_action_triggered(self) -> None:
         """
@@ -227,43 +220,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.showNormal()
         else:
             self.showMaximized()
-
-    @QtCore.Slot()
-    def _on_new_tab(self) -> None:
-        """
-        Create a new tab with a graphics view and scene.
-
-        Creates a QGraphicsScene with a dark gray background and adds it to a QGraphicsView.
-        The view is configured for drag-based panning.
-        """
-
-        # Create the graphics scene with background color
-        scene = QtWidgets.QGraphicsScene(self)
-
-        # Create the graphics view and set the scene
-        viewer = Viewer(
-            scene,
-            viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
-            renderHints=QtGui.QPainter.RenderHint.Antialiasing,
-            dragMode=QtWidgets.QGraphicsView.DragMode.ScrollHandDrag,
-            cacheMode=QtWidgets.QGraphicsView.CacheModeFlag.CacheBackground,
-            optimizationFlags=QtWidgets.QGraphicsView.OptimizationFlag.DontSavePainterState,
-            sceneRect=QtCore.QRectF(0, 0, 10000.0, 10000.0),
-            backgroundBrush=QtGui.QBrush(QtGui.QColor(0x393e41))
-        )
-
-        viewer.setViewportMargins(2, 2, 2, 2)
-        viewer.setCornerWidget(QtWidgets.QFrame())
-
-        self._tabs.new_tab(
-            viewer,
-            qta_icon("mdi.sitemap", color="#efefef"),
-            "Schematic",
-        )
-
-    @QtCore.Slot()
-    def _on_del_tab(self):
-        pass
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         """

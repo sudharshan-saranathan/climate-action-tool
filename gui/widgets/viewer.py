@@ -3,9 +3,10 @@
 # Description: A QGraphicsView-based viewer for displaying graphics scenes
 
 """
-Basic QGraphicsView-based viewer for displaying graphics scenes.
+QGraphicsView-based viewer for displaying graphics scenes.
 
-Provides a simple viewer with support for zooming and panning.
+Provides interactive viewing with zooming, panning, and selection capabilities.
+Keyboard shortcuts: Ctrl+wheel/Ctrl+=/Ctrl+- (zoom), Shift+drag (pan), Ctrl+drag (select).
 """
 
 import dataclasses
@@ -17,8 +18,10 @@ class Viewer(QtWidgets.QGraphicsView):
     """
     A QGraphicsView-based viewer for displaying graphics scenes.
 
-    Supports basic zooming with mouse wheel and keyboard shortcuts (Ctrl+/Ctrl-).
-    Supports panning with Shift+drag.
+    Supports:
+    - Zooming: Ctrl+wheel, Ctrl+=, Ctrl+-
+    - Panning: Shift+drag (ScrollHandDrag)
+    - Selection: Ctrl+drag (RubberBandDrag)
     """
 
     @dataclasses.dataclass(frozen=True)
@@ -40,6 +43,7 @@ class Viewer(QtWidgets.QGraphicsView):
 
         Args:
             scene: The QGraphicsScene to display.
+            parent: Parent widget (optional).
             **kwargs: Additional arguments passed to QGraphicsView.
         """
 
@@ -73,7 +77,9 @@ class Viewer(QtWidgets.QGraphicsView):
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         """
-        Handle keyboard events for panning and mode switching.
+        Handle keyboard events for panning and selection mode switching.
+
+        Shift key enables panning (ScrollHandDrag), Ctrl key enables selection (RubberBandDrag).
 
         Args:
             event: The key event.
@@ -88,7 +94,9 @@ class Viewer(QtWidgets.QGraphicsView):
 
     def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
         """
-        Handle keyboard release events to reset drag mode.
+        Handle keyboard release events to reset drag mode to NoDrag.
+
+        Resets to NoDrag mode when Shift is released, clearing panning/selection.
 
         Args:
             event: The key event.
