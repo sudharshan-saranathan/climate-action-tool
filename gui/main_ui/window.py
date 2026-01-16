@@ -16,7 +16,9 @@ import dataclasses
 from qtawesome import icon as qta_icon
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from gui.widgets import ToolBar, Lights
+from gui.widgets import ToolBar
+from gui.widgets import Lights
+from gui.widgets import Viewer
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -234,20 +236,29 @@ class MainWindow(QtWidgets.QMainWindow):
         Creates a QGraphicsScene with a dark gray background and adds it to a QGraphicsView.
         The view is configured for drag-based panning.
         """
+
         # Create the graphics scene with background color
-        scene = QtWidgets.QGraphicsScene(
-            QtCore.QRectF(0, 0, 5000, 5000),
-            parent=self,
-            backgroundBrush=QtGui.QBrush(0x393E41),
-        )
+        scene = QtWidgets.QGraphicsScene(self)
 
         # Create the graphics view and set the scene
-        viewer = QtWidgets.QGraphicsView(scene, self)
+        viewer = Viewer(
+            scene,
+            viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
+            renderHints=QtGui.QPainter.RenderHint.Antialiasing,
+            dragMode=QtWidgets.QGraphicsView.DragMode.ScrollHandDrag,
+            cacheMode=QtWidgets.QGraphicsView.CacheModeFlag.CacheBackground,
+            optimizationFlags=QtWidgets.QGraphicsView.OptimizationFlag.DontSavePainterState,
+            sceneRect=QtCore.QRectF(0, 0, 10000.0, 10000.0),
+            backgroundBrush=QtGui.QBrush(QtGui.QColor(0x393e41))
+        )
+
+        viewer.setViewportMargins(2, 2, 2, 2)
+        viewer.setCornerWidget(QtWidgets.QFrame())
 
         self._tabs.new_tab(
             viewer,
-            qta_icon("mdi.draw", color="#efefef"),
-            "Canvas",
+            qta_icon("mdi.sitemap", color="#efefef"),
+            "Schematic",
         )
 
     @QtCore.Slot()
