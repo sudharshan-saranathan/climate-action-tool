@@ -44,3 +44,39 @@ class Canvas(QtWidgets.QGraphicsScene):
         super().__init__(
             self._opts.sceneRect, parent=parent, backgroundBrush=self._opts.background
         )
+
+        # Attribute(s):
+        self.setProperty(
+            "_rmb_coordinate", QtCore.QPoint()
+        )  # When the user right-clicks, the scene-position is stored in this property.
+
+        # Initialize context menu:
+        self._menu = self._init_menu()
+
+    @staticmethod
+    def _init_menu():
+
+        context_menu = QtWidgets.QMenu()
+        objects_menu = context_menu.addMenu("Create")
+
+        # Add actions to the main menu:
+        context_menu.addSeparator()
+        context_menu.addAction("Open")
+        context_menu.addAction("Save")
+        context_menu.addSeparator()
+
+        context_menu.addAction("Undo")
+        context_menu.addAction("Redo")
+        context_menu.addAction("Clone")
+        context_menu.addAction("Clear")
+        context_menu.addSeparator()
+
+        # Add actions to the objects menu:
+        objects_menu.addAction("Vertex")
+        objects_menu.addAction("Input")
+        objects_menu.addAction("Output")
+
+        return context_menu
+
+    def contextMenuEvent(self, event):
+        self._menu.exec_(event.screenPos())

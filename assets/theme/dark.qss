@@ -81,7 +81,7 @@ QFrame {
 }
 
 QGraphicsView {                                     /* Default appearance of graphics view widgets */
-    background                  : #393e41;
+    background                  : #efefef;
     border-radius               : 4px;
     margin                      : 0px 4px 0px 0px;
 }
