@@ -105,14 +105,18 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     def _install_fonts(self) -> None:
 
+        # Required for platform-dependent sizing:
+        import platform
+
         fonts_path = QtCore.QDir(":/fonts")
         fonts_list = fonts_path.entryList(["*.ttf"])
+        fonts_size = 8 if platform.system().lower() == "windows" else 10
 
         # Install all available fonts:
         for font in fonts_list:
             QtGui.QFontDatabase.addApplicationFont(f":/fonts/{font}")
 
-        self.setFont(QtGui.QFont("Fira Code", 8))
+        self.setFont(QtGui.QFont("Fira Code", fonts_size))
 
     def _init_style(self, path: str) -> None:
         """
