@@ -80,3 +80,11 @@ class Canvas(QtWidgets.QGraphicsScene):
 
     def contextMenuEvent(self, event):
         self._menu.exec_(event.screenPos())
+
+    def create_item(self, item_type, pos):
+        """
+        Creates a new item of the specified type at the specified position.
+        :param item_type:
+        :param pos:
+        :return:
+        """
