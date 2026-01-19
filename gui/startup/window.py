@@ -26,51 +26,63 @@ class StartupWindow(QtWidgets.QDialog):
 
     @dataclasses.dataclass(frozen=True)
     class Options:
+        """
+        Startup window configuration options.
 
-        radius: float = 10.0  # Radius of the rounded corners.
-        border: QtGui.QPen = (
-            dataclasses.field(  # Window border style (default: no border).
-                default_factory=lambda: QtGui.QPen(QtGui.QColor(0x393E41), 2.0)
-            )
+        Attributes:
+            radius: Corner radius for rounded rectangle in pixels (default: 10.0).
+            border: QPen for window border styling (default: dark gray, 2pt).
+            background: QBrush for window background (default: solid dark color).
+            rect: QSize for window dimensions (default: 900x640).
+        """
+
+        radius: float = 10.0
+        border: QtGui.QPen = dataclasses.field(
+            default_factory=lambda: QtGui.QPen(QtGui.QColor(0x393E41), 2.0)
         )
 
-        background: QtGui.QBrush = dataclasses.field(  # Background color and style.
+        background: QtGui.QBrush = dataclasses.field(
             default_factory=lambda: QtGui.QBrush(
                 QtGui.QColor(0x232A2E),
                 QtCore.Qt.BrushStyle.SolidPattern,
             )
         )
 
-        rect: QtCore.QSize = (
-            dataclasses.field(  # Size of the window (default: 900x640).
-                default_factory=lambda: QtCore.QSize(900, 640)
-            )
+        rect: QtCore.QSize = dataclasses.field(
+            default_factory=lambda: QtCore.QSize(900, 640)
         )
 
     def __init__(self, parent=None):
         """
-        Initializes the window, configures attributes, and adds child widgets.
+        Initialize the startup window with UI components and layout.
+
+        Sets up a frameless, translucent window with header, file table, buttons,
+        and footer. Connects signals for user interactions with project management.
+
+        Args:
+            parent: Parent widget (optional).
         """
         super().__init__(parent)
         super().setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         super().setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
-        # UI components:
-        self._pixmap = QtGui.QPixmap(":/theme/pattern.png")  # Background pattern.
-        self._header = self._init_header()  # Header displaying title and subtitle.
-        self._h_line = self._init_h_line()  # Light gray separator.
-        self._footer = self._init_footer()  # Footer with clickable external links.
-        self._choice = StartupChoice()  # Buttons
+        # Load background pattern and initialize UI components
+        self._pixmap = QtGui.QPixmap(":/theme/pattern.png")
+        self._header = self._init_header()
+        self._h_line = self._init_h_line()
+        self._footer = self._init_footer()
+        self._choice = StartupChoice()
         self._ftable = StartupFileTable()
         self._ftable.populate("library", "*.h5")
         self._current_project_file = None
 
+        # Configure window appearance and size
         self._opts = StartupWindow.Options()
         self._opts.background.setTexture(self._pixmap)
         self.resize(self._opts.rect)
 
-        # Arrange UI components in a layout:
-        layout = GLayout(  # Horizontal layout.
+        # Arrange components in grid layout: header/buttons on left, file table on right
+        layout = GLayout(
             self,
             spacing=8,
             margins=(8, 8, 8, 8),
@@ -86,14 +98,15 @@ class StartupWindow(QtWidgets.QDialog):
         layout.setRowStretch(4, 4)
         layout.setColumnStretch(1, 2)
 
-        # Connect signals:
         self._setup_connections()
 
     def _init_header(self) -> QtWidgets.QLabel:
         """
-        Creates a header for the startup window with a stylized title and subtitle.
-        """
+        Create and configure the window header with title and subtitle.
 
+        Returns:
+            A QLabel displaying the application title and tagline with centered alignment.
+        """
         header = QtWidgets.QLabel(
             '<span style="color:white; font-family: Bilbo; font-size:30pt;">Climate Action Tool</span><br>'
             '<span style="color:gray; font-weight: bold; font-size: 8pt;">Energy Systems Modeling Platform</span>',
@@ -107,9 +120,11 @@ class StartupWindow(QtWidgets.QDialog):
 
     def _init_h_line(self) -> QtWidgets.QFrame:
         """
-        Creates and returns a light gray horizontal separator.
-        """
+        Create a horizontal separator line.
 
+        Returns:
+            A QFrame configured as a horizontal line with dark gray color.
+        """
         h_line = QtWidgets.QFrame(self)
         h_line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         h_line.setStyleSheet("QFrame {background:#4f4f4f;}")
@@ -118,7 +133,13 @@ class StartupWindow(QtWidgets.QDialog):
 
     def _init_footer(self) -> QtWidgets.QToolBar:
         """
-        Creates and returns a window-footer with tool buttons and other peripheral information.
+        Create the footer toolbar with project links and license information.
+
+        The footer contains clickable buttons for GitHub and project website, along
+        with a license link. A spacer separates the links from the license text.
+
+        Returns:
+            A QToolBar configured with footer elements.
         """
 
         from qtawesome import icon as qta_icon
@@ -128,9 +149,16 @@ class StartupWindow(QtWidgets.QDialog):
             icon: str, tooltip: str, url: str
         ) -> QtWidgets.QToolButton:
             """
-            Helper to create a clickable link button.
-            """
+            Create a clickable tool button that opens a URL in the default browser.
 
+            Args:
+                icon: QtAwesome icon name (e.g., "mdi.github").
+                tooltip: Tooltip text shown on hover.
+                url: URL to open when button is clicked.
+
+            Returns:
+                A configured QToolButton.
+            """
             link = QtWidgets.QToolButton(self)
             link.setIcon(qta_icon(icon, color="gray", color_active="white"))
             link.setToolTip(tooltip)
@@ -172,19 +200,23 @@ class StartupWindow(QtWidgets.QDialog):
 
     def _setup_connections(self) -> None:
         """
-        Connect button signals to their respective slots.
+        Connect UI signals to their respective handler slots.
+
+        Connects buttons and file table signals to manage project creation,
+        selection, and application lifecycle.
         """
-        # Connect StartupChoice button signals:
         self._choice.sig_button_new_clicked.connect(self._on_new_project)
         self._choice.sig_button_tmp_clicked.connect(self._on_library_clicked)
         self._choice.sig_button_quit_clicked.connect(self._on_quit)
 
-        # Connect file table item open signals:
         self._connect_file_table_items()
 
     def _connect_file_table_items(self) -> None:
         """
-        Connect signals from all file table items.
+        Connect signals from all file table items to their handlers.
+
+        Iterates through the file table and connects open, clone, and delete
+        signals for each project item.
         """
         for row in range(self._ftable.rowCount()):
             item = self._ftable.cellWidget(row, 0)
@@ -195,37 +227,63 @@ class StartupWindow(QtWidgets.QDialog):
 
     @QtCore.Slot()
     def _on_new_project(self) -> None:
-        """Create a new project and close the startup dialog."""
-        # TODO: Implement new project creation logic
+        """
+        Handle new project creation button click.
+
+        Accepts the dialog and returns to the main application.
+        TODO: Implement new project creation logic.
+        """
         self.accept()
 
     @QtCore.Slot()
     def _on_library_clicked(self) -> None:
-        """Show the library (file table) view."""
-        # File table is already visible
+        """
+        Handle library button click.
+
+        The file table is already visible by default, so no action is needed.
+        """
         pass
 
     @QtCore.Slot(str)
     def _on_open_project(self, project_path: str) -> None:
-        """Open the selected project and close the startup dialog."""
+        """
+        Handle project selection from the file table.
+
+        Stores the selected project file path and accepts the dialog.
+
+        Args:
+            project_path: Path to the selected project file.
+        """
         self._current_project_file = project_path
         self.accept()
 
     @QtCore.Slot(str)
     def _on_clone_project(self, project_path: str) -> None:
-        """Clone the selected project."""
-        # TODO: Implement project cloning logic
+        """
+        Handle project cloning request.
+
+        TODO: Implement project cloning logic.
+
+        Args:
+            project_path: Path to the project to clone.
+        """
         pass
 
     @QtCore.Slot(str)
     def _on_delete_project(self, project_path: str) -> None:
-        """Delete the selected project."""
-        # TODO: Implement project deletion logic
+        """
+        Handle project deletion request.
+
+        TODO: Implement project deletion logic.
+
+        Args:
+            project_path: Path to the project to delete.
+        """
         pass
 
     @QtCore.Slot()
     def _on_quit(self) -> None:
-        """Quit the application."""
+        """Handle quit button click by rejecting the dialog."""
         self.reject()
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:

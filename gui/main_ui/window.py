@@ -10,15 +10,11 @@ Implemented as a singleton to ensure only one window instance exists.
 """
 
 from __future__ import annotations
-
-import dataclasses
-
 from qtawesome import icon as qta_icon
 from PySide6 import QtCore, QtGui, QtWidgets
-
 from gui.widgets import ToolBar
 from gui.widgets import Lights
-from gui.widgets import Viewer
+import dataclasses
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -31,13 +27,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @dataclasses.dataclass
     class Options:
-        """Configuration options for the main window."""
+        """
+        Configuration options for the main window.
+
+        Attributes:
+            border: QPen for window border styling (default: empty pen).
+            background: QBrush for window background color (default: solid dark color).
+        """
 
         border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
         background: QtGui.QBrush = dataclasses.field(
             default_factory=lambda: QtGui.QBrush(
                 QtGui.QColor(0x232A2E),
-                QtCore.Qt.BrushStyle.SolidPattern,  # Plain color, no texture.
+                QtCore.Qt.BrushStyle.SolidPattern,
             )
         )
 
@@ -56,6 +58,9 @@ class MainWindow(QtWidgets.QMainWindow):
         Initialize the main window.
 
         Prevents reinitialization by checking the _initialized flag.
+
+        Args:
+            **kwargs: Optional initialization arguments (ignored for singleton).
         """
         # Prevent reinitialization of the singleton instance:
         if hasattr(self, "_initialized"):
@@ -162,7 +167,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Creates a SideBar (QDockWidget subclass) with a ComboBox in the title and QStackedWidget
         as the main content. Adds it as a left-aligned dock widget and hides it by default.
         """
-        from sidebar.sidebar import SideBar
+        from gui.sidebar.sidebar import SideBar
 
         sidebar = SideBar(self)
         sidebar.hide()

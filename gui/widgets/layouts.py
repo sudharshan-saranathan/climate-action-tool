@@ -22,7 +22,13 @@ class GLayout(QtWidgets.QGridLayout):
 
     @dataclasses.dataclass
     class Options:
-        """Grid layout configuration options."""
+        """
+        Grid layout configuration options.
+
+        Attributes:
+            spacing: Space in pixels between layout items (default: 0).
+            margins: Tuple of (left, top, right, bottom) margin in pixels (default: (0, 0, 0, 0)).
+        """
 
         spacing: int = 0
         margins: tuple[int, int, int, int] = (0, 0, 0, 0)
@@ -46,8 +52,8 @@ class GLayout(QtWidgets.QGridLayout):
         )
 
         self.setSpacing(self._opts.spacing)
-        ml, mt, mr, md = self._opts.margins
-        self.setContentsMargins(ml, mt, mr, md)
+        left, top, right, bottom = self._opts.margins
+        self.setContentsMargins(left, top, right, bottom)
 
 
 class HLayout(QtWidgets.QHBoxLayout):
@@ -60,7 +66,14 @@ class HLayout(QtWidgets.QHBoxLayout):
 
     @dataclasses.dataclass
     class Options:
-        """Horizontal layout configuration options."""
+        """
+        Horizontal layout configuration options.
+
+        Attributes:
+            spacing: Space in pixels between layout items (default: 0).
+            margins: Tuple of (left, top, right, bottom) margin in pixels (default: (0, 0, 0, 0)).
+            widgets: List of widgets to add to the layout (default: []).
+        """
 
         spacing: int = 0
         margins: tuple[int, int, int, int] = (0, 0, 0, 0)
@@ -87,8 +100,8 @@ class HLayout(QtWidgets.QHBoxLayout):
         )
 
         self.setSpacing(self._opts.spacing)
-        ml, mt, mr, md = self._opts.margins
-        self.setContentsMargins(ml, mt, mr, md)
+        left, top, right, bottom = self._opts.margins
+        self.setContentsMargins(left, top, right, bottom)
 
         for widget in self._opts.widgets:
             self.addWidget(widget)
@@ -104,7 +117,14 @@ class VLayout(QtWidgets.QVBoxLayout):
 
     @dataclasses.dataclass
     class Options:
-        """Vertical layout configuration options."""
+        """
+        Vertical layout configuration options.
+
+        Attributes:
+            spacing: Space in pixels between layout items (default: 0).
+            margins: Tuple of (left, top, right, bottom) margin in pixels (default: (0, 0, 0, 0)).
+            widgets: List of widgets to add to the layout (default: []).
+        """
 
         spacing: int = 0
         margins: tuple[int, int, int, int] = (0, 0, 0, 0)
@@ -131,8 +151,8 @@ class VLayout(QtWidgets.QVBoxLayout):
         )
 
         self.setSpacing(self._opts.spacing)
-        ml, mt, mr, md = self._opts.margins
-        self.setContentsMargins(ml, mt, mr, md)
+        left, top, right, bottom = self._opts.margins
+        self.setContentsMargins(left, top, right, bottom)
 
         for widget in self._opts.widgets:
             self.addWidget(widget)

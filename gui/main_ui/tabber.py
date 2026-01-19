@@ -29,7 +29,16 @@ class TabWidget(QtWidgets.QTabWidget):
 
     @dataclasses.dataclass(frozen=True)
     class Options:
-        """Configuration options for the tab widget."""
+        """
+        Configuration options for the tab widget.
+
+        Attributes:
+            iconSize: QSize for tab icons (default: 16x16).
+            tabPosition: Tab position in the widget (default: North/top).
+            tabsClosable: Whether tabs display close buttons (default: True).
+            movable: Whether tabs can be reordered (default: True).
+            background: QBrush for tab background color (default: dark gray).
+        """
 
         iconSize: QtCore.QSize = dataclasses.field(
             default_factory=lambda: QtCore.QSize(16, 16)
@@ -67,7 +76,7 @@ class TabWidget(QtWidgets.QTabWidget):
             ),
         )
 
-        super().__init__(  # See QTabWidget documentation for keyword explanation:
+        super().__init__(
             parent,
             movable=self._opts.movable,
             iconSize=self._opts.iconSize,
@@ -75,14 +84,13 @@ class TabWidget(QtWidgets.QTabWidget):
             tabsClosable=self._opts.tabsClosable,
         )
 
-        # Define shortcuts:
+        # Set up keyboard shortcuts for tab management
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+T"), self, self.new_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.del_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Left"), self, self._go_to_previous_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Right"), self, self._go_to_next_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+R"), self, self.rename_tab)
 
-        # Create a corner toolbar with useful actions
         self._setup_corner_toolbar()
 
     def new_tab(
@@ -102,8 +110,6 @@ class TabWidget(QtWidgets.QTabWidget):
             icon: The icon to display in the tab (optional).
             label: The label text for the tab (optional, default: "Tab N").
         """
-
-        # Required:
         from gui.widgets.viewer import Viewer
         from gui.graph.canvas import Canvas
 
@@ -169,10 +175,10 @@ class TabWidget(QtWidgets.QTabWidget):
 
     def _setup_corner_toolbar(self) -> None:
         """
-        Create and set up the corner toolbar with useful tab management actions.
+        Create and configure the corner toolbar.
 
-        Adds a toolbar to the corner of the tab widget with actions for creating new tabs,
-        closing tabs, and navigating between tabs.
+        Adds a toolbar to the top-right corner with a "New Tab" action button.
+        The toolbar is non-floatable and non-movable.
         """
         actions = [
             (
@@ -189,7 +195,6 @@ class TabWidget(QtWidgets.QTabWidget):
             floatable=False,
             movable=False,
         )
-        # Set toolbar as corner widget in the top-right
         self.setCornerWidget(toolbar, QtCore.Qt.Corner.TopRightCorner)
 
     def _go_to_previous_tab(self) -> None:

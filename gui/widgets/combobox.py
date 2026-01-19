@@ -74,12 +74,12 @@ class ComboBox(QtWidgets.QComboBox):
             editable=kwargs.get("editable", False),
         )
 
-        # Create and configure the list view with a fixed item height:
+        # Configure list view with fixed item height and spacing
         view = QtWidgets.QListView(self)
         view.setItemDelegate(FixedHeightDelegate(24, view))
         view.setSpacing(2)
 
-        # Apply custom styling and set the view
+        # Apply custom QSS styling to the combo box and its dropdown
         self.setView(view)
         self.setObjectName("ComboBox")
         self.setStyleSheet(
@@ -103,12 +103,10 @@ class ComboBox(QtWidgets.QComboBox):
             "}"
         )
 
-        # Add initial items from kwargs (supports both strings and icon-label tuples)
+        # Populate initial items from kwargs (supports both strings and (icon, label) tuples)
         for item in kwargs.get("items", []):
             if isinstance(item, tuple) and len(item) == 2:
-                # Item is a (icon, label) tuple
                 icon, label = item
                 self.addItem(qta_icon(icon, color="lightgray"), label)
             else:
-                # Item is a simple string label
                 self.addItem(item)

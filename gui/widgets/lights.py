@@ -19,14 +19,19 @@ class Lights(ToolBar):
     """
     A traffic light-style window control toolbar.
 
-    Displays three buttons for minimizing, maximizing, and closing the window.
-    Emits signals when each button is clicked.
+    Displays three buttons styled as macOS-style traffic lights for minimizing, maximizing,
+    and closing the window. Each button emits a corresponding signal when clicked.
     """
 
-    # Signals emitted when buttons are clicked:
+    # Signals emitted when traffic light buttons are clicked
     sig_minimize_clicked = QtCore.Signal()
+    """Signal emitted when minimize button is clicked."""
+
     sig_maximize_clicked = QtCore.Signal()
+    """Signal emitted when maximize button is clicked."""
+
     sig_close_clicked = QtCore.Signal()
+    """Signal emitted when close button is clicked."""
 
     def __init__(self, parent=None):
         """
@@ -68,15 +73,15 @@ class Lights(ToolBar):
 
     @QtCore.Slot()
     def _on_minimize(self) -> None:
-        """Emit minimize signal."""
+        """Handle minimize button click by emitting sig_minimize_clicked signal."""
         self.sig_minimize_clicked.emit()
 
     @QtCore.Slot()
     def _on_maximize(self) -> None:
-        """Emit maximize signal."""
+        """Handle maximize button click by emitting sig_maximize_clicked signal."""
         self.sig_maximize_clicked.emit()
 
     @QtCore.Slot()
     def _on_close(self) -> None:
-        """Emit close signal."""
+        """Handle close button click by emitting sig_close_clicked signal."""
         self.sig_close_clicked.emit()

@@ -24,7 +24,17 @@ class ToolBar(QtWidgets.QToolBar):
 
     @dataclasses.dataclass(frozen=True)
     class Options:
-        """Toolbar configuration options."""
+        """
+        Toolbar configuration options.
+
+        Attributes:
+            iconSize: QSize for toolbar icons (default: 16x16).
+            floatable: Whether toolbar can float as a separate window (default: False).
+            trailing: Position actions after spacer (True) or before (False) (default: True).
+            movable: Whether toolbar can be repositioned (default: False).
+            orientation: Toolbar orientation - Horizontal or Vertical (default: Horizontal).
+            toolButtonStyle: Button display style - IconOnly, TextOnly, or TextBesideIcon (default: IconOnly).
+        """
         iconSize: QtCore.QSize = QtCore.QSize(16, 16)
         floatable: bool = False
         trailing: bool = True
@@ -72,22 +82,21 @@ class ToolBar(QtWidgets.QToolBar):
         )
 
         style = kwargs.get("style", "")
-        items = kwargs.get("actions", [])
-        trail = kwargs.get("trailing", True)
+        actions = kwargs.get("actions", [])
 
-        # Create spacer to align actions
+        # Create expanding spacer widget for alignment
         spacer = QtWidgets.QFrame()
         spacer.setSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
             QtWidgets.QSizePolicy.Policy.Expanding,
         )
 
-        # Add spacer and actions in appropriate order
-        if trail:
+        # Add spacer and actions in order based on trailing flag
+        if self._opts.trailing:
             self.addWidget(spacer)
-            self.add_actions(items)
+            self.add_actions(actions)
         else:
-            self.add_actions(items)
+            self.add_actions(actions)
             self.addWidget(spacer)
 
         self.setStyleSheet(style)
@@ -96,10 +105,15 @@ class ToolBar(QtWidgets.QToolBar):
         """
         Add actions to the toolbar.
 
-        Args:
-            actions: List of (icon, label, callback) tuples to add as toolbar actions.
-        """
+        Each action is created from a tuple of (icon, label, callback).
+        Any malformed tuples are silently skipped with an error message.
 
+        Args:
+            actions: List of (icon, label, callback) tuples where:
+                - icon: QIcon object for the action
+                - label: Text label for the action
+                - callback: Callable invoked when action is triggered
+        """
         try:
             for icon, label, callback in actions:
                 self.addAction(icon, label, callback)

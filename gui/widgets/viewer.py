@@ -31,7 +31,15 @@ class Viewer(QtWidgets.QGraphicsView):
 
     @dataclasses.dataclass
     class ViewerOpts:
-        """Viewer animation and zoom configuration."""
+        """
+        Viewer animation and zoom configuration.
+
+        Attributes:
+            zoom_val: Current zoom level (default: 1.0).
+            zoom_max: Maximum allowed zoom level (default: 2.0).
+            zoom_min: Minimum allowed zoom level (default: 0.2).
+            zoom_exp: Zoom exponential factor for mouse wheel (default: 1.4).
+        """
 
         zoom_val: float = 1.0
         zoom_max: float = 2.0
@@ -53,7 +61,7 @@ class Viewer(QtWidgets.QGraphicsView):
 
         self._opts = Viewer.ViewerOpts()
 
-        # Pop viewer-specific kwargs before calling parent constructor
+        # Extract viewer-specific kwargs before passing to parent
         self._opts.zoom_max = kwargs.pop("zoom_max", self._opts.zoom_max)
         self._opts.zoom_min = kwargs.pop("zoom_min", self._opts.zoom_min)
         self._opts.zoom_exp = kwargs.pop("exp", self._opts.zoom_exp)
@@ -62,23 +70,23 @@ class Viewer(QtWidgets.QGraphicsView):
         super().setScene(canvas)
         super().setCornerWidget(QtWidgets.QFrame())
 
-        # Set up zoom animation
+        # Zoom animation with exponential easing
         self._zoom_anim = QtCore.QPropertyAnimation(self, b"zoom")
         self._zoom_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutExpo)
         self._zoom_anim.setDuration(360)
 
-        # Set up focus/pan animation
+        # Pan animation with cubic easing
         self._focus_anim = QtCore.QPropertyAnimation(self, b"center")
         self._focus_anim.setEasingCurve(QtCore.QEasingCurve.Type.InOutCubic)
         self._focus_anim.setDuration(720)
 
-        # Configure OpenGL viewport for hardware acceleration
+        # OpenGL viewport with 4x MSAA for hardware-accelerated rendering
         self._format = QtGui.QSurfaceFormat()
         self._format.setSamples(4)
         self._openGL_viewport = None
         QtCore.QTimer.singleShot(0, self._setup_opengl_viewport)
 
-        # Set up keyboard shortcuts
+        # Register keyboard shortcuts for zoom, undo/redo, and copy/paste
         QtGui.QShortcut(
             QtGui.QKeySequence("Ctrl+="), self, lambda: self.execute_zoom(1.2, True)
         )
@@ -98,7 +106,7 @@ class Viewer(QtWidgets.QGraphicsView):
             QtGui.QKeySequence.StandardKey.Paste, self, self._shortcut_handler
         )
 
-        # Connect to scene item focus signal
+        # Listen for scene item focus signals to auto-pan
         from core.bus import EventsBus
 
         bus = EventsBus.instance()
@@ -113,14 +121,16 @@ class Viewer(QtWidgets.QGraphicsView):
             self._openGL_viewport.setMouseTracking(True)
             self.setViewport(self._openGL_viewport)
 
-    def keyPressEvent(self, event, /):
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         """
         Handle keyboard press events for view manipulation.
 
-        - Ctrl: Switch to rubber band selection mode
-        - Shift: Switch to scroll hand drag mode
-        """
+        - Ctrl modifier: Enable rubber band selection mode
+        - Shift modifier: Enable scroll hand drag mode
 
+        Args:
+            event: The keyboard press event.
+        """
         if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier:
             self.setDragMode(QtWidgets.QGraphicsView.DragMode.RubberBandDrag)
 
@@ -130,21 +140,29 @@ class Viewer(QtWidgets.QGraphicsView):
 
         super().keyPressEvent(event)
 
-    def keyReleaseEvent(self, event, /):
+    def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
         """
         Handle keyboard release events.
 
-        Resets drag mode and cursor to default state.
-        """
+        Resets drag mode to rubber band and unsets cursor.
 
+        Args:
+            event: The keyboard release event.
+        """
         self.setDragMode(QtWidgets.QGraphicsView.DragMode.RubberBandDrag)
         self.unsetCursor()
 
         super().keyReleaseEvent(event)
 
-    def wheelEvent(self, event, /):
-        """Handle mouse wheel events for zooming."""
+    def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
+        """
+        Handle mouse wheel events for zooming.
 
+        Scroll up zooms in, scroll down zooms out using exponential zoom factor.
+
+        Args:
+            event: The wheel event containing scroll delta.
+        """
         delta = event.angleDelta().y()
         delta = self._opts.zoom_exp ** (delta / 100.0)
 
@@ -153,13 +171,13 @@ class Viewer(QtWidgets.QGraphicsView):
         )
 
     @QtCore.Slot()
-    def _shortcut_handler(self):
+    def _shortcut_handler(self) -> None:
         """
-        Handle standard shortcuts (Undo, Redo, Copy, Paste).
+        Route standard shortcuts to the scene.
 
-        Routes shortcut actions to the scene if it implements the corresponding methods.
+        Handles Undo, Redo, Copy, and Paste shortcuts by delegating to the scene
+        if it implements the corresponding methods (undo, redo, clone_items, paste_items).
         """
-
         sender = self.sender()
         if not isinstance(sender, QtGui.QShortcut):
             return
@@ -169,7 +187,6 @@ class Viewer(QtWidgets.QGraphicsView):
         if scene is None:
             return
 
-        # Convert standard keys to platform-specific sequences for compatibility
         if key_seq == QtGui.QKeySequence(
             QtGui.QKeySequence.StandardKey.Copy
         ).toString() and hasattr(scene, "clone_items"):
@@ -191,36 +208,40 @@ class Viewer(QtWidgets.QGraphicsView):
             scene.redo()
 
     @QtCore.Property(float)
-    def zoom(self):
-        """Get the current zoom level."""
+    def zoom(self) -> float:
+        """Get the current zoom level (read-only property)."""
         return self._opts.zoom_val
 
     @zoom.setter
-    def zoom(self, value: float):
-        """Set the zoom level and apply scale transformation."""
+    def zoom(self, value: float) -> None:
+        """
+        Set the zoom level and apply scale transformation.
 
+        Args:
+            value: Target zoom level to apply.
+        """
         factor = value / self._opts.zoom_val
         self.scale(factor, factor)
         self._opts.zoom_val = value
 
-    def execute_zoom(self, factor, animate=True, /):
+    def execute_zoom(self, factor: float, animate: bool = True, /) -> None:
         """
         Execute a zoom operation with optional animation.
 
-        Args:
-            factor: Zoom factor to apply.
-            animate: Whether to animate the zoom (default: True).
-        """
+        Clamps the resulting zoom level to the configured min/max bounds before applying.
 
-        # Stop any ongoing zoom animation
+        Args:
+            factor: Zoom multiplication factor to apply.
+            animate: Whether to animate the zoom transition (default: True).
+        """
+        # Cancel any ongoing zoom animation to prevent conflicts
         if self._zoom_anim.state() == QtCore.QPropertyAnimation.State.Running:
             self._zoom_anim.stop()
 
-        # Calculate and clamp target zoom level
+        # Calculate target and clamp to allowed range
         target = self._opts.zoom_val * factor
         target = max(self._opts.zoom_min, min(self._opts.zoom_max, target))
 
-        # Animate or directly apply the zoom
         if animate:
             self._zoom_anim.setStartValue(self._opts.zoom_val)
             self._zoom_anim.setEndValue(target)
@@ -229,23 +250,29 @@ class Viewer(QtWidgets.QGraphicsView):
             self.zoom = target
 
     @QtCore.Property(QtCore.QPointF)
-    def center(self):
-        """Get the center point of the current view."""
+    def center(self) -> QtCore.QPointF:
+        """Get the center point of the current view (read-only property)."""
         return self.mapToScene(self.viewport().rect().center())
 
     @center.setter
-    def center(self, value: QtCore.QPointF):
-        """Set the center point of the view."""
+    def center(self, value: QtCore.QPointF) -> None:
+        """
+        Set the center point of the view.
+
+        Args:
+            value: Target center point in scene coordinates.
+        """
         self.centerOn(value)
 
-    def _on_item_focused(self, item: QtWidgets.QGraphicsObject):
+    def _on_item_focused(self, item: QtWidgets.QGraphicsObject) -> None:
         """
         Handle item focus signal by animating the view to center on the item.
+
+        Animates the view to pan and focus on the given graphics item.
 
         Args:
             item: The graphics item to focus on.
         """
-
         item_pos = item.mapToScene(item.boundingRect().center())
         view_pos = self.mapToScene(self.viewport().rect().center())
 
