@@ -117,26 +117,14 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         import platform
 
-        # Validity check: directory must exist
-        if not path.exists():
-            logging.error("Font directory does not exist: %s", path.absolutePath())
-            return
-
-        # Emptiness check: directory must contain fonts
-        if path.isEmpty():
-            logging.error("Font directory is empty: %s", path.absolutePath())
-            return
-
         # Get the list of TTF fonts and compute platform-specific size:
         fonts_list = path.entryList(["*.ttf"])
         fonts_size = 12 if platform.system().lower() == "darwin" else 8
 
         # Attempt to load each font and track failures
         for font in fonts_list:
-            font_path = f":/fonts/{font}"
-            font_id = QtGui.QFontDatabase.addApplicationFont(font_path)
-            if font_id == -1:
-                logging.warning("Failed to load font: %s", font_path)
+            path = f":/fonts/{font}"
+            QtGui.QFontDatabase.addApplicationFont(path)
 
         # Set the application font (Qt defaults to system font if unavailable):
         self.setFont(QtGui.QFont("Fira Code", fonts_size))
