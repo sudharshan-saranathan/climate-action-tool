@@ -123,7 +123,7 @@ class ClimateActionTool(QtWidgets.QApplication):
             logging.warning(f"Unsupported platform: {envir}")
             return
 
-        self.setFont(QtGui.QFont("Fira Code", 12))
+        self.setFont(QtGui.QFont("Fira Code", 8))
 
     def _init_style(self, path: str) -> None:
         """

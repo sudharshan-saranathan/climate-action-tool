@@ -105,7 +105,7 @@ class TabWidget(QtWidgets.QTabWidget):
 
         # Required:
         from gui.widgets.viewer import Viewer
-        from gui.graph import Canvas
+        from gui.graph.canvas import Canvas
 
         count = self.count()
         label = label or f"Tab {count + 1}"
@@ -113,14 +113,14 @@ class TabWidget(QtWidgets.QTabWidget):
         if not widget:
             canvas = Canvas()
             widget = Viewer(
-                scene=canvas,
+                canvas,
                 parent=self,
                 dragMode=QtWidgets.QGraphicsView.DragMode.ScrollHandDrag,
                 viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
                 renderHints=QtGui.QPainter.RenderHint.Antialiasing,
+                backgroundBrush=QtGui.QBrush(QtGui.QColor(0xEFEFEF)),
                 sceneRect=QtCore.QRectF(0, 0, 5000, 5000),
             )
-            canvas.setParent(widget)
 
         self.addTab(widget, icon, label)
         self.setTabIcon(count, icon)
@@ -179,21 +179,6 @@ class TabWidget(QtWidgets.QTabWidget):
                 qta_icon("mdi.plus", color="gray", color_active="white"),
                 "New Tab",
                 lambda: self.new_tab(QtWidgets.QWidget()),
-            ),
-            (
-                qta_icon("mdi.close", color="gray", color_active="white"),
-                "Close Tab",
-                self.del_tab,
-            ),
-            (
-                qta_icon("mdi.chevron-left", color="gray", color_active="white"),
-                "Previous Tab",
-                self._go_to_previous_tab,
-            ),
-            (
-                qta_icon("mdi.chevron-right", color="gray", color_active="white"),
-                "Next Tab",
-                self._go_to_next_tab,
             ),
         ]
 

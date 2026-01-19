@@ -1,30 +1,43 @@
-# --
-# Encoding: utf-8
+# Filename: sidebar.py
 # Module name: sidebar
-# Description: The sidebar for the Climate Action Tool application
-# --
+# Description: Sidebar dock widget for the main window.
 
-# Import(s):
+"""
+Sidebar panel for the main application window.
+
+Provides a dock widget containing a tabbed interface with various panels including
+map query, schematics, settings, assistant, and database management.
+"""
+
 from PySide6 import QtWidgets
 
 
-# Class Sidebar:
 class SideBar(QtWidgets.QDockWidget):
-    #   Default constructor:
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    """
+    Sidebar dock widget with tabbed panel interface.
 
-        # Attribute(s):
+    Manages multiple panels accessible via a dropdown menu in the title bar,
+    including map query, schematic, settings, assistant, and database panels.
+    """
+
+    def __init__(self, parent=None):
+        """
+        Initialize the sidebar dock widget.
+
+        Args:
+            parent: Parent widget (optional).
+        """
+
+        super().__init__(parent)
         self.setMinimumWidth(360)
         self.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
 
-        # Initialize the title bar widget:
         self._init_titlebar()
         self._init_stack()
 
-    #   Title-bar widget (a QComboBox):
-    def _init_titlebar(self):
-        # Import ComboBox:
+    def _init_titlebar(self) -> None:
+        """Initialize the title bar with a combobox for panel selection."""
+
         from gui.widgets.combobox import ComboBox
 
         self.setTitleBarWidget(
@@ -43,15 +56,15 @@ class SideBar(QtWidgets.QDockWidget):
         combo.setStyleSheet("margin: 2px 0px 1px 0px;")
         combo.currentIndexChanged.connect(self._on_page_changed)
 
-    #   Initialize the stacked widget:
-    def _init_stack(self):
+    def _init_stack(self) -> None:
+        """Initialize the stacked widget containing all sidebar panels."""
+
         from .geo_query import GeoQuery
         from .setting import Preferences
 
         self._stack = QtWidgets.QStackedWidget(self)
 
-        # Add pages in order matching ComboBox:
-        # 0: Geo Query, 1: Schematic, 2: Settings, 3: Assistant, 4: Database
+        # Add pages in order matching ComboBox indices
         self._stack.addWidget(QtWidgets.QFrame(self))  # 0: Map Control (placeholder)
         self._stack.addWidget(QtWidgets.QWidget(self))  # 1: Schematic (placeholder)
         self._stack.addWidget(Preferences(self))  # 2: Settings
@@ -60,11 +73,17 @@ class SideBar(QtWidgets.QDockWidget):
 
         self.setWidget(self._stack)
 
-    #   Handle page change:
-    def _on_page_changed(self, index: int):
+    def _on_page_changed(self, index: int) -> None:
+        """
+        Handle page change when combobox selection changes.
+
+        Args:
+            index: Index of the selected page.
+        """
+
         self._stack.setCurrentIndex(index)
 
-    #   Access to MapData:
     @property
     def map_data(self):
+        """Get the map data widget (first stacked page)."""
         return self._stack.widget(0)

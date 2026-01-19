@@ -1,88 +1,138 @@
 # Filename: layouts.py
 # Module name: widgets
-# Description: Layout utilities for the Climate Action Tool application.
+# Description: Layout utilities with configurable spacing and margins.
 
-# Import(s):
+"""
+Custom layout widgets with convenient configuration options.
+
+Provides QGridLayout, QHBoxLayout, and QVBoxLayout subclasses with
+simplified configuration through dataclass options and kwargs.
+"""
+
 import dataclasses
 from PySide6 import QtWidgets
 
 
-# Class GLayout:
 class GLayout(QtWidgets.QGridLayout):
+    """
+    Grid layout with configurable spacing and margins.
+
+    A QGridLayout subclass that simplifies setup through dataclass options.
+    """
 
     @dataclasses.dataclass
     class Options:
+        """Grid layout configuration options."""
+
         spacing: int = 0
         margins: tuple[int, int, int, int] = (0, 0, 0, 0)
 
     def __init__(self, parent=None, **kwargs):
+        """
+        Initialize the grid layout.
+
+        Args:
+            parent: Parent widget (optional).
+            **kwargs: Configuration options:
+                - spacing: Space between layout items (default: 0)
+                - margins: (left, top, right, bottom) margins (default: (0, 0, 0, 0))
+        """
+
         super().__init__(parent)
 
-        # Initialize options:
         self._opts = GLayout.Options(
             spacing=kwargs.get("spacing", 0),
             margins=kwargs.get("margins", (0, 0, 0, 0)),
         )
 
-        # Set attribute(s):
         self.setSpacing(self._opts.spacing)
         ml, mt, mr, md = self._opts.margins
         self.setContentsMargins(ml, mt, mr, md)
 
 
-# Class HLayout:
 class HLayout(QtWidgets.QHBoxLayout):
+    """
+    Horizontal layout with configurable spacing and margins.
+
+    A QHBoxLayout subclass that simplifies setup and can automatically
+    add widgets during initialization.
+    """
 
     @dataclasses.dataclass
     class Options:
+        """Horizontal layout configuration options."""
+
         spacing: int = 0
         margins: tuple[int, int, int, int] = (0, 0, 0, 0)
         widgets: list[QtWidgets.QWidget] = dataclasses.field(default_factory=list)
 
     def __init__(self, parent=None, **kwargs):
+        """
+        Initialize the horizontal layout.
+
+        Args:
+            parent: Parent widget (optional).
+            **kwargs: Configuration options:
+                - spacing: Space between layout items (default: 0)
+                - margins: (left, top, right, bottom) margins (default: (0, 0, 0, 0))
+                - widgets: List of widgets to add (default: [])
+        """
+
         super().__init__(parent)
 
-        # Initialize options:
         self._opts = HLayout.Options(
             spacing=kwargs.get("spacing", 0),
             margins=kwargs.get("margins", (0, 0, 0, 0)),
             widgets=kwargs.get("widgets", []),
         )
 
-        # Set attribute(s):
         self.setSpacing(self._opts.spacing)
         ml, mt, mr, md = self._opts.margins
         self.setContentsMargins(ml, mt, mr, md)
 
-        # If widgets are available, add them:
         for widget in self._opts.widgets:
             self.addWidget(widget)
 
 
-# Class VLayout:
 class VLayout(QtWidgets.QVBoxLayout):
+    """
+    Vertical layout with configurable spacing and margins.
+
+    A QVBoxLayout subclass that simplifies setup and can automatically
+    add widgets during initialization.
+    """
 
     @dataclasses.dataclass
     class Options:
+        """Vertical layout configuration options."""
+
         spacing: int = 0
         margins: tuple[int, int, int, int] = (0, 0, 0, 0)
         widgets: list[QtWidgets.QWidget] = dataclasses.field(default_factory=list)
 
     def __init__(self, parent=None, **kwargs):
+        """
+        Initialize the vertical layout.
+
+        Args:
+            parent: Parent widget (optional).
+            **kwargs: Configuration options:
+                - spacing: Space between layout items (default: 0)
+                - margins: (left, top, right, bottom) margins (default: (0, 0, 0, 0))
+                - widgets: List of widgets to add (default: [])
+        """
+
         super().__init__(parent)
 
-        # Initialize options:
         self._opts = VLayout.Options(
             spacing=kwargs.get("spacing", 0),
             margins=kwargs.get("margins", (0, 0, 0, 0)),
             widgets=kwargs.get("widgets", []),
         )
 
-        # Set attribute(s):
         self.setSpacing(self._opts.spacing)
         ml, mt, mr, md = self._opts.margins
         self.setContentsMargins(ml, mt, mr, md)
 
-        # If widgets are available, add them:
         for widget in self._opts.widgets:
             self.addWidget(widget)

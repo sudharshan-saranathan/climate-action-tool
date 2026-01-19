@@ -241,6 +241,7 @@ QTabWidget QTabBar {                                      /* Tab bar style */
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
     height                      : 20px;
+    width                       : 120px;
     color                       : gray;
     background                  : transparent;
     border-radius               : 4px;
