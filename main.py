@@ -2,19 +2,19 @@
 # Module name: main_ui
 # Description: Entry point for the Climate Action Tool.
 
-from __future__ import annotations
+from __future__ import annotations  # For type annotations and forward references.
 
-import dataclasses
-import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
+import dataclasses  # For storing options.
+import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE).
 import argparse
-import platform
 import logging
 import types
 import sys
 
-from PySide6 import QtGui
+# PySide6 (Python/Qt framework):
+from PySide6 import QtGui  # Required for styling.
 from PySide6 import QtCore
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets  # For pre-defined widgets.
 
 from gui.main_ui.window import MainWindow
 from gui.startup.window import StartupWindow
@@ -29,15 +29,17 @@ and initializes the user interface based on command-line arguments.
 
 class ClimateActionTool(QtWidgets.QApplication):
     """
-    Main application class for the Climate Action Tool.
+    Main application class for the Climate Action Tool (see Qt docs for more info).
 
     Handles application initialization including style, fonts, and UI setup.
-    This must be instantiated before any other Qt components.
+    Must be instantiated before other Qt components.
     """
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.
-    startup_file = None  # The path to the project file to open on startup (if any).
+    startup_file = (
+        None  # User-selected project file path from the startup dialog (if available).
+    )
 
     @dataclasses.dataclass(frozen=True)
     class Options:
@@ -45,14 +47,7 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         image: str = ":/logo/logo.png"  # Application logo path
         theme: str = ":/theme/dark.qss"  # Default theme stylesheet path
-        bezel: int = (
-            64  # Initial padding around the main window at application startup.
-        )
-        fonts = {  # Keys should match values returned by `platform.system()`.
-            "windows": types.SimpleNamespace(family="Fira Code", pointSize=8),
-            "darwin": types.SimpleNamespace(family="Spot Mono", pointSize=14),
-            "linux": types.SimpleNamespace(family="Ubuntu Sans Mono", pointSize=9),
-        }
+        bezel: int = 64  # Padding around the main window at application startup.
 
     def __init__(self):
         super().__init__(sys.argv)
@@ -60,7 +55,7 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         self._opts = ClimateActionTool.Options()
         image = self._opts.image  # Application logo.
-        bezel = self._opts.bezel  # Initial padding around the main window.
+        bezel = self._opts.bezel  # Padding around the main window.
         theme = self._opts.theme  # Application-wide theme.
 
         # Compute window geometry by padding screen bounds with bezel.
@@ -70,7 +65,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
         self._init_style(theme)  # Apply the theme first.
-        self._init_font()  # Font-setting should succeed style-setting.
+        self._install_fonts()  # Font-setting should succeed style-setting.
         self._init_args()  # Finally, parse command-line arguments.
         self.setWindowIcon(QtGui.QIcon(image))
 
@@ -93,12 +88,13 @@ class ClimateActionTool(QtWidgets.QApplication):
         Parse command-line arguments and update application flags.
 
         Supported flags:
+        - --version: Display the application version and exit.
         - --no-startup: Skip the startup dialog.
         - --no-backend: Disable the backend optimization module.
         """
 
         parser = argparse.ArgumentParser()
-        parser.add_argument("--version", action="version", version="%(prog)s 0.1")
+        parser.add_argument("--version", action="version", version="%(prog)s 1.0")
         parser.add_argument("--no-startup", action="store_false", dest="startup")
         parser.add_argument("--no-backend", action="store_false", dest="backend")
         args = parser.parse_args()
@@ -107,21 +103,14 @@ class ClimateActionTool(QtWidgets.QApplication):
         self.startup_code = 1
         self.backend_flag = args.backend
 
-    def _init_font(self) -> None:
-        """Set the application font based on the current platform."""
+    def _install_fonts(self) -> None:
 
-        fonts: dict[str, types.SimpleNamespace] = self._opts.fonts
-        envir: str = platform.system().lower()
+        fonts_path = QtCore.QDir(":/fonts")
+        fonts_list = fonts_path.entryList(["*.ttf"])
 
-        # Install custom fonts using Qt's font database:
-        QtGui.QFontDatabase.addApplicationFont(":/fonts/FiraCode-Regular.ttf")
-        QtGui.QFontDatabase.addApplicationFont(":/fonts/FiraCode-Bold.ttf")
-        QtGui.QFontDatabase.addApplicationFont(":/fonts/MarckScript-Regular.ttf")
-        QtGui.QFontDatabase.addApplicationFont(":/fonts/Bilbo-Regular.ttf")
-
-        if envir not in fonts:
-            logging.warning(f"Unsupported platform: {envir}")
-            return
+        # Install all available fonts:
+        for font in fonts_list:
+            QtGui.QFontDatabase.addApplicationFont(f":/fonts/{font}")
 
         self.setFont(QtGui.QFont("Fira Code", 8))
 
