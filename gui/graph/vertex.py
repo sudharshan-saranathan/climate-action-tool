@@ -18,7 +18,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         """
 
         bounds: QtCore.QRectF = dataclasses.field(
-            default_factory=lambda: QtCore.QRectF(-20, -20, 40, 40)
+            default_factory=lambda: QtCore.QRectF(-16, -16, 32, 32)
         )
         border: QtGui.QPen = dataclasses.field(
             default_factory=lambda: QtGui.QPen(QtGui.QColor(0x232A2E), 2.0)
@@ -34,6 +34,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        super().setAcceptHoverEvents(True)
 
         # Initialize options:
         self._opts = VertexItem.Options()
@@ -42,8 +43,8 @@ class VertexItem(QtWidgets.QGraphicsObject):
         self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
 
-        # Node-icon:
-        self._icon = QtaItem("mdi.mouse", 24, parent=self, color="#efefef")
+        # Icons and buttons:
+        self._icon = QtaItem("mdi.function-variant", 16, parent=self, color="#efefef")
         self._name = Label(
             "Vertex",
             parent=self,
@@ -51,7 +52,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             width=120,
             align=QtCore.Qt.AlignmentFlag.AlignCenter,
         )
-        self._name.moveBy(-60, -40)
+        self._name.moveBy(-60, 18)
 
     def boundingRect(self) -> QtCore.QRectF:
         return self._opts.bounds
@@ -64,12 +65,23 @@ class VertexItem(QtWidgets.QGraphicsObject):
     ) -> None:
 
         pen = self._opts.select if self.isSelected() else self._opts.border
-        brush = (
-            QtGui.QBrush(QtGui.QColor(0xFFCB00))
-            if self.isSelected()
-            else self._opts.background
-        )
+        brush = self._opts.background
 
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.TextAntialiasing)
         painter.setPen(pen)
         painter.setBrush(brush)
         painter.drawRoundedRect(self.boundingRect(), 4, 4)
+
+    def mousePressEvent(self, event, /):
+
+        if event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier:
+            super().setFlag(
+                QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False
+            )
+
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event, /):
+        super().setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
+        super().mouseReleaseEvent(event)

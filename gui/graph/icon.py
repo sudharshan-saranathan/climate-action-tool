@@ -56,6 +56,7 @@ class QtaItem(QtWidgets.QGraphicsSimpleTextItem):
     # Reimplement boundingRect to center the icon at its origin:
     def boundingRect(self) -> QtCore.QRectF:
         parent_rect = super().boundingRect()
+
         # Center the rect around (0, 0) instead of starting at top-left
         w = parent_rect.width()
         h = parent_rect.height()
@@ -77,3 +78,7 @@ class QtaItem(QtWidgets.QGraphicsSimpleTextItem):
         painter.translate(-parent_rect.width() / 2, -parent_rect.height() / 2)
         super().paint(painter, option, widget)
         painter.restore()
+
+    @QtCore.Property(int)
+    def size(self) -> int:
+        return self._width

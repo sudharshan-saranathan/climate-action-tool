@@ -69,6 +69,7 @@ class Viewer(QtWidgets.QGraphicsView):
         super().__init__(**kwargs)
         super().setScene(canvas)
         super().setCornerWidget(QtWidgets.QFrame())
+        super().setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 
         # Zoom animation with exponential easing
         self._zoom_anim = QtCore.QPropertyAnimation(self, b"zoom")
@@ -125,18 +126,20 @@ class Viewer(QtWidgets.QGraphicsView):
         """
         Handle keyboard press events for view manipulation.
 
-        - Ctrl modifier: Enable rubber band selection mode
-        - Shift modifier: Enable scroll hand drag mode
+        Modifiers:
+        - Shift: Enable scroll hand drag mode for panning.
 
         Args:
             event: The keyboard press event.
         """
+
         if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier:
             self.setDragMode(QtWidgets.QGraphicsView.DragMode.RubberBandDrag)
+            self.setCursor(QtCore.Qt.CursorShape.CrossCursor)
 
         if event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
-            self.setDragMode(QtWidgets.QGraphicsView.DragMode.ScrollHandDrag)
             self.setCursor(QtCore.Qt.CursorShape.OpenHandCursor)
+            self.setDragMode(QtWidgets.QGraphicsView.DragMode.ScrollHandDrag)
 
         super().keyPressEvent(event)
 
@@ -144,14 +147,14 @@ class Viewer(QtWidgets.QGraphicsView):
         """
         Handle keyboard release events.
 
-        Resets drag mode to rubber band and unsets cursor.
+        Resets drag mode to the rubber-band and unsets cursor.
 
         Args:
             event: The keyboard release event.
         """
-        self.setDragMode(QtWidgets.QGraphicsView.DragMode.RubberBandDrag)
-        self.unsetCursor()
 
+        self.unsetCursor()
+        self.setDragMode(QtWidgets.QGraphicsView.DragMode.NoDrag)
         super().keyReleaseEvent(event)
 
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:

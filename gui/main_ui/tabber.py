@@ -121,7 +121,7 @@ class TabWidget(QtWidgets.QTabWidget):
             widget = Viewer(
                 canvas,
                 parent=self,
-                dragMode=QtWidgets.QGraphicsView.DragMode.ScrollHandDrag,
+                dragMode=QtWidgets.QGraphicsView.DragMode.NoDrag,
                 viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
                 renderHints=QtGui.QPainter.RenderHint.Antialiasing,
                 backgroundBrush=QtGui.QBrush(QtGui.QColor(0xEFEFEF)),
