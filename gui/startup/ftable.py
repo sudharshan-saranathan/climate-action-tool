@@ -1,41 +1,37 @@
 # Filename: ftable.py
 # Module name: startup
-# Description: A QTableWidget subclass that displays projects.
+# Description: A widget for displaying project files in a table format.
 
 """
 File table widget for displaying and managing projects.
-
-This module provides widgets for displaying project files in a table format
-with action buttons for opening, cloning, and deleting projects.
+Includes action buttons for opening, cloning, and deleting projects.
 """
 
 from __future__ import annotations
 from pathlib import Path
-
-import dataclasses
 from qtawesome import icon as qta_icon
 from PySide6 import QtGui, QtCore, QtWidgets
-
+from gui.widgets.layouts import HLayout
 from gui.widgets import ToolBar
+import dataclasses
 
 
 # Widget representing a single file/project, added to the FileTable:
 class FileTableItem(QtWidgets.QWidget):
     """
-    A table cell widget representing a single project item.
+    A custom cell-widget representing a single project file.
 
-    Displays the project name and action buttons for opening, cloning, and deleting.
-    Action buttons are revealed on mouse hover.
+    Displays buttons for opening, cloning, and deleting the project that are revealed on hover.
     """
 
-    # Signals emitted when action buttons are clicked:
+    # Signals emitted when the action buttons are clicked:
     sig_open_project = QtCore.Signal(str)
     sig_clone_project = QtCore.Signal(str)
     sig_delete_project = QtCore.Signal(str)
 
     def __init__(self, name: str, path: str = "", **kwargs):
         """
-        Initialize a file table item widget.
+        Initializes this widget and sets up the UI components.
 
         Args:
             name: The project name to display.
@@ -50,28 +46,32 @@ class FileTableItem(QtWidgets.QWidget):
         self._project_name = name
         self._project_path = path
 
-        # Create layout and widgets:
-        layout = QtWidgets.QGridLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-        layout.setSpacing(0)
-
         self._project_label = QtWidgets.QLabel(name)
         self._project_acts = self._project_actions()
         self._buttons = kwargs.get("buttons", [])
 
-        layout.addWidget(self._project_label, 0, 0)
-        layout.addWidget(self._project_acts, 0, 1)
+        # Arrange UI components in a horizontal layout:
+        HLayout(
+            self,
+            margins=(4, 4, 4, 4),
+            widgets=[self._project_label, self._project_acts],
+        )
 
-    def _project_actions(self) -> ToolBar:
+    def _project_actions(
+        self, icon_size: QtCore.QSize = QtCore.QSize(16, 16)
+    ) -> ToolBar:
         """
-        Create and return a toolbar with project action buttons.
+        Creates and returns a toolbar with action buttons.
+
+        Args:
+            icon_size: The size of the action icons (default: 16x16).
 
         Returns:
             A ToolBar with open, safe mode, clone, and delete actions.
         """
 
         toolbar = ToolBar(
-            iconSize=QtCore.QSize(18, 18),
+            iconSize=icon_size,
             actions=[
                 (
                     qta_icon("ph.upload-simple", color="gray", color_active="white"),
@@ -102,42 +102,42 @@ class FileTableItem(QtWidgets.QWidget):
             ],
         )
 
-        toolbar.hide()  # Hide the actions by default.
+        toolbar.hide()  # Hide all actions by default.
         return toolbar
 
     def enterEvent(self, event, /) -> None:
         """
-        Show action buttons when the mouse enters the item.
+        Shows the action buttons when the mouse enters the item.
 
         Args:
-            event: The enter event.
+            event: QtGui.QEnterEvent managed by Qt.
         """
 
         self._project_acts.show()
 
     def leaveEvent(self, event, /) -> None:
         """
-        Hide action buttons when the mouse leaves the item.
+        Hides action buttons when the mouse leaves the item.
 
         Args:
-            event: The leave event.
+            event: QtGui.QLeaveEvent managed by Qt.
         """
 
         self._project_acts.hide()
 
 
-# Table of models:
 class StartupFileTable(QtWidgets.QTableWidget):
     """
     A table widget for displaying and managing project files.
 
-    Displays a list of project files with their last modified dates and action buttons.
+    Displays files along with their last modified dates.
     Supports filtering by file pattern and automatically populates from a directory.
     """
 
     @dataclasses.dataclass
     class Options:
         """Configuration options for the file table widget."""
+
         row_height: int = 36
         icon_size: QtCore.QSize = dataclasses.field(
             default_factory=lambda: QtCore.QSize(16, 16)
