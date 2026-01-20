@@ -65,10 +65,9 @@ class ClimateActionTool(QtWidgets.QApplication):
         bounds = screen.availableGeometry()
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
-        # Always load fonts AFTER the qss-stylesheet:
         self._init_args()
-        self._init_style(theme)
-        self._init_fonts(fonts)
+        self._init_style(theme)  # First, apply the style-sheet.
+        self._init_fonts(fonts)  # Then apply the font (prevents overriding).
         self.setWindowIcon(QtGui.QIcon(image))
 
         # Show startup dialog if enabled:
