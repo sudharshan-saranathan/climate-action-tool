@@ -1,5 +1,5 @@
 # Filename: main.py
-# Module name: main
+# Module name: N/A
 # Description: Application entry point for the Climate Action Tool.
 
 """
@@ -36,11 +36,13 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     @dataclasses.dataclass(frozen=True)
     class Options:
-        """
-        Configuration options for the application.
+        """Configuration options for the application.
 
-        Files referenced must be pre-compiled using Qt's resource system.
-        Includes paths to the logo, theme stylesheet, and window padding.
+        Attributes:
+            image: Path to the application's icon.
+            theme: Path to the application's QSS stylesheet.
+            fonts: Path to the application's font directory.
+            bezel: Padding around the window bounds (in pixels).
         """
 
         image: str = ":/logo/logo.png"
@@ -66,8 +68,8 @@ class ClimateActionTool(QtWidgets.QApplication):
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
         self._init_args()
-        self._init_style(theme)  # First, apply the style-sheet.
-        self._init_fonts(fonts)  # Then apply the font (prevents overriding).
+        self._init_style(theme)
+        self._init_fonts(fonts)
         self.setWindowIcon(QtGui.QIcon(image))
 
         # Show startup dialog if enabled:
@@ -105,9 +107,7 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     def _init_fonts(self, path: QtCore.QDir) -> None:
         """
-        Install application fonts from QRC resources.
-
-        Loads all .ttf fonts in the specified directory with platform-specific sizing (12pt on macOS, 8pt on others).
+        Installs the fonts in the specified directory with platform-specific sizing.
 
         Args:
             path: Path to the 'fonts' directory.
@@ -116,20 +116,20 @@ class ClimateActionTool(QtWidgets.QApplication):
         import platform
 
         # Get the list of TTF fonts and compute platform-specific size:
-        fonts_list = path.entryList(["*.ttf"])
-        fonts_size = 12 if platform.system().lower() == "darwin" else 8
+        font_list = path.entryList(["*.ttf"])
+        font_size = 12 if platform.system().lower() == "darwin" else 8
 
         # Attempt to load each font and track failures
-        for font in fonts_list:
+        for font in font_list:
             path = f":/fonts/{font}"
             QtGui.QFontDatabase.addApplicationFont(path)
 
-        # Set the application font (Qt defaults to system font if unavailable):
-        self.setFont(QtGui.QFont("Fira Code", fonts_size))
+        # `Fira Code` is the default for all widgets:
+        self.setFont(QtGui.QFont("Fira Code", font_size))
 
     def _init_style(self, path: str) -> None:
         """
-        Load and apply the QSS stylesheet to the application.
+        Loads and applies the QSS stylesheet to the application.
 
         Args:
             path: Path to the QSS stylesheet file.
@@ -145,7 +145,7 @@ class ClimateActionTool(QtWidgets.QApplication):
     @staticmethod
     def _show_startup() -> tuple[int, str | None]:
         """
-        Display the startup dialog and return the result.
+        Displays the startup dialog and returns the result.
 
         Returns:
             A tuple of (exit_code, project_path) where exit_code indicates

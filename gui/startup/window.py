@@ -1,6 +1,6 @@
 # Filename: window.py
 # Module name: startup
-# Description: A modal QDialog subclass that is displayed at startup.
+# Description: A startup window based on the QDialog class (see Qt docs for more info).
 
 """
 Startup window interface for the Climate Action Tool.
@@ -19,75 +19,75 @@ from gui.widgets import GLayout
 
 class StartupWindow(QtWidgets.QDialog):
     """
-    This QDialog subclass is a startup window for the Climate Action Tool. It initializes and arranges UI
-    components such as a header, separator, footer, file table, along with startup buttons for starting a
-    new project or loading an existing one. It features a minimal and polished design.
+    A startup window for the application, based on the QDialog class.
+
+    Sets up UI components (header, footer, file table, etc.) that display buttons for actions such as opening a new
+    project, loading an existing project, or quitting the application.
     """
 
     @dataclasses.dataclass(frozen=True)
     class Options:
-        """
-        Startup window configuration options.
+        """Configuration options for the startup window.
 
         Attributes:
-            radius: Corner radius for rounded rectangle in pixels (default: 10.0).
+            radius: Corner radius for rounded rectangle in pixels.
             border: QPen for window border styling (default: dark gray, 2pt).
-            background: QBrush for window background (default: solid dark color).
+            brush: QBrush for the window background (default: solid dark color).
             rect: QSize for window dimensions (default: 900x640).
         """
 
-        radius: float = 10.0
+        radius: int = 10
         border: QtGui.QPen = dataclasses.field(
-            default_factory=lambda: QtGui.QPen(QtGui.QColor(0x393E41), 2.0)
+            init=False, default_factory=lambda: QtGui.QPen(QtGui.QColor(0x393E41), 2.0)
         )
 
-        background: QtGui.QBrush = dataclasses.field(
-            default_factory=lambda: QtGui.QBrush(
-                QtGui.QColor(0x232A2E),
-                QtCore.Qt.BrushStyle.SolidPattern,
-            )
+        brush: QtGui.QBrush = dataclasses.field(
+            init=False, default_factory=lambda: QtGui.QBrush(QtGui.QColor(0x232A2E))
         )
 
         rect: QtCore.QSize = dataclasses.field(
-            default_factory=lambda: QtCore.QSize(900, 640)
+            init=False, default_factory=lambda: QtCore.QSize(900, 640)
         )
+
+        image: str = ":/theme/pattern.png"
+        regex: str = "*.h5"
 
     def __init__(self, parent=None):
         """
-        Initialize the startup window with UI components and layout.
-
-        Sets up a frameless, translucent window with header, file table, buttons,
-        and footer. Connects signals for user interactions with project management.
+        Initializes the startup window and sets up the UI components.
 
         Args:
             parent: Parent widget (optional).
         """
+
         super().__init__(parent)
         super().setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         super().setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
-        # Load background pattern and initialize UI components
-        self._pixmap = QtGui.QPixmap(":/theme/pattern.png")
+        # Options:
+        self._opts = StartupWindow.Options()
+
+        # UI components:
+        self._pixmap = QtGui.QPixmap(self._opts.image)
         self._header = self._init_header()
         self._h_line = self._init_h_line()
         self._footer = self._init_footer()
         self._choice = StartupChoice()
         self._ftable = StartupFileTable()
-        self._ftable.populate("library", "*.h5")
+        self._ftable.populate("library", self._opts.regex)
         self._current_project_file = None
 
         # Configure window appearance and size
         self._opts = StartupWindow.Options()
-        self._opts.background.setTexture(self._pixmap)
+        self._opts.brush.setTexture(self._pixmap)
         self.resize(self._opts.rect)
 
-        # Arrange components in grid layout: header/buttons on left, file table on right
+        # Arrange UI components:
         layout = GLayout(
             self,
             spacing=8,
             margins=(8, 8, 8, 8),
         )
-
         layout.setVerticalSpacing(8)
         layout.setRowStretch(0, 5)
         layout.addWidget(self._header, 1, 0)
@@ -298,5 +298,5 @@ class StartupWindow(QtWidgets.QDialog):
         painter.setPen(self._opts.border)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
-        painter.setBrush(self._opts.background)
+        painter.setBrush(self._opts.brush)
         painter.drawRoundedRect(self.rect(), self._opts.radius, self._opts.radius)
