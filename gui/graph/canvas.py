@@ -57,8 +57,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         # Set up context menu with graph editing actions
         self._menu = self._init_menu()
 
-    @staticmethod
-    def _init_menu() -> QtWidgets.QMenu:
+    def _init_menu(self) -> QtWidgets.QMenu:
         """
         Initialize the context menu with graph editing actions.
 
@@ -85,7 +84,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         context_menu.addSeparator()
 
         # Object creation submenu
-        objects_menu.addAction("Vertex")
+        objects_menu.addAction("Vertex", lambda: self.create_item("VertexItem"))
         objects_menu.addAction("Input")
         objects_menu.addAction("Output")
 
@@ -98,15 +97,51 @@ class Canvas(QtWidgets.QGraphicsScene):
         Args:
             event: The context menu event containing screen position.
         """
+        self.setProperty("_rmb_coordinate", event.scenePos())
         self._menu.exec_(event.screenPos())
 
-    def create_item(self, item_type: str, pos: QtCore.QPointF) -> None:
+    def create_item(self, class_name: str, **kwargs) -> QtWidgets.QGraphicsItem | None:
         """
         Create a new graph item of the specified type at the given position.
 
-        This method is a placeholder for future implementation of item creation.
+        Creates an item instance from the given class name, adds it to the scene,
+        and emits a creation signal via the event bus.
 
         Args:
-            item_type: Type of item to create (e.g., "Vertex", "Input", "Output").
-            pos: Scene position where the item will be created.
+            class_name: Name of the item class to create (e.g., "VertexItem").
+            **kwargs: Additional keyword arguments passed to the item constructor.
+
+        Returns:
+            The created QGraphicsObject instance, or None if creation failed.
         """
+
+        # Required:
+        from gui.graph.vertex import VertexItem
+        from core.bus import EventsBus
+
+        # Map class names to their corresponding classes
+        item_classes = {
+            "VertexItem": VertexItem,
+            "StreamItem": None,
+        }
+
+        # Get the item's class object from the class name
+        item_class = item_classes.get(class_name)
+
+        # If the class is valid, create an item and add it to the scene
+        if item_class:
+            # Use the context menu position if not provided in kwargs:
+            pos = kwargs.pop("pos", self.property("_rmb_coordinate"))
+
+            item = item_class(**kwargs)
+            item.setPos(pos)
+            self.addItem(item)
+
+            # Emit signal via event bus
+            bus = EventsBus.instance()
+            bus.sig_item_created.emit(item)
+
+            return item
+        else:
+            print(f"Error: Invalid item class '{class_name}'")
+            return None

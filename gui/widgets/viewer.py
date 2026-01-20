@@ -61,7 +61,7 @@ class Viewer(QtWidgets.QGraphicsView):
 
         self._opts = Viewer.ViewerOpts()
 
-        # Extract viewer-specific kwargs before passing to parent
+        # Extract viewer-specific kwargs before passing to the parent:
         self._opts.zoom_max = kwargs.pop("zoom_max", self._opts.zoom_max)
         self._opts.zoom_min = kwargs.pop("zoom_min", self._opts.zoom_min)
         self._opts.zoom_exp = kwargs.pop("exp", self._opts.zoom_exp)
