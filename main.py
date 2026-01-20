@@ -11,7 +11,6 @@ Supports command-line flags for the startup dialog and backend optimization cont
 """
 
 from __future__ import annotations
-
 import dataclasses
 import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
 import argparse

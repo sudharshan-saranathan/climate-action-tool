@@ -24,6 +24,7 @@ class QtaItem(QtWidgets.QGraphicsSimpleTextItem):
     ) -> None:
 
         super().__init__(parent)
+        super().setAcceptHoverEvents(True)
 
         self._width = width
         self._color = kwargs.get("color", "#efefef")
