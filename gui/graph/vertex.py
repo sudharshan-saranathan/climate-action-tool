@@ -15,6 +15,13 @@ class VertexItem(QtWidgets.QGraphicsObject):
     class Options:
         """
         Default vertex styling options.
+
+        Attributes:
+            bounds: QRectF defining vertex bounds.
+            border: QPen for vertex border styling.
+            select: Border style when selected.
+            brush: QBrush for the vertex background.
+
         """
 
         bounds: QtCore.QRectF = dataclasses.field(
@@ -26,7 +33,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         select: QtGui.QPen = dataclasses.field(
             default_factory=lambda: QtGui.QPen(QtGui.QColor(0xFFCB00), 2.0)
         )
-        background: QtGui.QBrush = dataclasses.field(
+        brush: QtGui.QBrush = dataclasses.field(
             default_factory=lambda: QtGui.QBrush(
                 QtGui.QColor(0x232A2E), QtCore.Qt.BrushStyle.SolidPattern
             )
@@ -54,6 +61,26 @@ class VertexItem(QtWidgets.QGraphicsObject):
         )
         self._name.moveBy(-60, 18)
 
+        # Initialize context menu:
+        self._init_menu()
+
+    def _init_menu(self) -> None:
+
+        self._menu = QtWidgets.QMenu()
+
+        search = QtWidgets.QLineEdit(
+            str(),
+            placeholderText="Target name...",
+            clearButtonEnabled=True,
+            parent=self._menu,
+        )
+
+        action = QtWidgets.QWidgetAction(self)
+        action.setDefaultWidget(search)
+
+        link = self._menu.addMenu("Connect to")
+        link.addAction(action)
+
     def boundingRect(self) -> QtCore.QRectF:
         return self._opts.bounds
 
@@ -65,13 +92,18 @@ class VertexItem(QtWidgets.QGraphicsObject):
     ) -> None:
 
         pen = self._opts.select if self.isSelected() else self._opts.border
-        brush = self._opts.background
-
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QtGui.QPainter.RenderHint.TextAntialiasing)
         painter.setPen(pen)
-        painter.setBrush(brush)
+        painter.setBrush(self._opts.brush)
         painter.drawRoundedRect(self.boundingRect(), 4, 4)
+
+    def contextMenuEvent(self, event, /):
+        super().contextMenuEvent(event)
+        if event.isAccepted():
+            return
+
+        self._menu.exec(event.screenPos())
+        event.accept()
 
     def mousePressEvent(self, event, /):
 

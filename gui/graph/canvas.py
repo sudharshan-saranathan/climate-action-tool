@@ -97,6 +97,11 @@ class Canvas(QtWidgets.QGraphicsScene):
         Args:
             event: The context menu event containing screen position.
         """
+
+        super().contextMenuEvent(event)
+        if event.isAccepted():
+            return
+
         self.setProperty("_rmb_coordinate", event.scenePos())
         self._menu.exec_(event.screenPos())
 
