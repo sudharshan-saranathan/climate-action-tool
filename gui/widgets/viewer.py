@@ -87,7 +87,7 @@ class Viewer(QtWidgets.QGraphicsView):
         self._openGL_viewport = None
         QtCore.QTimer.singleShot(0, self._setup_opengl_viewport)
 
-        # Register keyboard shortcuts for zoom, undo/redo, and copy/paste
+        # Register keyboard shortcuts for zoom, undo/redo, and copy/paste:
         QtGui.QShortcut(
             QtGui.QKeySequence("Ctrl+="), self, lambda: self.execute_zoom(1.2, True)
         )

@@ -1,16 +1,7 @@
 # Filename: main.py
 # Module name: N/A
-# Description: Application entry point for the Climate Action Tool.
+# Description: Entry point for the Climate Action Tool (CAT)
 
-"""
-Entry point and application initialization for the Climate Action Tool.
-
-This module instantiates the main application, applies styling and fonts,
-and initializes the user interface based on command-line arguments.
-Supports command-line flags for the startup dialog and backend optimization control.
-"""
-
-from __future__ import annotations
 import dataclasses
 import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
 import argparse
@@ -18,24 +9,22 @@ import logging
 import sys
 
 from PySide6 import QtGui, QtCore, QtWidgets
-from gui.main_ui.window import MainWindow
 from gui.startup.window import StartupWindow
+from gui.main_ui.window import MainWindow
 
 
+# Main application class
 class ClimateActionTool(QtWidgets.QApplication):
     """
-    Main application class for the Climate Action Tool (see Qt docs for more info).
-
-    Handles application initialization including style, fonts, and UI setup.
-    Must be instantiated before other Qt components.
+    Main application class to manage app lifecycle and UI components.
     """
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.
-    startup_file = str()  # User-selected project (if available).
+    startup_file = None  # User-selected project file to load (if available).
 
     @dataclasses.dataclass(frozen=True)
-    class Options:
+    class Style:
         """Configuration options for the application.
 
         Attributes:
@@ -56,32 +45,41 @@ class ClimateActionTool(QtWidgets.QApplication):
         super().__init__(sys.argv)
         super().setObjectName("climate-action-tool")
 
-        self._opts = ClimateActionTool.Options()
-        image = self._opts.image
-        bezel = self._opts.bezel
-        theme = self._opts.theme
-        fonts = QtCore.QDir(self._opts.fonts)
+        # Instantiate application options
+        self._style = ClimateActionTool.Style()
+        image = self._style.image
+        bezel = self._style.bezel
+        theme = self._style.theme
+        fonts = QtCore.QDir(self._style.fonts)
 
-        # Compute window geometry by padding screen bounds:
+        # Compute window geometry by padding screen bounds (primary screen only)
         screen = QtWidgets.QApplication.primaryScreen()
         bounds = screen.availableGeometry()
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
+        # Initialize application attributes
         self._init_args()
-        self._init_style(theme)
+        self._init_theme(theme)
         self._init_fonts(fonts)
         self.setWindowIcon(QtGui.QIcon(image))
 
-        # Show startup dialog if enabled:
+        # Display the startup dialog, if enabled
         if self.startup_flag:
-            self.startup_code, self.startup_file = self._show_startup()
+            self.startup_code = self._show_startup()
 
-        # Create and show the main window if the startup succeeded:
+        # Create and show the main window
         if self.startup_code:
-            self._win = MainWindow(project=self.startup_file)
-            self._win.setWindowTitle("Climate Action Tool")
-            self._win.setGeometry(padded)
-            self._win.show()
+
+            try:
+                self._win = MainWindow(project=self.startup_file)
+                self._win.setWindowTitle("Climate Action Tool")
+                self._win.setGeometry(padded)
+                self._win.show()
+
+            except Exception as e:
+                logging.error(e)
+                sys.exit(1)  # Exit with non-zero status code
+
         else:
             sys.exit(0)
 
@@ -101,33 +99,34 @@ class ClimateActionTool(QtWidgets.QApplication):
         parser.add_argument("--no-backend", action="store_false", dest="backend")
         args = parser.parse_args()
 
+        self.backend_flag = args.backend
         self.startup_flag = args.startup
         self.startup_code = 1
-        self.backend_flag = args.backend
 
     def _init_fonts(self, path: QtCore.QDir) -> None:
         """
-        Installs the fonts in the specified directory with platform-specific sizing.
+        Install fonts from the specified directory and set platform-specific size.
 
         Args:
             path: Path to the 'fonts' directory.
         """
 
+        # For system platform detection
         import platform
 
         # Get the list of TTF fonts and compute platform-specific size:
         font_list = path.entryList(["*.ttf"])
         font_size = 12 if platform.system().lower() == "darwin" else 8
 
-        # Attempt to load each font and track failures
+        # Load fonts
         for font in font_list:
             path = f":/fonts/{font}"
             QtGui.QFontDatabase.addApplicationFont(path)
 
-        # `Fira Code` is the default for all widgets:
+        # Set default font
         self.setFont(QtGui.QFont("Fira Code", font_size))
 
-    def _init_style(self, path: str) -> None:
+    def _init_theme(self, path: str) -> None:
         """
         Loads and applies the QSS stylesheet to the application.
 
@@ -135,17 +134,20 @@ class ClimateActionTool(QtWidgets.QApplication):
             path: Path to the QSS stylesheet file.
         """
 
-        qss_file = QtCore.QFile(path)
-        if qss_file.open(QtCore.QFile.OpenModeFlag.ReadOnly):
-            contents = QtCore.QTextStream(qss_file).readAll()
-            self.setStyleSheet(contents)
-        else:
-            logging.warning("Failed to read stylesheet file: %s", path)
+        try:
+
+            theme = QtCore.QFile(path)
+            if theme.open(QtCore.QFile.OpenModeFlag.ReadOnly):
+                theme = QtCore.QTextStream(theme).readAll()
+                self.setStyleSheet(theme)
+
+        except Exception as e:
+            logging.warning(f"Unable to apply theme {e}. Using system default.")
 
     @staticmethod
-    def _show_startup() -> tuple[int, str | None]:
+    def _show_startup() -> int:
         """
-        Displays the startup dialog and returns the result.
+        Display the startup dialog and return the result
 
         Returns:
             A tuple of (exit_code, project_path) where exit_code indicates
@@ -156,15 +158,15 @@ class ClimateActionTool(QtWidgets.QApplication):
         startup.exec()
 
         result: int = startup.result()
-        return result, None
+        return result
 
     @property
-    def options(self) -> Options:
-        return self._opts
+    def options(self) -> Style:
+        return self._style
 
 
 def main() -> None:
-    """Instantiate the application and enter the event loop."""
+    """Instantiate the application and enter its event loop."""
 
     application = ClimateActionTool()
     application.exec()  # This call is blocking by default.

@@ -10,8 +10,10 @@ node graphs with customizable appearance and scene layout.
 """
 
 from __future__ import annotations
-import dataclasses
 from PySide6 import QtGui, QtCore, QtWidgets
+from gui.graph.vector.vector import VectorItem
+import dataclasses
+import types
 
 
 class Canvas(QtWidgets.QGraphicsScene):
@@ -35,7 +37,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             default_factory=lambda: QtCore.QRect(0, 0, 5000, 5000)
         )
         background: QtGui.QBrush = dataclasses.field(
-            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0xEFEFEF))
+            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0xFFFFFF))
         )
 
     def __init__(self, parent=None):
@@ -46,16 +48,27 @@ class Canvas(QtWidgets.QGraphicsScene):
             parent: Parent object (optional).
         """
 
+        # Instantiate options before super-class:
         self._opts = Canvas.Options()
+
+        # Super-class initialization:
         super().__init__(
-            self._opts.sceneRect, parent=parent, backgroundBrush=self._opts.background
+            self._opts.sceneRect,
+            parent=parent,
+            backgroundBrush=self._opts.background,
         )
 
         # Store right-click position for context menu actions
         self.setProperty("_rmb_coordinate", QtCore.QPoint())
 
-        # Set up context menu with graph editing actions
+        # Set up the context menu:
         self._menu = self._init_menu()
+        self._prev = types.SimpleNamespace(
+            active=False,
+            origin=None,
+            vector=VectorItem(),
+        )
+        self.addItem(self._prev.vector)
 
     def _init_menu(self) -> QtWidgets.QMenu:
         """
@@ -85,8 +98,7 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         # Object creation submenu
         objects_menu.addAction("Vertex", lambda: self.create_item("VertexItem"))
-        objects_menu.addAction("Input")
-        objects_menu.addAction("Output")
+        objects_menu.addAction("Stream")
 
         return context_menu
 
@@ -105,6 +117,59 @@ class Canvas(QtWidgets.QGraphicsScene):
         self.setProperty("_rmb_coordinate", event.scenePos())
         self._menu.exec_(event.screenPos())
 
+    def mouseMoveEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
+
+        if self._prev.active:
+            # Use stored click position from origin vertex
+            origin = self._prev.origin.property("click_pos")
+            target = event.scenePos()
+            self._prev.vector.update_path(origin, target)
+
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
+
+        # Required:
+        from gui.graph.vertex.vertex import VertexItem
+
+        if self._prev.active:
+
+            origin = self._prev.origin
+            target = self.itemAt(event.scenePos(), QtGui.QTransform())
+
+            # If we hit a child item (label), traverse up to find parent vertex
+            while target and not isinstance(target, VertexItem):
+                target = target.parentItem()
+
+            if isinstance(target, VertexItem):
+                # Get origin position (stored from click)
+                origin_pos = origin.property("click_pos")
+
+                # Enforce target position: use target vertex center x, release y
+                target_pos = QtCore.QPointF(target.scenePos().x(), event.scenePos().y())
+
+                vector = origin.connect_to(target, origin_pos, target_pos)
+                if vector is not None:
+                    self.addItem(vector)
+
+        self.prev_off()
+        super().mouseReleaseEvent(event)
+
+    def prev_on(self, vertex: QtWidgets.QGraphicsObject):
+
+        if self._prev.active:
+            return  # Do nothing if the preview is already active.
+
+        self._prev.active = True
+        self._prev.origin = vertex
+        self._prev.vector.show()
+
+    def prev_off(self):
+        self._prev.active = False
+        self._prev.origin = None
+        self._prev.vector.clear()
+        self._prev.vector.hide()
+
     def create_item(self, class_name: str, **kwargs) -> QtWidgets.QGraphicsItem | None:
         """
         Create a new graph item of the specified type at the given position.
@@ -121,8 +186,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         """
 
         # Required:
-        from gui.graph.vertex import VertexItem
-        from core.bus import EventsBus
+        from gui.graph.vertex.vertex import VertexItem
 
         # Map class names to their corresponding classes
         item_classes = {
@@ -133,20 +197,49 @@ class Canvas(QtWidgets.QGraphicsScene):
         # Get the item's class object from the class name
         item_class = item_classes.get(class_name)
 
-        # If the class is valid, create an item and add it to the scene
+        # If the class is valid, instantiate and add the item to the scene:
         if item_class:
-            # Use the context menu position if not provided in kwargs:
-            pos = kwargs.pop("pos", self.property("_rmb_coordinate"))
 
+            cpos = kwargs.pop("pos", self.property("_rmb_coordinate"))
             item = item_class(**kwargs)
-            item.setPos(pos)
+            item.setPos(cpos)
+
+            self.register_signals(item)
             self.addItem(item)
 
-            # Emit signal via event bus
-            bus = EventsBus.instance()
-            bus.sig_item_created.emit(item)
-
             return item
+
         else:
             print(f"Error: Invalid item class '{class_name}'")
             return None
+
+    def find_item(self, name: str) -> QtWidgets.QGraphicsItem | None:
+
+        items: list[QtWidgets.QGraphicsItem] = self.items()
+        for item in items:
+            if hasattr(item, "objectName"):
+                if item.objectName() == name:
+                    return item
+
+        return None
+
+    def register_signals(self, item: QtWidgets.QGraphicsObject):
+        """Connects the given item's signals to appropriate slots."""
+
+        if hasattr(item, "signals"):
+            sig_list = item.signals()
+
+            for name, signal in sig_list.items():
+                method = f"_on_{name}"
+                signal.connect(getattr(self, method))
+
+    @QtCore.Slot(QtWidgets.QGraphicsObject)
+    def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):
+
+        # Required:
+        from gui.graph.vertex.vertex import VertexItem
+
+        if not isinstance(item, VertexItem):
+            return
+
+        self.prev_on(item)

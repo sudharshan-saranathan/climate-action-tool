@@ -124,7 +124,7 @@ class TabWidget(QtWidgets.QTabWidget):
                 dragMode=QtWidgets.QGraphicsView.DragMode.NoDrag,
                 viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
                 renderHints=QtGui.QPainter.RenderHint.Antialiasing,
-                backgroundBrush=QtGui.QBrush(QtGui.QColor(0xEFEFEF)),
+                backgroundBrush=QtGui.QBrush(QtGui.QColor(0xFFFFFF)),
                 sceneRect=QtCore.QRectF(0, 0, 5000, 5000),
             )
 
@@ -195,16 +195,48 @@ class TabWidget(QtWidgets.QTabWidget):
             floatable=False,
             movable=False,
         )
+        toolbar.addWidget(
+            find := QtWidgets.QLineEdit(
+                parent=toolbar,
+                placeholderText="Find",
+                clearButtonEnabled=True,
+            )
+        )
+        find.setObjectName("Search-Input")
+        find.returnPressed.connect(self._find)
+
         self.setCornerWidget(toolbar, QtCore.Qt.Corner.TopRightCorner)
 
     def _go_to_previous_tab(self) -> None:
         """Navigate to the previous tab."""
+
         current = self.currentIndex()
         if current > 0:
             self.setCurrentIndex(current - 1)
 
     def _go_to_next_tab(self) -> None:
         """Navigate to the next tab."""
+
         current = self.currentIndex()
         if current < self.count() - 1:
             self.setCurrentIndex(current + 1)
+
+    def _find(self) -> None:
+
+        # Required:
+        from gui.widgets.viewer import Viewer
+
+        toolbar = self.cornerWidget()
+        finder = toolbar.findChild(QtWidgets.QLineEdit, "Search-Input")
+        string = finder.text() if finder else ""
+
+        viewer = self.currentWidget()
+        if isinstance(viewer, Viewer):
+
+            canvas = viewer.scene()
+            if hasattr(canvas, "find_item"):
+                if item := canvas.find_item(string):
+                    canvas.clearSelection()
+                    item.setSelected(True)
+
+        finder.clear()

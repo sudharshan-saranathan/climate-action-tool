@@ -2,56 +2,43 @@
 # Module name: startup
 # Description: A startup window based on the QDialog class (see Qt docs for more info).
 
-"""
-Startup window interface for the Climate Action Tool.
-
-This module provides a startup dialog that allows users to create new projects,
-browse existing projects in the library, and manage project files.
-"""
-
-import dataclasses
 from PySide6 import QtCore, QtWidgets, QtGui
-
 from gui.startup.choice import StartupChoice
 from gui.startup.ftable import StartupFileTable, FileTableItem
 from gui.widgets import GLayout
+import dataclasses
 
 
 class StartupWindow(QtWidgets.QDialog):
     """
-    A startup window for the application, based on the QDialog class.
-
-    Sets up UI components (header, footer, file table, etc.) that display buttons for actions such as opening a new
-    project, loading an existing project, or quitting the application.
+    A startup window based on a QDialog class.
     """
 
     @dataclasses.dataclass(frozen=True)
-    class Options:
-        """Configuration options for the startup window.
+    class Style:
+        """
+        Configuration options for the startup window.
 
         Attributes:
-            radius: Corner radius for rounded rectangle in pixels.
-            border: QPen for window border styling (default: dark gray, 2pt).
             brush: QBrush for the window background (default: solid dark color).
-            rect: QSize for window dimensions (default: 900x640).
+            border: QPen for window border styling (default: dark gray, 2pt).
+            texture: Path to the window background texture (default: ":/theme/pattern.png").
         """
 
+        brush: QtGui.QBrush = dataclasses.field(default_factory=QtGui.QBrush)
+        border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
+        texture: str = ":/theme/pattern.png"
+
+    @dataclasses.dataclass(frozen=True)
+    class Geometry:
+        size: QtCore.QSize = dataclasses.field(default_factory=QtCore.QSize)
         radius: int = 10
-        border: QtGui.QPen = dataclasses.field(
-            init=False, default_factory=lambda: QtGui.QPen(QtGui.QColor(0x393E41), 2.0)
-        )
 
-        brush: QtGui.QBrush = dataclasses.field(
-            init=False, default_factory=lambda: QtGui.QBrush(QtGui.QColor(0x232A2E))
-        )
-
-        rect: QtCore.QSize = dataclasses.field(
-            init=False, default_factory=lambda: QtCore.QSize(900, 640)
-        )
-
-        image: str = ":/theme/pattern.png"
+    @dataclasses.dataclass(frozen=True)
+    class Metadata:
         regex: str = "*.h5"
 
+    # Class constructor
     def __init__(self, parent=None):
         """
         Initializes the startup window and sets up the UI components.
@@ -64,41 +51,29 @@ class StartupWindow(QtWidgets.QDialog):
         super().setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         super().setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
-        # Options:
-        self._opts = StartupWindow.Options()
+        # Window styling and initialization
+        self._style = StartupWindow.Style(
+            brush=QtGui.QBrush(QtGui.QColor(0x232A2E)),
+            border=QtGui.QPen(QtGui.QColor(0x393E41)),
+        )
 
-        # UI components:
-        self._pixmap = QtGui.QPixmap(self._opts.image)
+        self._geometry = StartupWindow.Geometry(size=QtCore.QSize(900, 640), radius=10)
+        self._metadata = StartupWindow.Metadata()
+        self.resize(self._geometry.size)
+
+        # UI components
+        self._pixmap = QtGui.QPixmap(self._style.texture)
         self._header = self._init_header()
         self._h_line = self._init_h_line()
         self._footer = self._init_footer()
+        self._ftable = self._init_ftable()
         self._choice = StartupChoice()
-        self._ftable = StartupFileTable()
-        self._ftable.populate("library", self._opts.regex)
         self._current_project_file = None
 
-        # Configure window appearance and size
-        self._opts = StartupWindow.Options()
-        self._opts.brush.setTexture(self._pixmap)
-        self.resize(self._opts.rect)
+        # Arrange UI components using a grid layout
+        self._init_layout()
 
-        # Arrange UI components:
-        layout = GLayout(
-            self,
-            spacing=8,
-            margins=(8, 8, 8, 8),
-        )
-        layout.setVerticalSpacing(8)
-        layout.setRowStretch(0, 5)
-        layout.addWidget(self._header, 1, 0)
-        layout.addWidget(self._h_line, 2, 0)
-        layout.addWidget(self._choice, 3, 0)
-        layout.addWidget(self._footer, 5, 0)
-        layout.addWidget(self._ftable, 0, 1, 6, 1)
-        layout.setRowStretch(4, 4)
-        layout.setColumnStretch(1, 2)
-
-        self._setup_connections()
+        self._init_connections()
 
     def _init_header(self) -> QtWidgets.QLabel:
         """
@@ -198,26 +173,48 @@ class StartupWindow(QtWidgets.QDialog):
         footer.addWidget(license_label)
         return footer
 
-    def _setup_connections(self) -> None:
+    def _init_ftable(self) -> StartupFileTable:
+        """
+        Initialize the file table widget displaying project files
+
+        Returns:
+            StartupFileTable: The file table widget
+        """
+
+        ftable = StartupFileTable()
+        ftable.populate("library", self._metadata.regex)
+        return ftable
+
+    def _init_layout(self):
+
+        # Arrange UI components:
+        layout = GLayout(
+            self,
+            spacing=8,
+            margins=(8, 8, 8, 8),
+        )
+        layout.setVerticalSpacing(8)
+        layout.setRowStretch(0, 5)
+        layout.addWidget(self._header, 1, 0)
+        layout.addWidget(self._h_line, 2, 0)
+        layout.addWidget(self._choice, 3, 0)
+        layout.addWidget(self._footer, 5, 0)
+        layout.addWidget(self._ftable, 0, 1, 6, 1)
+        layout.setRowStretch(4, 4)
+        layout.setColumnStretch(1, 2)
+
+    def _init_connections(self) -> None:
         """
         Connect UI signals to their respective handler slots.
 
         Connects buttons and file table signals to manage project creation,
         selection, and application lifecycle.
         """
+
         self._choice.sig_button_new_clicked.connect(self._on_new_project)
         self._choice.sig_button_tmp_clicked.connect(self._on_library_clicked)
         self._choice.sig_button_quit_clicked.connect(self._on_quit)
 
-        self._connect_file_table_items()
-
-    def _connect_file_table_items(self) -> None:
-        """
-        Connect signals from all file table items to their handlers.
-
-        Iterates through the file table and connects open, clone, and delete
-        signals for each project item.
-        """
         for row in range(self._ftable.rowCount()):
             item = self._ftable.cellWidget(row, 0)
             if isinstance(item, FileTableItem):
@@ -295,8 +292,12 @@ class StartupWindow(QtWidgets.QDialog):
         """
 
         painter = QtGui.QPainter(self)
-        painter.setPen(self._opts.border)
+        painter.setPen(self._style.border)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
-        painter.setBrush(self._opts.brush)
-        painter.drawRoundedRect(self.rect(), self._opts.radius, self._opts.radius)
+        painter.setBrush(self._style.brush)
+        painter.drawRoundedRect(
+            self.rect(),
+            self._geometry.radius,
+            self._geometry.radius,
+        )
