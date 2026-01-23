@@ -8,6 +8,7 @@ A QGraphicsScene subclass for displaying and editing graphs.
 
 from __future__ import annotations
 from PySide6 import QtGui, QtCore, QtWidgets
+from gui.graph.vertex.vertex import VertexItem
 from gui.graph.vector.vector import VectorItem
 import dataclasses
 import logging
@@ -83,12 +84,13 @@ class Canvas(QtWidgets.QGraphicsScene):
         context_menu.addAction("Clear")
         context_menu.addSeparator()
 
-        # Object creation submenu
+        # Menu actions
         objects_menu.addAction(
             "Vertex",
             lambda: self.create_item(
                 "VertexItem",
-                icon="mdi.function-variant",
+                pos=self._rmb_coordinate,
+                image="mdi.function-variant",
                 color="#efefef",
             ),
         )
@@ -97,8 +99,11 @@ class Canvas(QtWidgets.QGraphicsScene):
             "Source",
             lambda: self.create_item(
                 "StreamItem",
-                icon="mdi.arrow-fat-line-up",
-                color="#efefef",
+                pos=self._rmb_coordinate,
+                image="mdi.arrow-up-bold-circle",
+                color="darkgreen",
+                draw_background=False,
+                incoming_enabled=False,
             ),
         )
 
@@ -106,8 +111,11 @@ class Canvas(QtWidgets.QGraphicsScene):
             "Sink",
             lambda: self.create_item(
                 "StreamItem",
-                icon="mdi.arrow-fat-line-down",
-                color="#efefef",
+                pos=self._rmb_coordinate,
+                image="mdi.arrow-down-bold-circle",
+                color="darkred",
+                draw_background=False,
+                outgoing_enabled=False,
             ),
         )
 
@@ -125,7 +133,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         if event.isAccepted():
             return
 
-        self.setProperty("_rmb_coordinate", event.scenePos())
+        self._rmb_coordinate = event.scenePos()
         self._menu.exec_(event.screenPos())
 
     def mouseMoveEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
@@ -140,9 +148,6 @@ class Canvas(QtWidgets.QGraphicsScene):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
-
-        # Required:
-        from gui.graph.vertex.vertex import VertexItem
 
         if self._prev.active:
 
@@ -187,7 +192,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         # Required:
         from gui.graph.vertex.vertex import VertexItem
 
-        # Map class names to their corresponding classes
+        # Map class-names to the respective class objects
         item_classes = {
             "VertexItem": VertexItem,
             "StreamItem": VertexItem,
@@ -198,14 +203,9 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         # If the class is valid, instantiate and add the item to the scene:
         if item_class:
-
-            cpos = kwargs.pop("pos", self.property("_rmb_coordinate"))
             item = item_class(**kwargs)
-            item.setPos(cpos)
-
             self.register_signals(item)
             self.addItem(item)
-
             return item
 
         else:

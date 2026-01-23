@@ -17,11 +17,18 @@ class VertexItem(QtWidgets.QGraphicsObject):
     item_shifted = QtCore.Signal(QtWidgets.QGraphicsObject)
     item_focused = QtCore.Signal(QtWidgets.QGraphicsObject)
 
+    @dataclasses.dataclass
+    class Attrs:
+        """Vertex attributes."""
+
+        label: str = "Vertex"
+        image: str = "mdi.function-variant"
+        color: str = "#efefef"
+
     @dataclasses.dataclass(frozen=True)
     class Style:
         """Style attributes."""
 
-        image: str = "mdi.function-variant"
         brush: dict[ItemState, QtGui.QBrush] = dataclasses.field(
             default_factory=lambda: {
                 ItemState.NORMAL: QtGui.QBrush(QtGui.QColor(0x232A2E)),
@@ -47,8 +54,11 @@ class VertexItem(QtWidgets.QGraphicsObject):
     # Class constructor
     def __init__(self, parent=None, **kwargs):
 
-        self._name = kwargs.pop("name", "Vertex")
-        self._kind = kwargs.pop("kind", None)
+        self._attr = VertexItem.Attrs(
+            label=kwargs.get("label", VertexItem.Attrs.label),
+            image=kwargs.get("image", VertexItem.Attrs.image),
+            color=kwargs.get("color", VertexItem.Attrs.color),
+        )
 
         # Super-class initialization
         super().__init__(
@@ -58,17 +68,11 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
         self._init_flags()
         self._init_attrs()
+        self._init_label()
 
-        # Label for displaying the vertex's name:
-        self._label = Label(
-            self._name,
-            parent=self,
-            width=120,
-            align=QtCore.Qt.AlignmentFlag.AlignCenter,
-            pos=QtCore.QPointF(-60, 18),
-        )
-        self._label.sig_text_changed.connect(self.setObjectName)
-        self._label.sig_text_changed.emit(self._name)
+        self._outgoing_enabled: bool = kwargs.get("outgoing_enabled", True)
+        self._incoming_enabled: bool = kwargs.get("incoming_enabled", True)
+        self._draw_background: bool = kwargs.get("draw_background", True)
 
     def _init_flags(self):
         """Initialize this item's flags."""
@@ -82,15 +86,27 @@ class VertexItem(QtWidgets.QGraphicsObject):
     def _init_attrs(self):
         """Instantiate the vertex's data classes."""
 
-        # Style, geometry, and connections:
         self._style = VertexItem.Style(
             brush={
                 ItemState.NORMAL: QtGui.QBrush(QtGui.QColor(0x232A2E)),
                 ItemState.SELECTED: QtGui.QBrush(QtGui.QColor(0xFFCB00)),
-            }
+            },
         )
         self._geometry = VertexItem.Geometry(rect=QtCore.QRectF(-16, -16, 32, 32))
         self._connections = VertexItem.Connections()
+
+    def _init_label(self):
+        """Initialize the vertex's label."""
+
+        self._label = Label(
+            self._attr.label,
+            parent=self,
+            width=120,
+            align=QtCore.Qt.AlignmentFlag.AlignCenter,
+            pos=QtCore.QPointF(-60, 18),
+        )
+        self._label.sig_text_changed.connect(self.setObjectName)
+        self._label.sig_text_changed.emit(self._attr.label)
 
     def boundingRect(self) -> QtCore.QRectF:
         return self._geometry.rect.adjusted(
@@ -108,20 +124,21 @@ class VertexItem(QtWidgets.QGraphicsObject):
         ]
 
         # Draw the background rectangle first
-        painter.setPen(QtCore.Qt.PenStyle.NoPen)
-        painter.setBrush(brush)
-        painter.drawRoundedRect(
-            self.boundingRect(),
-            self._geometry.radius,
-            self._geometry.radius,
-        )
+        if self._draw_background:
+
+            painter.setPen(QtCore.Qt.PenStyle.NoPen)
+            painter.setBrush(brush)
+            painter.drawRoundedRect(
+                self.boundingRect(),
+                self._geometry.radius,
+                self._geometry.radius,
+            )
 
         # Then paint the icon on top
-        color = "black" if self.isSelected() else "white"
-        image = qta.icon(self._style.image, color=color)
-        image.paint(
+        icon = qta.icon(self._attr.image, color=self._attr.color)
+        icon.paint(
             painter,
-            self.boundingRect().adjusted(8, 8, -8, -8).toRect(),
+            self.boundingRect().adjusted(4, 4, -4, -4).toRect(),
         )
 
     def itemChange(self, change, value):
@@ -183,6 +200,14 @@ class VertexItem(QtWidgets.QGraphicsObject):
             node: The target vertex to connect to.
         """
 
+        if not self._outgoing_enabled:
+            print(f"Outgoing connections are disabled for {self.objectName()}")
+            return None
+
+        if not node._incoming_enabled:
+            print(f"Incoming connections are disabled for {node.objectName()}")
+            return None
+
         if node in self._connections.outgoing:
             print(f"{self.objectName()} is already connected to {node.objectName()}")
             return None
@@ -203,3 +228,9 @@ class VertexItem(QtWidgets.QGraphicsObject):
         node._connections.incoming[self] = vector
 
         return vector
+
+    def set_icon(self, image: str, color: str = "#efefef"):
+        """Set the vertex icon."""
+
+        self._attr.image = image
+        self._attr.color = color
