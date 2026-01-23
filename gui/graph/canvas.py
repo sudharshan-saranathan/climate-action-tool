@@ -100,7 +100,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             lambda: self.create_item(
                 "StreamItem",
                 pos=self._rmb_coordinate,
-                image="mdi.arrow-up-bold-circle",
+                image="ph.arrow-circle-up-fill",
                 color="darkgreen",
                 draw_background=False,
                 incoming_enabled=False,
@@ -112,7 +112,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             lambda: self.create_item(
                 "StreamItem",
                 pos=self._rmb_coordinate,
-                image="mdi.arrow-down-bold-circle",
+                image="ph.arrow-circle-down-fill",
                 color="darkred",
                 draw_background=False,
                 outgoing_enabled=False,

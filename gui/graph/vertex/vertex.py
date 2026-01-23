@@ -72,7 +72,6 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
         self._outgoing_enabled: bool = kwargs.get("outgoing_enabled", True)
         self._incoming_enabled: bool = kwargs.get("incoming_enabled", True)
-        self._draw_background: bool = kwargs.get("draw_background", True)
 
     def _init_flags(self):
         """Initialize this item's flags."""
@@ -123,22 +122,19 @@ class VertexItem(QtWidgets.QGraphicsObject):
             ItemState.SELECTED if self.isSelected() else ItemState.NORMAL
         ]
 
-        # Draw the background rectangle first
-        if self._draw_background:
-
-            painter.setPen(QtCore.Qt.PenStyle.NoPen)
-            painter.setBrush(brush)
-            painter.drawRoundedRect(
-                self.boundingRect(),
-                self._geometry.radius,
-                self._geometry.radius,
-            )
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.setBrush(brush)
+        painter.drawRoundedRect(
+            self.boundingRect(),
+            self._geometry.radius,
+            self._geometry.radius,
+        )
 
         # Then paint the icon on top
         icon = qta.icon(self._attr.image, color=self._attr.color)
         icon.paint(
             painter,
-            self.boundingRect().adjusted(4, 4, -4, -4).toRect(),
+            self.boundingRect().adjusted(6, 6, -6, -6).toRect(),
         )
 
     def itemChange(self, change, value):
