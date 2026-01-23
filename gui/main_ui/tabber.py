@@ -85,13 +85,16 @@ class TabWidget(QtWidgets.QTabWidget):
         )
 
         # Set up keyboard shortcuts for tab management
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+T"), self, self.new_tab)
+        self._new_tab_shortcut = QtGui.QShortcut(
+            QtGui.QKeySequence("Ctrl+T"), self, self.new_tab
+        )
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.del_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Left"), self, self._go_to_previous_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Right"), self, self._go_to_next_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+R"), self, self.rename_tab)
 
         self._setup_corner_toolbar()
+        self._new_tab_shortcut.activated.emit()
 
     def new_tab(
         self,
@@ -224,8 +227,10 @@ class TabWidget(QtWidgets.QTabWidget):
     def _find(self) -> None:
 
         # Required:
+        from core.bus import EventsBus
         from gui.widgets.viewer import Viewer
 
+        bus = EventsBus.instance()
         toolbar = self.cornerWidget()
         finder = toolbar.findChild(QtWidgets.QLineEdit, "Search-Input")
         string = finder.text() if finder else ""
@@ -234,9 +239,11 @@ class TabWidget(QtWidgets.QTabWidget):
         if isinstance(viewer, Viewer):
 
             canvas = viewer.scene()
+            canvas.clearSelection()
+
             if hasattr(canvas, "find_item"):
                 if item := canvas.find_item(string):
-                    canvas.clearSelection()
+                    bus.sig_item_focused.emit(item)
                     item.setSelected(True)
 
         finder.clear()

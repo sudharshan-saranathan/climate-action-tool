@@ -4,71 +4,86 @@
 
 """Edge item for displaying graph connections."""
 
-from __future__ import annotations
 from PySide6 import QtCore, QtGui, QtWidgets
 from gui.graph.reusable.image import Image
+from gui.graph.enums import ItemState
 import dataclasses
+import weakref
 
 
 class VectorItem(QtWidgets.QGraphicsObject):
     """Edge item for displaying graph connections."""
 
     @dataclasses.dataclass
-    class Options:
+    class Style:
         """Edge styling options.
 
         Attributes:
             width: Line width in pixels (default: 2).
             slack: The Bézier curve's slack factor (default: 0.4).
-            color: Line color (default: gray).
-            select: Line color when selected (default: yellow).
+            pen: The vector's pen style.
         """
 
         width: float = 3.0
         slack: float = 0.4
-        color: QtGui.QColor = dataclasses.field(
-            init=False,
-            default_factory=lambda: QtGui.QColor(0xABABAB),
-        )
-
-        select: QtGui.QColor = dataclasses.field(
-            init=False,
-            default_factory=lambda: QtGui.QColor(0xFFCB00),
-        )
+        pen: dict[ItemState, QtGui.QPen] = dataclasses.field(default_factory=dict)
 
     def __init__(self, parent=None, origin=None, target=None):
         super().__init__(parent)
-        super().setZValue(-10)
-        super().setPos(QtCore.QPointF(0, 0))
-        super().setAcceptHoverEvents(True)
 
         # Class member(s):
-        self._opts = VectorItem.Options()
         self._path = QtGui.QPainterPath()
         self._arrow = Image(":/svg/arrow.svg", parent=self)
-        self._origin = origin  # True origin vertex
-        self._target = target  # True target vertex
+        self._style = VectorItem.Style(
+            pen={
+                ItemState.NORMAL: QtGui.QPen(QtGui.QColor(0xEFEFEF)),
+                ItemState.SELECTED: QtGui.QPen(QtGui.QColor(0xFFCB00)),
+            }
+        )
 
-        # Set property before creating animation:
-        self.setProperty("linewidth", self._opts.width)
+        self._init_attr()
+        self._init_anim()
+        self._init_endpoints(origin, target)
 
-        # Initialize hover animation:
-        self._anim = self._init_anim()
+    def _init_attr(self):
+
+        self.setZValue(-10)
+        self.setPos(QtCore.QPointF(0, 0))
+        self.setAcceptHoverEvents(True)
+        self.setProperty("linewidth", self._style.width)
 
     def _init_anim(self):
         """Initializes hover animation."""
 
-        anim = QtCore.QPropertyAnimation(self, b"thickness")
-        anim.setDuration(360)
-        anim.setEasingCurve(QtCore.QEasingCurve.Type.OutQuad)
-        return anim
+        self._anim = QtCore.QPropertyAnimation(self, b"thickness")
+        self._anim.setEasingCurve(QtCore.QEasingCurve.Type.OutQuad)
+        self._anim.setDuration(360)
+
+    def _init_endpoints(self, origin, target):
+        """
+        Initialize the vector's endpoints.
+
+        Args:
+            origin: Reference to the origin vertex.
+            target: Reference to the target vertex.
+        """
+        self._origin = weakref.ref(origin) if origin else None
+        self._target = weakref.ref(target) if target else None
+
+        if self._origin and self._target:
+            self._origin().item_shifted.connect(self._on_endpoint_shifted)
+            self._target().item_shifted.connect(self._on_endpoint_shifted)
+            self.update_path(
+                self._origin().scenePos(),
+                self._target().scenePos(),
+            )
 
     def boundingRect(self) -> QtCore.QRectF:
         return self._path.boundingRect().adjusted(-4, -4, 4, 4)
 
     def shape(self):
         stroker = QtGui.QPainterPathStroker()
-        current_width = self.property("linewidth") or self._opts.width
+        current_width = self.property("linewidth") or self._style.width
         stroker.setWidth(current_width + 12)
         return stroker.createStroke(self._path)
 
@@ -79,14 +94,12 @@ class VectorItem(QtWidgets.QGraphicsObject):
         widget: QtWidgets.QWidget = ...,
     ) -> None:
 
-        color = self._opts.select if self.isSelected() else self._opts.color
-        pen = QtGui.QPen(
-            color,
-            self.property("linewidth"),
-            QtGui.Qt.PenStyle.SolidLine,
-            QtGui.Qt.PenCapStyle.RoundCap,
-            QtGui.Qt.PenJoinStyle.RoundJoin,
-        )
+        pen = self._style.pen[
+            ItemState.SELECTED if self.isSelected() else ItemState.NORMAL
+        ]
+        pen.setWidthF(self.property("linewidth") or self._style.width)
+        pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
+        pen.setJoinStyle(QtCore.Qt.PenJoinStyle.RoundJoin)
 
         painter.setPen(pen)
         painter.drawPath(self._path)
@@ -94,15 +107,15 @@ class VectorItem(QtWidgets.QGraphicsObject):
     def hoverEnterEvent(self, event, /):
         self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         self._anim.stop()
-        self._anim.setStartValue(self._opts.width)
-        self._anim.setEndValue(self._opts.width + 2.0)
+        self._anim.setStartValue(self._style.width)
+        self._anim.setEndValue(self._style.width + 2.0)
         self._anim.start()
 
     def hoverLeaveEvent(self, event, /):
         self.unsetCursor()
         self._anim.stop()
-        self._anim.setStartValue(self._opts.width + 2.0)
-        self._anim.setEndValue(self._opts.width)
+        self._anim.setStartValue(self._style.width + 2.0)
+        self._anim.setEndValue(self._style.width)
         self._anim.start()
 
     def _compute(
@@ -115,7 +128,7 @@ class VectorItem(QtWidgets.QGraphicsObject):
         path.moveTo(origin)
 
         # Calculate control points for cubic Bezier curve
-        slack = self._opts.slack
+        slack = self._style.slack
 
         ctrl_one_x = origin.x() + (target.x() - origin.x()) * slack
         ctrl_one_y = origin.y() + (target.y() - origin.y()) * 0.25
@@ -143,8 +156,8 @@ class VectorItem(QtWidgets.QGraphicsObject):
 
         # If we have stored vertex references, check if coordinates are swapped:
         if self._origin is not None and self._target is not None:
-            true_origin_pos = self._origin.scenePos()
-            true_target_pos = self._target.scenePos()
+            true_origin_pos = self._origin().scenePos()
+            true_target_pos = self._target().scenePos()
 
             # Convert to QPoint (integers) to avoid floating point comparison issues:
             origin_int = origin.toPoint()
@@ -170,6 +183,14 @@ class VectorItem(QtWidgets.QGraphicsObject):
     def clear(self):
         self._arrow.setPos(QtCore.QPointF())
         self._path.clear()
+
+    @QtCore.Slot(QtCore.QPointF)
+    def _on_endpoint_shifted(self, pos: QtCore.QPointF) -> None:
+
+        if self._origin and self._target:
+            origin = self._origin().scenePos()
+            target = self._target().scenePos()
+            self.update_path(origin, target)
 
     @QtCore.Property(float)
     def thickness(self) -> float:

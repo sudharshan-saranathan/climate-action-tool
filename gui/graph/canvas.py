@@ -3,42 +3,29 @@
 # Description: Graphics scene for displaying node graphs.
 
 """
-Graphics scene for node-based graph editing.
-
-Provides a QGraphicsScene subclass configured for displaying and editing
-node graphs with customizable appearance and scene layout.
+A QGraphicsScene subclass for displaying and editing graphs.
 """
 
 from __future__ import annotations
 from PySide6 import QtGui, QtCore, QtWidgets
 from gui.graph.vector.vector import VectorItem
 import dataclasses
+import logging
 import types
 
 
 class Canvas(QtWidgets.QGraphicsScene):
     """
-    A graphics scene for displaying and editing node graphs.
-
-    Provides a configured QGraphicsScene with default scene bounds and background styling.
+    A QGraphicsScene subclass for displaying and editing graphs.
     """
 
     @dataclasses.dataclass
-    class Options:
-        """
-        Canvas configuration options.
+    class Style:
+        brush: QtGui.QBrush = dataclasses.field(default_factory=QtGui.QBrush)
 
-        Attributes:
-            sceneRect: QRect defining scene bounds (default: 0,0 to 5000x5000).
-            background: QBrush for scene background color (default: light gray #EFEFEF).
-        """
-
-        sceneRect: QtCore.QRect = dataclasses.field(
-            default_factory=lambda: QtCore.QRect(0, 0, 5000, 5000)
-        )
-        background: QtGui.QBrush = dataclasses.field(
-            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0xFFFFFF))
-        )
+    @dataclasses.dataclass
+    class Geometry:
+        bounds: QtCore.QRectF = dataclasses.field(default_factory=QtCore.QRectF)
 
     def __init__(self, parent=None):
         """
@@ -49,34 +36,34 @@ class Canvas(QtWidgets.QGraphicsScene):
         """
 
         # Instantiate options before super-class:
-        self._opts = Canvas.Options()
+        self._geometry = Canvas.Geometry(bounds=QtCore.QRectF(0, 0, 5000, 5000))
+        self._style = Canvas.Style(
+            brush=QtGui.QBrush(
+                QtGui.QColor("#ffffff"),
+                QtCore.Qt.BrushStyle.SolidPattern,
+            ),
+        )
 
         # Super-class initialization:
         super().__init__(
-            self._opts.sceneRect,
+            self._geometry.bounds,
             parent=parent,
-            backgroundBrush=self._opts.background,
+            backgroundBrush=self._style.brush,
         )
 
-        # Store right-click position for context menu actions
-        self.setProperty("_rmb_coordinate", QtCore.QPoint())
-
-        # Set up the context menu:
+        # Member(s):
+        self._rmb_coordinate = QtCore.QPoint()
         self._menu = self._init_menu()
         self._prev = types.SimpleNamespace(
             active=False,
             origin=None,
-            vector=VectorItem(),
+            vector=VectorItem(None),
         )
         self.addItem(self._prev.vector)
 
     def _init_menu(self) -> QtWidgets.QMenu:
         """
         Initialize the context menu with graph editing actions.
-
-        Creates a menu with file operations (Open, Save), editing operations
-        (Undo, Redo, Clone, Clear), and a submenu for creating graph objects
-        (Vertex, Input, Output).
 
         Returns:
             A configured QMenu ready for display on right-click.
@@ -97,8 +84,32 @@ class Canvas(QtWidgets.QGraphicsScene):
         context_menu.addSeparator()
 
         # Object creation submenu
-        objects_menu.addAction("Vertex", lambda: self.create_item("VertexItem"))
-        objects_menu.addAction("Stream")
+        objects_menu.addAction(
+            "Vertex",
+            lambda: self.create_item(
+                "VertexItem",
+                icon="mdi.function-variant",
+                color="#efefef",
+            ),
+        )
+
+        objects_menu.addAction(
+            "Source",
+            lambda: self.create_item(
+                "StreamItem",
+                icon="mdi.arrow-fat-line-up",
+                color="#efefef",
+            ),
+        )
+
+        objects_menu.addAction(
+            "Sink",
+            lambda: self.create_item(
+                "StreamItem",
+                icon="mdi.arrow-fat-line-down",
+                color="#efefef",
+            ),
+        )
 
         return context_menu
 
@@ -121,7 +132,8 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         if self._prev.active:
             # Use stored click position from origin vertex
-            origin = self._prev.origin.property("click_pos")
+
+            origin = self._prev.origin.scenePos()
             target = event.scenePos()
             self._prev.vector.update_path(origin, target)
 
@@ -137,18 +149,13 @@ class Canvas(QtWidgets.QGraphicsScene):
             origin = self._prev.origin
             target = self.itemAt(event.scenePos(), QtGui.QTransform())
 
-            # If we hit a child item (label), traverse up to find parent vertex
-            while target and not isinstance(target, VertexItem):
-                target = target.parentItem()
+            if (
+                isinstance(target, VertexItem)
+                and hasattr(origin, "connect_to")
+                and target is not origin
+            ):
 
-            if isinstance(target, VertexItem):
-                # Get origin position (stored from click)
-                origin_pos = origin.property("click_pos")
-
-                # Enforce target position: use target vertex center x, release y
-                target_pos = QtCore.QPointF(target.scenePos().x(), event.scenePos().y())
-
-                vector = origin.connect_to(target, origin_pos, target_pos)
+                vector = origin.connect_to(target)
                 if vector is not None:
                     self.addItem(vector)
 
@@ -172,17 +179,9 @@ class Canvas(QtWidgets.QGraphicsScene):
 
     def create_item(self, class_name: str, **kwargs) -> QtWidgets.QGraphicsItem | None:
         """
-        Create a new graph item of the specified type at the given position.
-
-        Creates an item instance from the given class name, adds it to the scene,
-        and emits a creation signal via the event bus.
-
-        Args:
-            class_name: Name of the item class to create (e.g., "VertexItem").
-            **kwargs: Additional keyword arguments passed to the item constructor.
-
-        Returns:
-            The created QGraphicsObject instance, or None if creation failed.
+        Create and return a graph item of the specified class.
+        :param class_name: The name of the item class to instantiate.
+        :return: The newly created item, or None if an error occurred.
         """
 
         # Required:
@@ -191,11 +190,11 @@ class Canvas(QtWidgets.QGraphicsScene):
         # Map class names to their corresponding classes
         item_classes = {
             "VertexItem": VertexItem,
-            "StreamItem": None,
+            "StreamItem": VertexItem,
         }
 
         # Get the item's class object from the class name
-        item_class = item_classes.get(class_name)
+        item_class = item_classes.get(class_name, None)
 
         # If the class is valid, instantiate and add the item to the scene:
         if item_class:
@@ -231,7 +230,11 @@ class Canvas(QtWidgets.QGraphicsScene):
 
             for name, signal in sig_list.items():
                 method = f"_on_{name}"
-                signal.connect(getattr(self, method))
+                if hasattr(self, method):
+                    signal.connect(getattr(self, method))
+
+        else:
+            logging.warning(f"Item {item} has no signals defined.")
 
     @QtCore.Slot(QtWidgets.QGraphicsObject)
     def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):

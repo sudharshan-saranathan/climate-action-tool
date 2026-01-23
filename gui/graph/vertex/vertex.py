@@ -15,6 +15,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
     # Signals:
     item_clicked = QtCore.Signal(QtWidgets.QGraphicsObject)
     item_shifted = QtCore.Signal(QtWidgets.QGraphicsObject)
+    item_focused = QtCore.Signal(QtWidgets.QGraphicsObject)
 
     @dataclasses.dataclass(frozen=True)
     class Style:
@@ -66,6 +67,8 @@ class VertexItem(QtWidgets.QGraphicsObject):
             align=QtCore.Qt.AlignmentFlag.AlignCenter,
             pos=QtCore.QPointF(-60, 18),
         )
+        self._label.sig_text_changed.connect(self.setObjectName)
+        self._label.sig_text_changed.emit(self._name)
 
     def _init_flags(self):
         """Initialize this item's flags."""
@@ -120,3 +123,83 @@ class VertexItem(QtWidgets.QGraphicsObject):
             painter,
             self.boundingRect().adjusted(8, 8, -8, -8).toRect(),
         )
+
+    def itemChange(self, change, value):
+
+        if (
+            change
+            == QtWidgets.QGraphicsItem.GraphicsItemChange.ItemScenePositionHasChanged
+        ):
+            self.item_shifted.emit(self)
+
+        return super().itemChange(change, value)
+
+    def mousePressEvent(self, event):
+
+        if event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier:
+            self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
+            self.item_clicked.emit(self)
+
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release events.
+
+        Args:
+            event: The mouse release event, internally managed by Qt.
+        """
+        super().setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
+        super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click events.
+
+        Args:
+            event: The mouse double-click event, internally managed by Qt.
+        """
+
+        # Required:
+        from core.bus import EventsBus
+
+        bus = EventsBus.instance()
+        bus.sig_item_focused.emit(self)
+
+    def signals(self) -> dict[str, QtCore.SignalInstance]:
+        """Return dictionary of signals for dynamic connection."""
+
+        return {
+            "item_clicked": self.item_clicked,
+            "item_shifted": self.item_shifted,
+        }
+
+    def connect_to(
+        self,
+        node: VertexItem,
+    ) -> VectorItem | None:
+        """
+        Connect this vertex to another.
+
+        Args:
+            node: The target vertex to connect to.
+        """
+
+        if node in self._connections.outgoing:
+            print(f"{self.objectName()} is already connected to {node.objectName()}")
+            return None
+
+        def _get_offset():
+            xo = self.scenePos().x()
+            xt = node.scenePos().x()
+            return -8 if xo < xt else 8
+
+        vector = VectorItem(
+            None,
+            origin=self,
+            target=node,
+        )
+
+        vector.moveBy(0, _get_offset())
+        self._connections.outgoing[node] = vector
+        node._connections.incoming[self] = vector
+
+        return vector
