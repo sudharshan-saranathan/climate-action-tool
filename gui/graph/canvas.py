@@ -10,6 +10,7 @@ from __future__ import annotations
 from PySide6 import QtGui, QtCore, QtWidgets
 from gui.graph.vertex.vertex import VertexItem
 from gui.graph.vector.vector import VectorItem
+from core.actions import ActionsManager, CreateAction, DeleteAction, BatchActions
 import dataclasses
 import logging
 import types
@@ -19,6 +20,10 @@ class Canvas(QtWidgets.QGraphicsScene):
     """
     A QGraphicsScene subclass for displaying and editing graphs.
     """
+
+    # Class-level clipboard for cross-canvas copy-paste
+    clipboard: list[QtWidgets.QGraphicsItem] = []
+    _register: dict[VertexItem, VertexItem] = {}
 
     @dataclasses.dataclass
     class Style:
@@ -62,6 +67,9 @@ class Canvas(QtWidgets.QGraphicsScene):
         )
         self.addItem(self._prev.vector)
 
+        # Undo/redo manager
+        self._actions_manager = ActionsManager()
+
     def _init_menu(self) -> QtWidgets.QMenu:
         """
         Initialize the context menu with graph editing actions.
@@ -78,10 +86,10 @@ class Canvas(QtWidgets.QGraphicsScene):
         context_menu.addAction("Save")
         context_menu.addSeparator()
 
-        context_menu.addAction("Undo")
-        context_menu.addAction("Redo")
-        context_menu.addAction("Clone")
-        context_menu.addAction("Clear")
+        context_menu.addAction("Undo", self.undo)
+        context_menu.addAction("Redo", self.redo)
+        context_menu.addAction("Copy", self.clone_items)
+        context_menu.addAction("Delete", self.delete_items)
         context_menu.addSeparator()
 
         # Menu actions
@@ -101,7 +109,7 @@ class Canvas(QtWidgets.QGraphicsScene):
                 "StreamItem",
                 pos=self._rmb_coordinate,
                 image="ph.arrow-circle-up-fill",
-                color="darkgreen",
+                color="lightgreen",
                 draw_background=False,
                 incoming_enabled=False,
             ),
@@ -163,6 +171,7 @@ class Canvas(QtWidgets.QGraphicsScene):
                 vector = origin.connect_to(target)
                 if vector is not None:
                     self.addItem(vector)
+                    self._actions_manager.do(CreateAction(self, vector))
 
         self.prev_off()
         super().mouseReleaseEvent(event)
@@ -206,6 +215,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             item = item_class(**kwargs)
             self.register_signals(item)
             self.addItem(item)
+            self._actions_manager.do(CreateAction(self, item))
             return item
 
         else:
@@ -213,6 +223,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             return None
 
     def find_item(self, name: str) -> QtWidgets.QGraphicsItem | None:
+        """Find an item in the canvas by its object name."""
 
         items: list[QtWidgets.QGraphicsItem] = self.items()
         for item in items:
@@ -246,3 +257,66 @@ class Canvas(QtWidgets.QGraphicsScene):
             return
 
         self.prev_on(item)
+
+    # -------------------------------------------------------------------------
+    # Undo/Redo
+    # -------------------------------------------------------------------------
+
+    def undo(self) -> None:
+        """Undo the most recent action."""
+        self._actions_manager.undo()
+
+    def redo(self) -> None:
+        """Redo the most recently undone action."""
+        self._actions_manager.redo()
+
+    # -------------------------------------------------------------------------
+    # Copy/Paste
+    # -------------------------------------------------------------------------
+
+    def clone_items(self) -> None:
+        """Clone selected items, preserving connections between them."""
+
+        Canvas.clipboard = [
+            item
+            for item in self.selectedItems()
+            if getattr(item, "_allow_cloning", False)
+        ]
+
+    def paste_items(self) -> None:
+        """Paste items from the clipboard into the scene."""
+
+        # Clear the copy register
+        self._register.clear()
+
+        # First pass: Clone and add items in the clipboard
+        for item in Canvas.clipboard:
+
+            if hasattr(item, "clone"):
+                clone = item.clone()
+                clone.setSelected(True)
+                item.setSelected(False)
+
+                self._register[item] = clone
+                self.register_signals(clone)
+                self.addItem(clone)
+
+        for vertex, clone in self._register.items():
+            for conjugate in vertex.importers():
+
+                target = self._register.get(conjugate, None)
+                clone.connect_to(target)
+
+    def delete_items(self) -> None:
+        """Delete selected items from the scene."""
+
+        selected = self.selectedItems()
+        if not selected:
+            return
+
+        batch = BatchActions()
+        for item in selected:
+            if isinstance(item, VertexItem):
+                batch.add_to_batch(DeleteAction(self, item))
+
+        self._actions_manager.do(batch)

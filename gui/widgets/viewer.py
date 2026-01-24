@@ -106,6 +106,9 @@ class Viewer(QtWidgets.QGraphicsView):
         QtGui.QShortcut(
             QtGui.QKeySequence.StandardKey.Paste, self, self._shortcut_handler
         )
+        QtGui.QShortcut(
+            QtGui.QKeySequence.StandardKey.Delete, self, self._shortcut_handler
+        )
 
         # Listen for scene item focus signals to auto-pan
         from core.bus import EventsBus
@@ -195,7 +198,7 @@ class Viewer(QtWidgets.QGraphicsView):
         ).toString() and hasattr(scene, "clone_items"):
             scene.clone_items()
 
-        elif key_seq == QtGui.QKeySequence(
+        if key_seq == QtGui.QKeySequence(
             QtGui.QKeySequence.StandardKey.Paste
         ).toString() and hasattr(scene, "paste_items"):
             scene.paste_items()
@@ -209,6 +212,11 @@ class Viewer(QtWidgets.QGraphicsView):
             QtGui.QKeySequence.StandardKey.Redo
         ).toString() and hasattr(scene, "redo"):
             scene.redo()
+
+        elif key_seq == QtGui.QKeySequence(
+            QtGui.QKeySequence.StandardKey.Delete
+        ).toString() and hasattr(scene, "delete_items"):
+            scene.delete_items()
 
     @QtCore.Property(float)
     def zoom(self) -> float:

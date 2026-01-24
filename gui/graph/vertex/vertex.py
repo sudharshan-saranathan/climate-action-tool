@@ -70,6 +70,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         self._init_attrs()
         self._init_label()
 
+        self._allow_cloning: bool = kwargs.get("allow_cloning", True)
         self._outgoing_enabled: bool = kwargs.get("outgoing_enabled", True)
         self._incoming_enabled: bool = kwargs.get("incoming_enabled", True)
 
@@ -134,7 +135,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         icon = qta.icon(self._attr.image, color=self._attr.color)
         icon.paint(
             painter,
-            self.boundingRect().adjusted(6, 6, -6, -6).toRect(),
+            self.boundingRect().adjusted(8, 8, -8, -8).toRect(),
         )
 
     def itemChange(self, change, value):
@@ -177,6 +178,8 @@ class VertexItem(QtWidgets.QGraphicsObject):
         bus = EventsBus.instance()
         bus.sig_item_focused.emit(self)
 
+    # Public methods
+
     def signals(self) -> dict[str, QtCore.SignalInstance]:
         """Return dictionary of signals for dynamic connection."""
 
@@ -185,10 +188,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             "item_shifted": self.item_shifted,
         }
 
-    def connect_to(
-        self,
-        node: VertexItem,
-    ) -> VectorItem | None:
+    def connect_to(self, node: VertexItem) -> VectorItem | None:
         """
         Connect this vertex to another.
 
@@ -196,33 +196,30 @@ class VertexItem(QtWidgets.QGraphicsObject):
             node: The target vertex to connect to.
         """
 
-        if not self._outgoing_enabled:
-            print(f"Outgoing connections are disabled for {self.objectName()}")
+        if (
+            not node  # Filters out None values
+            or not self._outgoing_enabled  # If outgoing from this vertex is disabled
+            or not node._incoming_enabled  # If the node's incoming connections are disabled
+            or node in self._connections.outgoing.keys()  # Existing connection
+        ):
             return None
 
-        if not node._incoming_enabled:
-            print(f"Incoming connections are disabled for {node.objectName()}")
-            return None
-
-        if node in self._connections.outgoing:
-            print(f"{self.objectName()} is already connected to {node.objectName()}")
-            return None
-
+        # Add an offset to the connection
         def _get_offset():
             xo = self.scenePos().x()
             xt = node.scenePos().x()
             return -8 if xo < xt else 8
 
+        # Instantiate the connection
         vector = VectorItem(
             None,
             origin=self,
             target=node,
         )
-
         vector.moveBy(0, _get_offset())
+
         self._connections.outgoing[node] = vector
         node._connections.incoming[self] = vector
-
         return vector
 
     def set_icon(self, image: str, color: str = "#efefef"):
@@ -230,3 +227,33 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
         self._attr.image = image
         self._attr.color = color
+
+    def clone(self, offset: QtCore.QPointF = QtCore.QPointF(25, 25)) -> VertexItem:
+        """
+        Create a duplicate of this vertex.
+
+        Args:
+            offset: Position offset for the clone. Defaults to (25, 25).
+
+        Returns:
+            A new VertexItem with the same attributes.
+        """
+
+        clone = VertexItem(
+            pos=self.scenePos() + offset,
+            label=self._attr.label,
+            image=self._attr.image,
+            color=self._attr.color,
+            outgoing_enabled=self._outgoing_enabled,
+            incoming_enabled=self._incoming_enabled,
+        )
+
+        return clone
+
+    def importers(self) -> set[VertexItem]:
+        """The set of vertices that import from this vertex."""
+        return set([vertex for vertex in self._connections.outgoing.keys()])
+
+    def exporters(self):
+        """The set of vertices that export to this vertex."""
+        return set([vertex for vertex in self._connections.incoming.keys()])
