@@ -56,13 +56,14 @@ class StartupWindow(QtWidgets.QDialog):
             brush=QtGui.QBrush(QtGui.QColor(0x232A2E)),
             border=QtGui.QPen(QtGui.QColor(0x393E41)),
         )
+        self._pixmap = QtGui.QPixmap(self._style.texture)
+        self._style.brush.setTexture(self._pixmap)
 
         self._geometry = StartupWindow.Geometry(size=QtCore.QSize(900, 640), radius=10)
         self._metadata = StartupWindow.Metadata()
         self.resize(self._geometry.size)
 
         # UI components
-        self._pixmap = QtGui.QPixmap(self._style.texture)
         self._header = self._init_header()
         self._h_line = self._init_h_line()
         self._footer = self._init_footer()
