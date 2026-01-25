@@ -30,7 +30,6 @@ class VectorItem(QtWidgets.QGraphicsObject):
 
     def __init__(self, parent=None, origin=None, target=None):
         super().__init__(parent)
-
         # Class member(s):
         self._path = QtGui.QPainterPath()
         self._arrow = Image(":/svg/arrow.svg", parent=self)
@@ -94,13 +93,24 @@ class VectorItem(QtWidgets.QGraphicsObject):
         widget: QtWidgets.QWidget = ...,
     ) -> None:
 
-        pen = self._style.pen[
-            ItemState.SELECTED if self.isSelected() else ItemState.NORMAL
-        ]
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+
+        # First pass: Use a thicker stroke for the border
+        pen_border = QtGui.QPen(self._style.pen[ItemState.NORMAL])
+        pen_border.setColor(QtGui.QColor(0x232A2E))
+        pen_border.setWidthF(self.property("linewidth") or self._style.width + 1.0)
+        painter.setPen(pen_border)
+        painter.drawPath(self._path)
+
+        # Second pass: Draw the main stroke on top
+        pen = QtGui.QPen(
+            self._style.pen[
+                ItemState.SELECTED if self.isSelected() else ItemState.NORMAL
+            ]
+        )
         pen.setWidthF(self.property("linewidth") or self._style.width)
         pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
         pen.setJoinStyle(QtCore.Qt.PenJoinStyle.RoundJoin)
-
         painter.setPen(pen)
         painter.drawPath(self._path)
 

@@ -3,6 +3,7 @@
 # Description: Vertex graphics item for node graphs.
 
 from PySide6 import QtGui, QtCore, QtWidgets
+from gui.graph.vertex.config import VertexConfig
 from gui.graph.vector.vector import VectorItem
 from gui.graph.reusable.text import Label
 from gui.graph.enums import ItemState
@@ -74,6 +75,9 @@ class VertexItem(QtWidgets.QGraphicsObject):
         self._outgoing_enabled: bool = kwargs.get("outgoing_enabled", True)
         self._incoming_enabled: bool = kwargs.get("incoming_enabled", True)
 
+        # Configuration widget:
+        self._config = VertexConfig()
+
     def _init_flags(self):
         """Initialize this item's flags."""
 
@@ -82,6 +86,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         self.setFlag(
             QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemSendsScenePositionChanges
         )
+        self.setAcceptHoverEvents(True)
 
     def _init_attrs(self):
         """Instantiate the vertex's data classes."""
@@ -105,8 +110,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             align=QtCore.Qt.AlignmentFlag.AlignCenter,
             pos=QtCore.QPointF(-60, 18),
         )
-        self._label.sig_text_changed.connect(self.setObjectName)
-        self._label.sig_text_changed.emit(self._attr.label)
+        self._label.sig_text_changed.connect(self.rename)
 
     def boundingRect(self) -> QtCore.QRectF:
         return self._geometry.rect.adjusted(
@@ -155,6 +159,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             self.item_clicked.emit(self)
 
         super().mousePressEvent(event)
+        event.accept()
 
     def mouseReleaseEvent(self, event):
         """Handle mouse release events.
@@ -165,6 +170,8 @@ class VertexItem(QtWidgets.QGraphicsObject):
         super().setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
         super().mouseReleaseEvent(event)
 
+        event.accept()
+
     def mouseDoubleClickEvent(self, event):
         """Handle double-click events.
 
@@ -174,9 +181,22 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
         # Required:
         from core.bus import EventsBus
+        from gui.graph.vertex.config import VertexConfig
 
         bus = EventsBus.instance()
         bus.sig_item_focused.emit(self)
+
+        self._config.exec()
+
+        event.accept()
+
+    def hoverEnterEvent(self, event):
+        self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        event.accept()
+
+    def hoverLeaveEvent(self, event):
+        self.unsetCursor()
+        event.accept()
 
     # Public methods
 
@@ -249,6 +269,12 @@ class VertexItem(QtWidgets.QGraphicsObject):
         )
 
         return clone
+
+    def rename(self, text: str):
+        """Rename the vertex."""
+
+        self._attr.label = text
+        self.setObjectName(text)
 
     def importers(self) -> set[VertexItem]:
         """The set of vertices that import from this vertex."""

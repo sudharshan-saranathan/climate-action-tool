@@ -11,8 +11,9 @@ operations on graph items, allowing them to be undone and redone.
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import weakref
+import logging
 
 from PySide6 import QtWidgets
 
@@ -54,7 +55,7 @@ class AbstractAction(ABC):
         self._is_obsolete = False
 
     def cleanup(self) -> None:
-        """Clean up resources when action is pruned from history."""
+        """Clean up resources when the action is pruned from history."""
         pass
 
 
@@ -99,41 +100,62 @@ class BatchActions(AbstractAction):
 class CreateAction(AbstractAction):
     """Action for creating/showing an item in the scene."""
 
-    def __init__(self, parent: Canvas | QtWidgets.QGraphicsObject, item: QtWidgets.QGraphicsObject):
+    def __init__(
+        self,
+        parent: Canvas | QtWidgets.QGraphicsObject,
+        item: QtWidgets.QGraphicsObject,
+    ):
         super().__init__()
         self._parent_ref = weakref.ref(parent)
         self._item_ref = weakref.ref(item)
 
-        # Mark action as obsolete if item is destroyed
-        if hasattr(item, "destroyed"):
+        # Connect the item's destroyed signal to the set_obsolete method
+        try:
             item.destroyed.connect(self.set_obsolete)
+        except (AttributeError, RuntimeError, TypeError):
+            logging.warning(
+                f"Could not connect item's destroyed signal to {self.__class__.__name__}."
+            )
 
-    def _dereference(self) -> tuple[Canvas | QtWidgets.QGraphicsObject | None, QtWidgets.QGraphicsObject | None]:
+    def _dereference(self) -> tuple[Any, Any]:
         """Safely dereference weak references."""
+        if self._is_obsolete:
+            logging.info("Reference(s) destroyed, aborting!")
+            return None, None
+
         parent = self._parent_ref() if self._parent_ref else None
         item = self._item_ref() if self._item_ref else None
         return parent, item
 
     def cleanup(self) -> None:
-        """Clean up: remove item from scene and delete it."""
+        """Clean up: remove item from the scene and delete it."""
         parent, item = self._dereference()
         if item is None:
             return
 
-        # Remove from scene if still present
-        scene = item.scene()
-        if scene is not None:
-            scene.removeItem(item)
+        # No cleanup if the item is still active/visible
+        if item.isVisible():
+            return
+
+        # Use parent's deregister if available (for nested QGraphicsObjects),
+        # otherwise fall back to scene.removeItem()
+        if hasattr(parent, "deregister") and callable(parent.deregister):
+            parent.deregister(item)
+        else:
+            scene = item.scene()
+            if scene is not None:
+                scene.removeItem(item)
 
         # Schedule deletion
         item.deleteLater()
 
     def execute(self) -> None:
-        """Execute does nothing - item is already created."""
+        """Execute - does nothing because the item is already in the scene."""
         pass
 
     def undo(self) -> None:
         """Undo: hide the item and block its signals."""
+
         parent, item = self._dereference()
         if item is None:
             return
@@ -155,30 +177,50 @@ class CreateAction(AbstractAction):
 class DeleteAction(AbstractAction):
     """Action for deleting/hiding an item from the scene."""
 
-    def __init__(self, parent: Canvas | QtWidgets.QGraphicsObject, item: QtWidgets.QGraphicsObject):
+    def __init__(
+        self,
+        parent: Canvas | QtWidgets.QGraphicsObject,
+        item: QtWidgets.QGraphicsObject,
+    ):
         super().__init__()
         self._parent_ref = weakref.ref(parent)
         self._item_ref = weakref.ref(item)
 
-        # Mark action as obsolete if item is destroyed
-        if hasattr(item, "destroyed"):
+        # Connect the item's destroyed signal to the set_obsolete method
+        try:
             item.destroyed.connect(self.set_obsolete)
+        except (AttributeError, RuntimeError, TypeError):
+            logging.warning(
+                f"Could not connect item's destroyed signal to {self.__class__.__name__}."
+            )
 
-    def _dereference(self) -> tuple[Canvas | QtWidgets.QGraphicsObject | None, QtWidgets.QGraphicsObject | None]:
+    def _dereference(self) -> tuple[Any, Any]:
         """Safely dereference weak references."""
+
+        if self._is_obsolete:
+            logging.info("Reference(s) destroyed, aborting!")
+            return None, None
+
         parent = self._parent_ref() if self._parent_ref else None
         item = self._item_ref() if self._item_ref else None
         return parent, item
 
     def cleanup(self) -> None:
-        """Clean up: remove item from scene and delete it."""
+        """Clean up: remove the item from the scene and delete it."""
         parent, item = self._dereference()
         if item is None:
             return
 
-        # Remove from scene if still present
+        # No cleanup if the item is still active/visible
+        if item.isVisible():
+            return
+
+        # Use the parent's `deregister` method, if available.
+        if hasattr(parent, "deregister") and callable(parent.deregister):
+            parent.deregister(item)
+
         scene = item.scene()
-        if scene is not None:
+        if scene and item in scene.items():
             scene.removeItem(item)
 
         # Schedule deletion

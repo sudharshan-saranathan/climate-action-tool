@@ -55,11 +55,8 @@ class Label(QGraphicsTextItem):
         # Customize attribute(s):
         self.setTextWidth(self.property("text-width"))
         self.setDefaultTextColor(self.property("text-color"))
-        self.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextEditorInteraction
-            if not self.property("const")
-            else Qt.TextInteractionFlag.NoTextInteraction
-        )
+        # Start with no interaction - enable on hover
+        self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
 
         # Set text-alignment:
         option = self.document().defaultTextOption()
@@ -118,6 +115,16 @@ class Label(QGraphicsTextItem):
         # Otherwise, call super-class implementation:
         super().keyPressEvent(event)
 
+    def mousePressEvent(self, event):
+        """Accept mouse press to prevent propagation to items below."""
+        super().mousePressEvent(event)
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """Accept mouse release to prevent propagation to items below."""
+        super().mouseReleaseEvent(event)
+        event.accept()
+
     # Reimplementation of QGraphicsTextItem.focusInEvent():
     def focusInEvent(self, event):
         """
@@ -153,21 +160,26 @@ class Label(QGraphicsTextItem):
 
         if not self.property("const"):
             self.setCursor(Qt.CursorShape.IBeamCursor)
+            self.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
             self.update()
 
         super().hoverEnterEvent(event)
+        event.accept()
 
-    # Reimplementation of QGraphicsTextItem.hoverEnterEvent():
+    # Reimplementation of QGraphicsTextItem.hoverLeaveEvent():
     def hoverLeaveEvent(self, event):
         """
-        Handles the hover enter event to change the cursor shape.
+        Handles the hover leave event to reset the cursor shape.
         """
 
         if not self.property("const"):
-            self.setCursor(Qt.CursorShape.IBeamCursor)
-            self.update()
+            self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+
+        self.unsetCursor()
+        self.update()
 
         super().hoverLeaveEvent(event)
+        event.accept()
 
     @property
     def const(self):

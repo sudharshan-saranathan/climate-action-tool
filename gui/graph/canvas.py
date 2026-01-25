@@ -11,6 +11,7 @@ from PySide6 import QtGui, QtCore, QtWidgets
 from gui.graph.vertex.vertex import VertexItem
 from gui.graph.vector.vector import VectorItem
 from core.actions import ActionsManager, CreateAction, DeleteAction, BatchActions
+import qtawesome as qta
 import dataclasses
 import logging
 import types
@@ -23,7 +24,7 @@ class Canvas(QtWidgets.QGraphicsScene):
 
     # Class-level clipboard for cross-canvas copy-paste
     clipboard: list[QtWidgets.QGraphicsItem] = []
-    _register: dict[VertexItem, VertexItem] = {}
+    _register: dict = {}
 
     @dataclasses.dataclass
     class Style:
@@ -78,22 +79,22 @@ class Canvas(QtWidgets.QGraphicsScene):
             A configured QMenu ready for display on right-click.
         """
         context_menu = QtWidgets.QMenu()
-        objects_menu = context_menu.addMenu("Create")
+        objects_menu = context_menu.addMenu(qta.icon("mdi.plus", color="cyan"), "Create")
 
-        # File and edit operations
-        context_menu.addSeparator()
-        context_menu.addAction("Open")
-        context_menu.addAction("Save")
-        context_menu.addSeparator()
-
-        context_menu.addAction("Undo", self.undo)
-        context_menu.addAction("Redo", self.redo)
-        context_menu.addAction("Copy", self.clone_items)
-        context_menu.addAction("Delete", self.delete_items)
+        # Undo/Redo operations
+        context_menu.addAction(qta.icon("mdi.undo", color="#efefef"), "Undo", self.undo)
+        context_menu.addAction(qta.icon("mdi.redo", color="#efefef"), "Redo", self.redo)
         context_menu.addSeparator()
 
-        # Menu actions
+        # Copy/Paste operations
+        context_menu.addAction(qta.icon("mdi.content-copy", color="#efefef"), "Copy", self.clone_items)
+        context_menu.addAction(qta.icon("mdi.content-paste", color="#efefef"), "Paste", self.paste_items)
+        context_menu.addAction(qta.icon("mdi.delete", color="red"), "Delete", self.delete_items)
+        context_menu.addSeparator()
+
+        # Create menu actions
         objects_menu.addAction(
+            qta.icon("ph.browser-fill", color="cyan"),
             "Vertex",
             lambda: self.create_item(
                 "VertexItem",
@@ -104,6 +105,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         )
 
         objects_menu.addAction(
+            qta.icon("ph.flow-arrow", color="lightgreen"),
             "Source",
             lambda: self.create_item(
                 "StreamItem",
@@ -116,6 +118,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         )
 
         objects_menu.addAction(
+            qta.icon("ph.flow-arrow", color="darkred"),
             "Sink",
             lambda: self.create_item(
                 "StreamItem",
@@ -286,8 +289,11 @@ class Canvas(QtWidgets.QGraphicsScene):
     def paste_items(self) -> None:
         """Paste items from the clipboard into the scene."""
 
-        # Clear the copy register
-        self._register.clear()
+        if not Canvas.clipboard:
+            return
+
+        Canvas._register.clear()
+        batch = BatchActions()
 
         # First pass: Clone and add items in the clipboard
         for item in Canvas.clipboard:
@@ -297,15 +303,22 @@ class Canvas(QtWidgets.QGraphicsScene):
                 clone.setSelected(True)
                 item.setSelected(False)
 
-                self._register[item] = clone
+                Canvas._register[item] = clone
                 self.register_signals(clone)
                 self.addItem(clone)
+                batch.add_to_batch(CreateAction(self, clone))
 
-        for vertex, clone in self._register.items():
+        # Second pass: Recreate connections between cloned items
+        for vertex, clone in Canvas._register.items():
             for conjugate in vertex.importers():
 
-                target = self._register.get(conjugate, None)
-                clone.connect_to(target)
+                target = Canvas._register.get(conjugate, None)
+                vector = clone.connect_to(target)
+                if vector is not None:
+                    self.addItem(vector)
+                    batch.add_to_batch(CreateAction(self, vector))
+
+        self._actions_manager.do(batch)
 
     def delete_items(self) -> None:
         """Delete selected items from the scene."""

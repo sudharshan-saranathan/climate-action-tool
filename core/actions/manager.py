@@ -4,9 +4,6 @@
 
 """
 Actions manager for handling undo/redo stacks.
-
-This module provides the ActionsManager class that maintains separate stacks
-for undoable and redoable actions, with automatic pruning of old actions.
 """
 
 from __future__ import annotations
@@ -38,7 +35,7 @@ class ActionsManager:
         Undo the most recent action.
 
         Returns:
-            True if an action was undone, False if undo stack was empty.
+            True if an action was undone, False if the undo stack was empty.
         """
         if not self.undo_stack:
             return False
@@ -53,7 +50,7 @@ class ActionsManager:
         Redo the most recently undone action.
 
         Returns:
-            True if an action was redone, False if redo stack was empty.
+            True if an action was redone, False if the redo stack was empty.
         """
         if not self.redo_stack:
             return False
@@ -64,30 +61,38 @@ class ActionsManager:
         return True
 
     def _prune_undo(self) -> None:
-        """Remove oldest actions if undo stack exceeds MAX_UNDO."""
+        """Remove the oldest actions if the undo stack exceeds MAX_UNDO."""
+
         while len(self.undo_stack) > self.MAX_UNDO:
             action = self.undo_stack.pop(0)
             action.cleanup()
 
     def _prune_redo(self) -> None:
         """Clear all redo actions when a new action is performed."""
+
         for action in self.redo_stack:
             action.cleanup()
+
         self.redo_stack.clear()
 
     def wipe_stacks(self) -> None:
         """Clear all undo and redo history."""
+
         for action in self.undo_stack:
             action.cleanup()
+
         for action in self.redo_stack:
             action.cleanup()
+
         self.undo_stack.clear()
         self.redo_stack.clear()
 
     def can_undo(self) -> bool:
         """Check if there are actions to undo."""
+
         return len(self.undo_stack) > 0
 
     def can_redo(self) -> bool:
         """Check if there are actions to redo."""
+
         return len(self.redo_stack) > 0

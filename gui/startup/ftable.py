@@ -134,6 +134,7 @@ class StartupFileTable(QtWidgets.QTableWidget):
     Supports filtering by file pattern and automatically populates from a directory.
     """
 
+    # TODO: Split this dataclass into `Style` and `Attrs` classes.
     @dataclasses.dataclass
     class Options:
         """Configuration options for the file table widget."""
