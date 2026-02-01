@@ -5,15 +5,14 @@
 from PySide6 import QtGui, QtCore, QtWidgets
 
 from gui.widgets import ToolBar
+from gui.widgets.combobox import ComboBox
 from gui.widgets.layouts import VLayout, HLayout, GLayout
 from qtawesome import icon as qta_icon
 import dataclasses
 
-"""Vertex configuration dialog."""
-
 
 class VertexConfig(QtWidgets.QDialog):
-    """Vertex configuration dialog."""
+    """A dialog window for configuring vertex inputs, outputs, parameters, and equations."""
 
     @dataclasses.dataclass(frozen=True)
     class Style:
@@ -45,7 +44,7 @@ class VertexConfig(QtWidgets.QDialog):
         """Vertex configuration attributes."""
 
         size: QtCore.QSize = dataclasses.field(default_factory=QtCore.QSize)
-        radius: int = 10
+        radius: int = 8
 
     def __init__(self, parent: QtWidgets.QDialog = None):
 
@@ -64,22 +63,27 @@ class VertexConfig(QtWidgets.QDialog):
         super().resize(self._geometry.size)
 
         # UI components
+        self._form = self._init_form()
         self._tabs = self._init_tabs()
 
         # Main Layout:
-        layout = VLayout(self, margins=(8, 4, 8, 8), widgets=[self._tabs])
+        HLayout(self, margins=(8, 4, 8, 8), widgets=[self._form, self._tabs])
 
-    def _init_header(self) -> QtWidgets.QLabel:
-        """
-        Create and configure the window header with title and subtitle.
+    def _init_form(self) -> QtWidgets.QFrame:
 
-        Returns:
-            A QLabel displaying the application title and tagline with centered alignment.
-        """
-        header = QtWidgets.QLabel(self.objectName(), self)
-        header.setContentsMargins(12, 0, 12, 0)
-        header.setOpenExternalLinks(True)
-        return header
+        container = QtWidgets.QFrame(self)
+        container.setMinimumWidth(280)
+
+        layout = QtWidgets.QFormLayout(container)
+        layout.setFormAlignment(QtCore.Qt.AlignmentFlag.AlignVCenter)
+        layout.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        layout.setContentsMargins(40, 4, 40, 0)
+        layout.setSpacing(4)
+
+        layout.addRow("Name:", QtWidgets.QLabel("Vertex"))
+        layout.addRow("Tech:", ComboBox(editable=True))
+
+        return container
 
     # Initialize the tab widget:
     def _init_tabs(self):
@@ -107,20 +111,11 @@ class VertexConfig(QtWidgets.QDialog):
             "Equations",
         )
 
-        # Corner widget:
-        toolbar = ToolBar(
-            parent=self,
-            iconSize=QtCore.QSize(20, 20),
-            actions=[
-                (
-                    qta_icon("mdi.plus", color="lightblue", active_color="white"),
-                    "Add",
-                    self.new_object,
-                )
-            ],
-        )
+        button = QtWidgets.QPushButton("Add", self)
+        button.setIcon(qta_icon("mdi.plus", color="lightblue", active_color="white"))
+        button.setStyleSheet(self._style.style)
 
-        table.setCornerWidget(toolbar, QtCore.Qt.Corner.TopRightCorner)
+        table.setCornerWidget(button, QtCore.Qt.Corner.TopRightCorner)
         return table
 
     def paintEvent(self, event):
@@ -136,8 +131,3 @@ class VertexConfig(QtWidgets.QDialog):
             self._geometry.radius,
             self._geometry.radius,
         )
-
-    def new_object(self):
-        """Create a new object."""
-
-        pass

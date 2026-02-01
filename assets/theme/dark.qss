@@ -572,11 +572,10 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-li
 
 QComboBox {
     color                           : white;
-    height                          : 27px;
+    height                          : 24px;
     border-radius                   : 4px;
     background                      : #4a556d;
-    padding                         : 0px 4px 0px 4px;
-    margin                          : 1px 0px 1px 0px;
+    padding                         : 0px 2px 0px 2px;
 }
 
 QComboBox::drop-down {
@@ -594,12 +593,21 @@ QComboBox::down-arrow {
 
 QComboBox QAbstractItemView {
     background                      : #393e41;
-    margin-top                      : 2px;
     color                           : white;
-    border                          : 1px solid #3a4a5a;
-    border-radius                   : 2px;
+    border-radius                   : 0px;
     selection-background-color      : #4a556d;
 }
+
+QComboBox QAbstractItemView::item {
+    width                           : 80px;
+    padding                         : 2px;
+}
+/*
+QComboBox QAbstractItemView::item:selected {
+    background-color                : #4a556d;
+    color                           : white;
+}
+*/
 
 /*
 ------------------------------------------------------------------------------------------------------------------------

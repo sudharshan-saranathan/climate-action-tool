@@ -2,14 +2,10 @@
 # Module name: widgets
 # Description: Custom combobox widget with fixed item height and icon support.
 
-"""
-Custom combobox widget with enhanced styling and icon support.
-
-Provides a QComboBox subclass with fixed item heights, custom styling, and support for icon-label tuples.
-"""
-
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 from qtawesome import icon as qta_icon
-from PySide6 import QtGui, QtCore, QtWidgets
 
 
 class FixedHeightDelegate(QtWidgets.QStyledItemDelegate):
@@ -50,8 +46,6 @@ class FixedHeightDelegate(QtWidgets.QStyledItemDelegate):
 class ComboBox(QtWidgets.QComboBox):
     """
     Custom combo box widget with enhanced styling and icon support.
-
-    Provides a styled combo box with fixed item heights, custom appearance, and support for icon-label pairs.
     """
 
     def __init__(self, parent=None, **kwargs):
@@ -66,47 +60,50 @@ class ComboBox(QtWidgets.QComboBox):
                 - iconSize: QSize for combo box icon size (default: 16x16)
                 - editable: Whether the combo box is editable (default: False)
                 - items: List of items or (icon, label) tuples to add
-                - autofill: If True, populate with flow items from the core module
         """
+
+        # Remove the item-list from kwargs and store it separately
+        items = kwargs.pop("items", [])
+
+        # Call super().__init__ with the remaining kwargs
         super().__init__(
             parent,
             iconSize=kwargs.get("iconSize", QtCore.QSize(16, 16)),
             editable=kwargs.get("editable", False),
         )
 
-        # Configure list view with fixed item height and spacing
+        # Configure the list view with fixed item height and spacing
         view = QtWidgets.QListView(self)
-        view.setItemDelegate(FixedHeightDelegate(24, view))
+        view.setItemDelegate(FixedHeightDelegate(20, view))
         view.setSpacing(2)
 
-        # Apply custom QSS styling to the combo box and its dropdown
+        # Apply the custom view
         self.setView(view)
-        self.setObjectName("ComboBox")
-        self.setStyleSheet(
-            "QComboBox {"
-            "margin: 0px;"
-            "border: 0px solid gray; "
-            "border-radius: 4px;"
-            "}"
-            "QComboBox QAbstractView {"
-            "margin: 4px 0px 4px 0px;"
-            "border: 0px solid gray; "
-            "border-radius: 4px;"
-            "}"
-            "QComboBox QAbstractView::item {"
-            "width:  80px;"
-            "padding: 4px;"
-            "}"
-            "QComboBox QAbstractView::item:selected {"
-            "background-color: #3874F2;"
-            "color: white;"
-            "}"
-        )
 
-        # Populate initial items from kwargs (supports both strings and (icon, label) tuples)
-        for item in kwargs.get("items", []):
+        # Populate initial items from kwargs
+        for item in items:
             if isinstance(item, tuple) and len(item) == 2:
                 icon, label = item
                 self.addItem(qta_icon(icon, color="lightgray"), label)
             else:
                 self.addItem(item)
+
+        # Connect the editor's signal
+        if editor := self.lineEdit():
+            editor.returnPressed.connect(self._confirm_addition)
+
+        self.currentIndexChanged.connect(lambda: self.clearFocus())
+
+    def _confirm_addition(self):
+        """Shows a visual confirmation when an item is added to an editable combo box."""
+
+        if not self.isEditable():
+            return
+
+        editor = self.lineEdit()
+        action = QtGui.QAction(qta_icon("mdi.check-bold", color="cyan"), "", self)
+        editor.addAction(action, QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
+
+        # Remove the action after 1 second and remove focus
+        QtCore.QTimer.singleShot(1000, action.deleteLater)
+        QtCore.QTimer.singleShot(1000, lambda: editor.clearFocus())

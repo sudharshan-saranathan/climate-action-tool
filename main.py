@@ -13,7 +13,6 @@ from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
 
-# Main application class
 class ClimateActionTool(QtWidgets.QApplication):
     """
     Main application class to manage app lifecycle and UI components.

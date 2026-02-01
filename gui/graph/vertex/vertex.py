@@ -181,14 +181,11 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
         # Required:
         from core.bus import EventsBus
-        from gui.graph.vertex.config import VertexConfig
 
         bus = EventsBus.instance()
         bus.sig_item_focused.emit(self)
 
-        self._config.exec()
-
-        event.accept()
+        code = self._config.open()
 
     def hoverEnterEvent(self, event):
         self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
