@@ -81,7 +81,7 @@ class VertexConfig(QtWidgets.QDialog):
         layout.setSpacing(4)
 
         layout.addRow("Name:", QtWidgets.QLabel("Vertex"))
-        layout.addRow("Tech:", ComboBox(editable=True))
+        layout.addRow("Type/Tech:", ComboBox(editable=True))
 
         return container
 
