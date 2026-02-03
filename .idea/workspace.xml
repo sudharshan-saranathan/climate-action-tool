@@ -5,15 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="74aadbd2-79bb-4b2f-af8d-1f847f3137e0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gui/reusable/dock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/theme/dark.qss" beforeDir="false" afterPath="$PROJECT_DIR$/assets/theme/dark.qss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/theme/light.qss" beforeDir="false" afterPath="$PROJECT_DIR$/assets/theme/light.qss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui/main_ui/tabber.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_ui/tabber.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui/main_ui/window.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_ui/window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/widgets/lights.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/reusable/traffic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/widgets/toolbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/reusable/toolbar.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rsrc.py" beforeDir="false" afterPath="$PROJECT_DIR$/rsrc.py" afterDir="false" />
     </list>
@@ -76,6 +77,7 @@
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "sandbox",
     "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/opt/git-projects/climate-action-tool/gui/reusable",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -97,6 +99,9 @@
     <option name="suspendCountdown" value="0" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/gui/reusable" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/gui/main_ui" />
       <recent name="$PROJECT_DIR$/assets/theme" />

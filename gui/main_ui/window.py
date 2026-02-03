@@ -14,6 +14,9 @@ from PySide6 import QtWidgets
 from dataclasses import field
 from dataclasses import dataclass
 
+from gui.reusable.dock import DockWidget
+from gui.reusable.toolbar import ToolBar
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Class Name: `MainWindow`
@@ -43,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
     def __init__(self):
-        super().__init__(parent=None)  # Must have no-parent
+        super().__init__(parent=None)  # Top-level window must have no parent.
 
         # Define style and attribute(s)
         self._style = MainWindow.Style()
@@ -55,16 +58,71 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setGeometry(self._attrs.rect)
 
-    def paintEvent(self, event: QtGui.QPaintEvent):
+        # UI components
+        self._init_dock()
+        self._init_tabs()
+        self._init_toolbar()
 
-        painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+    def _init_dock(self):
 
-        brs = QtGui.QBrush(QtGui.QColor(self._style.brs["color"]))
-        pen = QtGui.QPen(
-            QtGui.QColor(self._style.pen["color"]), self._style.pen["width"]
+        from gui.reusable.dock import DockWidget
+
+        upper = DockWidget("Climate Action Tool", QtWidgets.QTableWidget())
+        lower = DockWidget("", QtWidgets.QTableWidget())
+
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, upper)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, lower)
+
+    def _init_tabs(self):
+
+        tabs = QtWidgets.QTabWidget(
+            self,
+            tabsClosable=True,
+            tabBarAutoHide=True,
+            tabShape=QtWidgets.QTabWidget.TabShape.Rounded,
         )
 
+        self.setCentralWidget(tabs)
+
+    def _init_toolbar(self):
+
+        # Required
+        from gui.reusable.toolbar import ToolBar
+        from qtawesome import icon
+
+        toolbar_one = ToolBar(
+            self,
+            iconSize=QtCore.QSize(18, 18),
+            actions=[
+                (icon("ph.layout-fill", color_active="#f2d3aa"), "Dock", self._execute),
+                (icon("ph.folder-fill", color_active="#ffcb00"), "open", self._execute),
+            ],
+        )
+
+        toolbar_two = ToolBar(
+            self,
+            iconSize=QtCore.QSize(18, 18),
+            actions=[
+                (icon("ph.gear", color_active="#ababab"), "Settings", self._execute),
+            ],
+        )
+
+        self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar_one)
+        self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar_two)
+
+    def _execute(self):
+        pass
+
+    def paintEvent(self, event: QtGui.QPaintEvent):
+
+        pen_color = self._style.pen["color"]
+        pen_width = self._style.pen["width"]
+        brs_color = self._style.brs["color"]
+
+        brs = QtGui.QBrush(QtGui.QColor(brs_color))
+        pen = QtGui.QPen(QtGui.QColor(pen_color), pen_width)
+
+        painter = QtGui.QPainter(self)
         painter.setPen(pen)
         painter.setBrush(brs)
         painter.drawRoundedRect(self.rect(), self._attrs.radius, self._attrs.radius)

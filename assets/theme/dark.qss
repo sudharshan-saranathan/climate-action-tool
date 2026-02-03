@@ -59,11 +59,11 @@ QGroupBox::title {
 /*
 ------------------------------------------------------------------------------------------------------------------------
  -- General Widget customization
-    The following section customizes the appearance of several general widgets including QStackedWidget,
+    The following section customizes the appearance of several general reusable including QStackedWidget,
     QLabel, QFrame, QGraphicsView, and QStatusBar.
 */
 
-QStackedWidget {    /* Default appearance of stacked widgets */
+QStackedWidget {    /* Default appearance of stacked reusable */
     background                  : transparent;
     border                      : none;
     border-radius               : 4px;
@@ -80,7 +80,7 @@ QFrame {
     border                      : none;
 }
 
-QGraphicsView {                                     /* Default appearance of graphics view widgets */
+QGraphicsView {                                     /* Default appearance of graphics view reusable */
     background                  : #efefef;
     border-radius               : 4px;
 }
@@ -159,7 +159,7 @@ QSpinBox::down-button {
     menu bar background, items, hover effects, and selected states.
 */
 
-QMenuBar {          /* Default appearance of all widgets */
+QMenuBar {          /* Default appearance of all reusable */
     color                       : gray;
     background                  : transparent;
     margin-bottom               : 4px;
@@ -298,7 +298,7 @@ QToolBar::separator {
 /*
 ------------------------------------------------------------------------------------------------------------------------
  -- QToolButton customization
-    The following section customizes the appearance of standalone QToolButton widgets
+    The following section customizes the appearance of standalone QToolButton reusable
     (outside of toolbars). It defines styles for normal, hover, pressed, and checked states.
 
 QToolButton {

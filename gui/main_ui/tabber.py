@@ -1,6 +1,6 @@
 # Filename: tabber.py
 # Module name: gui
-# Description: A QTabWidget subclass for displaying various widgets.
+# Description: A QTabWidget subclass for displaying various reusable.
 
 # PySide6 (Python/Qt)
 from PySide6 import QtGui

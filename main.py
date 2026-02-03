@@ -103,7 +103,7 @@ class MainApplication(QtWidgets.QApplication):
                 QtGui.QFontDatabase.addApplicationFont(path)
 
         name = "Fira Code"
-        size = 11 if platform.system().lower() == "darwin" else 9
+        size = 11 if platform.system().lower() == "darwin" else 8
         font = QtGui.QFont(name, size)
         self.setFont(font)
 
