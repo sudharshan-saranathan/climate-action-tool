@@ -83,7 +83,6 @@ QFrame {
 QGraphicsView {                                     /* Default appearance of graphics view widgets */
     background                  : #efefef;
     border-radius               : 4px;
-    margin                      : 0px 4px 0px 0px;
 }
 
 QStatusBar { /* Default appearance of status bar */
@@ -161,29 +160,18 @@ QSpinBox::down-button {
 */
 
 QMenuBar {          /* Default appearance of all widgets */
-    color                      : white;
-    background: qlineargradient(
-        x1: 0, y1: 0,
-        x2: 1, y2: 0,
-        stop: 0 #232a2e,
-        stop: 1 #393e41
-    );
-
-    padding                     : 4px;
-    border-top-left-radius      : 8px;
-    border-top-right-radius     : 8px;
+    color                       : gray;
+    background                  : transparent;
 }
 
 QMenuBar::item {   /* Menu bar item style */
     background                  : transparent;
-    padding                     : 2px 6px 2px 2px;
-    margin                      : 2px 6px 2px 4px;
     border                      : none;
+    margin                      : 4px 4px 4px 0px;
 }
 
 QMenuBar::item:hover, QMenuBar::item:selected { /* Hover effect for menu bar items */
-    padding                     : 2px 6px 1px 2px;
-    border-bottom               : 2px solid #ffcb00;
+    color                       : white;
 }
 
 /*
@@ -231,23 +219,22 @@ QDockWidget::title {                           /* Dock widget title bar style */
 QTabWidget::pane {                              /* Tab pane style */
     background                  : #232a2e;
     border-radius               : 4px;
+    margin-top                  : 4px;
 }
 
 QTabWidget QTabBar {                                      /* Tab bar style */
     background                  : transparent;
-    padding                     : 4px 2px 4px 2px;
-    left                        : 2px;
+    padding                     : 4px 2px 4px 0px;
 }
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
-    height                      : 20px;
+    height                      : 23px;
     width                       : 120px;
     color                       : gray;
     background                  : transparent;
     border-radius               : 4px;
     border                      : none;
-    padding                     : 2px;
-    margin                      : 4px 4px 4px 0px;
+    margin-right                : 2px;
 }
 
 QTabBar::tab:hover, QTabBar::tab:selected {                         /* Style for the selected tab */
@@ -282,31 +269,26 @@ QTabBar::close-button:hover {
 
 QToolBar {                                      /* Navigation bar style */
     background                  : transparent;
+    margin-right                : 2px;
     border                      : none;
-    margin                      : 1px;
     padding                     : 0px;
 }
 
 QToolBar QToolButton {
     background                  : transparent;
     border-radius               : 4px;
-    padding                     : 0px;
-    margin                      : 0px;
+    margin                      : 0px 2px 2px 0px;
     color                       : white;
 }
-/*
-QToolBar QToolButton:hover {
-    background                  : #4a556d;
-}
 
+QToolBar QToolButton:hover,
 QToolBar QToolButton:pressed {
-    background                  : #4A556D;
+    background                  : #4a556d;
 }
 
 QToolBar QToolButton:checked {
     background                  : lightslategray;
 }
-*/
 
 QToolBar::separator {
     width                       : 2px;

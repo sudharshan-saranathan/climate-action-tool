@@ -21,6 +21,7 @@
 
   <qresource prefix="/svg">
     <file alias="arrow.svg">assets/icons/pack-svg/arrow.svg</file>
+    <file alias="check.svg">assets/icons/pack-svg/check.svg</file>
     <file alias="component.svg">assets/icons/pack-svg/component.svg</file>
   </qresource>
 
