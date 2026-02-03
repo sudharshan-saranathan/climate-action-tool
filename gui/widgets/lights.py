@@ -8,9 +8,6 @@ from gui.widgets.toolbar import ToolBar
 
 
 class TrafficLights(ToolBar):
-    """
-    A traffic light-style window control toolbar.
-    """
 
     # Signals emitted when traffic light buttons are clicked
     sig_minimize_clicked = QtCore.Signal()
@@ -25,37 +22,43 @@ class TrafficLights(ToolBar):
 
         super().__init__(
             parent,
-            iconSize=QtCore.QSize(18, 18),
+            iconSize=QtCore.QSize(20, 20),
             floatable=False,
             movable=False,
             trailing=False,
             actions=[
                 (
                     qta_icon(
-                        "ph.circle-fill",
+                        "mdi.circle",
                         color="#28c840",
-                        active="ph.arrows-out-simple",
+                        active="mdi.plus-circle",
                     ),
                     "Maximize",
                     on_maximize,
                 ),
                 (
                     qta_icon(
-                        "ph.circle-fill",
+                        "mdi.circle",
                         color="#ffcb00",
-                        active="ph.minus-circle-fill",
+                        active="mdi.minus-circle",
                     ),
                     "Minimize",
                     on_minimize,
                 ),
                 (
                     qta_icon(
-                        "ph.circle-fill",
+                        "mdi.circle",
                         color="#ff5f57",
-                        active="ph.x-circle-fill",
+                        active="mdi.close-circle",
                     ),
                     "Close",
                     on_close,
                 ),
             ],
         )
+
+        self.setStyleSheet("QToolBar QToolButton {"
+                           "    background-color:transparent;"
+                           "    margin: 0px;"
+                           "    padding: 0px;"
+                           "}")

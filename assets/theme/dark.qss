@@ -269,15 +269,13 @@ QTabBar::close-button:hover {
 
 QToolBar {                                      /* Navigation bar style */
     background                  : transparent;
-    margin-right                : 2px;
     border                      : none;
-    padding                     : 0px;
 }
 
 QToolBar QToolButton {
     background                  : transparent;
     border-radius               : 4px;
-    margin                      : 0px 2px 2px 0px;
+    margin-right                : 4px;
     color                       : white;
 }
 
@@ -295,14 +293,6 @@ QToolBar::separator {
     margin                      : 2px;
     background                  : #3e3e3e;
     border-radius               : 2px;
-}
-
-QToolBar#traffic-lights {
-    border-radius               : 4px;
-}
-
-QToolBar#traffic-lights QToolButton:hover {
-    background                  : transparent;
 }
 
 /*

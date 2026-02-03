@@ -8,24 +8,37 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 # Standard
-import os
 import sys
 import logging
-import dataclasses
+
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
+
+# Climate Action Tool (CAT)
+import rsrc
+from gui.main_ui.window import MainWindow
 
 
-# Climate Action Tool
-import resources
-from gui.main_ui import MainWindow
+# Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Class: `MainApplication`
+# Description: Main application class, subclassed from QApplication.
+# Documentation: https://doc.qt.io/qtforpython-6/index.html
 
 class MainApplication(QtWidgets.QApplication):
 
-    @dataclasses.dataclass
+    @dataclass
     class GlobalConfig:
         bezel: int = 120
         theme: str = ":/theme/dark.qss"
-        fonts: dict = dataclasses.field(
+        fonts: dict = field(
             default_factory=lambda: {
                 "Fira Code": ":/fonts/FiraCode-Regular.ttf",
                 "Marmelad": ":/fonts/Marmelad-Regular.ttf",
@@ -42,7 +55,7 @@ class MainApplication(QtWidgets.QApplication):
         self._logger = logging.getLogger(__name__)
 
         # Customization
-        self._install_theme(self._config.theme)
+        self._install_theme(self._config.theme) # Install the theme before fonts.
         self._install_fonts(self._config.fonts)
 
         # Main window
@@ -50,35 +63,40 @@ class MainApplication(QtWidgets.QApplication):
         self._ui.resize(1280, 960)
         self._ui.show()
 
-    def _install_theme(self, filename: str):
+    def _install_theme(self, qrc_file: str) -> None:
         """
-        Read and apply the provided QSS file.
+        Parse and install the given stylesheet application wide.
 
-        :param filename:
+        :param qrc_file: Path to the stylesheet.
         :return: None
         """
 
-        if not filename.endswith(".qss"):
-            logging.error("Invalid QSS file: %s", filename)
-            filename = self._config.theme
+        if not (qrc_file.startswith(":") and qrc_file.endswith(".qss")):
+            logging.warning("Invalid stylesheet path: %s", qrc_file)
+            qrc_file = self._config.theme
 
-        file = QtCore.QFile(filename)
+        file = QtCore.QFile(qrc_file)
         code = file.open(QtCore.QFile.OpenModeFlag.ReadOnly)
 
         if code:
-            qss = QtCore.QTextStream(file).readAll()
-            self.setStyleSheet(qss)
+            stream = QtCore.QTextStream(file)
+            string = stream.readAll()
+            self.setStyleSheet(string)
 
     def _install_fonts(self, fonts: dict[str, str]) -> None:
         """
         Install the given fonts using QFontDatabase.
 
-        :param fonts: A dictionary of font names and paths.
+        :param fonts: A dictionary of font-names and paths.
         :return: None
         """
 
+        # Required for platform-based font sizing.
+        import platform
+
+
         if not isinstance(fonts, dict):
-            logging.error("Expected a dictionary of fonts, got: %s")
+            logging.error("Expected a dictionary of fonts, got: %s", type(fonts))
             return
 
         [
@@ -87,7 +105,9 @@ class MainApplication(QtWidgets.QApplication):
             if QtCore.QFile(font).exists()
         ]
 
-        self.setFont(QtGui.QFont("Fira Code", 8))
+        name = "Fira Code"
+        size = 11 if platform.system().lower() == "darwin" else 9
+        self.setFont(QtGui.QFont(name, size))
 
 
 def main():

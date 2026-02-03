@@ -4,14 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="42d0ad34-8e49-4074-835b-15c031a241c5" name="Changes" comment="" />
+    <list default="true" id="74aadbd2-79bb-4b2f-af8d-1f847f3137e0" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/gui/main_ui/tabber.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/theme/dark.qss" beforeDir="false" afterPath="$PROJECT_DIR$/assets/theme/dark.qss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/main_ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_ui/window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/widgets/lights.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/widgets/lights.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources.py" beforeDir="false" afterPath="$PROJECT_DIR$/rsrc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources.qrc" beforeDir="false" afterPath="$PROJECT_DIR$/rsrc.qrc" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="102" />
+    <option name="cachedIndexableFilesCount" value="99" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -24,86 +33,102 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/main.py" root0="FORCE_HIGHLIGHTING" />
-  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;sudharshan-saranathan&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/sudharshan-saranathan/climate-action-tool.git&quot;,
+    &quot;accountId&quot;: &quot;9e9435ab-58a9-4367-abba-e1100f251141&quot;
+  }
+}</component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 4
+  &quot;associatedIndex&quot;: 7
 }</component>
-  <component name="ProjectId" id="389mOtpQzc21BLvKHEQJwUnEKFO" />
+  <component name="ProjectId" id="37y9d04zOt4fjOH5PpYOk2pkpQp" />
   <component name="ProjectViewState">
+    <option name="compactDirectories" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
     <option name="showScratchesAndConsoles" value="false" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/opt/git-projects/climact-ai&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.inline.completion&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "ai.playground.ignore.import.keys.banner.in.settings": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "sandbox",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.black.configuration.BlackFormatterConfigurable",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
+  <component name="RecapSpentCounter">
+    <option name="endsOfQuotaMs" value="1768777205652" />
+    <option name="spentUsd" value="0.0469432" />
+  </component>
+  <component name="RecapUselessUpdatesCounter">
+    <option name="suspendCountdown" value="0" />
+  </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/gui/graph/vertex" />
-      <recent name="$PROJECT_DIR$/gui/graph/vector" />
+      <recent name="$PROJECT_DIR$/gui/main_ui" />
+      <recent name="$PROJECT_DIR$/assets/theme" />
       <recent name="$PROJECT_DIR$/gui/graph/reusable" />
+      <recent name="$PROJECT_DIR$/gui/main_ui" />
+      <recent name="$PROJECT_DIR$/gui" />
     </key>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.308" />
-        <option value="bundled-python-sdk-ca5e2b39c7df-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.308" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.142" />
+        <option value="bundled-python-sdk-f2b7a9f6281b-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.142" />
       </set>
     </attachedChunks>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="42d0ad34-8e49-4074-835b-15c031a241c5" name="Changes" comment="" />
-      <created>1768220131612</created>
+      <changelist id="74aadbd2-79bb-4b2f-af8d-1f847f3137e0" name="Changes" comment="" />
+      <created>1767864527525</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1768220131612</updated>
-      <workItem from="1768220132617" duration="1370000" />
-      <workItem from="1768221512889" duration="160000" />
-      <workItem from="1768221679963" duration="8863000" />
-      <workItem from="1768232966709" duration="1726000" />
-      <workItem from="1768234700032" duration="11092000" />
-      <workItem from="1768314292177" duration="10822000" />
-      <workItem from="1768330718376" duration="21000" />
-      <workItem from="1768330748808" duration="1064000" />
-      <workItem from="1768386982509" duration="24007000" />
-      <workItem from="1768477728212" duration="8776000" />
-      <workItem from="1768648838719" duration="7698000" />
-      <workItem from="1768734170323" duration="5202000" />
-      <workItem from="1768789249016" duration="16126000" />
-      <workItem from="1768923482948" duration="8701000" />
-      <workItem from="1768962568102" duration="46582000" />
-      <workItem from="1769103547253" duration="36093000" />
-      <workItem from="1769238356945" duration="2872000" />
-      <workItem from="1769256561620" duration="7522000" />
-      <workItem from="1769742366195" duration="19615000" />
+      <updated>1767864527525</updated>
+      <workItem from="1767864528578" duration="220000" />
+      <workItem from="1767864758301" duration="178000" />
+      <workItem from="1767864944725" duration="13464000" />
+      <workItem from="1767941553180" duration="322000" />
+      <workItem from="1767942011108" duration="32749000" />
+      <workItem from="1768285179167" duration="8557000" />
+      <workItem from="1768301908222" duration="5168000" />
+      <workItem from="1768333761355" duration="2396000" />
+      <workItem from="1768480886344" duration="80000" />
+      <workItem from="1768480997636" duration="6557000" />
+      <workItem from="1768545685706" duration="16805000" />
+      <workItem from="1768820991196" duration="16549000" />
+      <workItem from="1768976775233" duration="16779000" />
+      <workItem from="1770014421425" duration="893000" />
+      <workItem from="1770018875256" duration="71000" />
+      <workItem from="1770033640214" duration="681000" />
+      <workItem from="1770097789002" duration="3548000" />
     </task>
     <servers />
   </component>
