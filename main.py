@@ -22,15 +22,15 @@ from gui.main_ui.window import MainWindow
 
 # Logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Class: `MainApplication`
-# Description: Main application class, subclassed from QApplication.
-# Documentation: https://doc.qt.io/qtforpython-6/index.html
+# Class Name: MainApplication
+# Class Info: The main application class for the Climate Action Tool (CAT)
+# Qt website: https://doc.qt.io/qtforpython-6/index.html
+
 
 class MainApplication(QtWidgets.QApplication):
 
@@ -48,24 +48,22 @@ class MainApplication(QtWidgets.QApplication):
 
     def __init__(self):
         super().__init__(sys.argv)
-        super().setObjectName("Climate Action Tool")
+        super().setObjectName("Climate Action Tool (CAT)")
 
         # Instantiate options
         self._config = MainApplication.GlobalConfig()
-        self._logger = logging.getLogger(__name__)
 
         # Customization
-        self._install_theme(self._config.theme) # Install the theme before fonts.
+        self._install_theme(self._config.theme)  # Install the theme before fonts.
         self._install_fonts(self._config.fonts)
 
         # Main window
         self._ui = MainWindow()
-        self._ui.resize(1280, 960)
         self._ui.show()
 
     def _install_theme(self, qrc_file: str) -> None:
         """
-        Parse and install the given stylesheet application wide.
+        Parse and install the given stylesheet application-wide.
 
         :param qrc_file: Path to the stylesheet.
         :return: None
@@ -94,20 +92,20 @@ class MainApplication(QtWidgets.QApplication):
         # Required for platform-based font sizing.
         import platform
 
-
+        # Abort for invalid argument
         if not isinstance(fonts, dict):
             logging.error("Expected a dictionary of fonts, got: %s", type(fonts))
             return
 
-        [
-            QtGui.QFontDatabase.addApplicationFont(font)
-            for font in fonts.values()
-            if QtCore.QFile(font).exists()
-        ]
+        # Iterate and install available fonts
+        for font, path in fonts.items():
+            if QtCore.QFile(path).exists():
+                QtGui.QFontDatabase.addApplicationFont(path)
 
         name = "Fira Code"
         size = 11 if platform.system().lower() == "darwin" else 9
-        self.setFont(QtGui.QFont(name, size))
+        font = QtGui.QFont(name, size)
+        self.setFont(font)
 
 
 def main():

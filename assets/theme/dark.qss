@@ -162,12 +162,13 @@ QSpinBox::down-button {
 QMenuBar {          /* Default appearance of all widgets */
     color                       : gray;
     background                  : transparent;
+    margin-bottom               : 4px;
 }
 
 QMenuBar::item {   /* Menu bar item style */
     background                  : transparent;
     border                      : none;
-    margin                      : 4px 4px 4px 0px;
+    margin                      : 4px 16px 4px 0px;
 }
 
 QMenuBar::item:hover, QMenuBar::item:selected { /* Hover effect for menu bar items */
@@ -228,7 +229,7 @@ QTabWidget QTabBar {                                      /* Tab bar style */
 }
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
-    height                      : 23px;
+    height                      : 24px;
     width                       : 120px;
     color                       : gray;
     background                  : transparent;
@@ -279,9 +280,8 @@ QToolBar QToolButton {
     color                       : white;
 }
 
-QToolBar QToolButton:hover,
-QToolBar QToolButton:pressed {
-    background                  : #4a556d;
+QToolBar QToolButton::menu-indicator {
+    width                       : 0px;
 }
 
 QToolBar QToolButton:checked {
