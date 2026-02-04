@@ -146,21 +146,23 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     def _init_theme(self, path: str) -> None:
         """
-        Loads and applies the QSS stylesheet to the application.
+        Set the application's theme based on the specified QSS stylesheet.
 
-        Args:
-            path: Path to the QSS stylesheet file.
+        :param path: Path to the QSS stylesheet file.
+        :return: None
         """
 
-        try:
+        if not path.endswith(".qss"):
+            logging.warning(f"Unable to apply theme {path}. Using system default.")
+            return
 
-            theme = QtCore.QFile(path)
-            if theme.open(QtCore.QFile.OpenModeFlag.ReadOnly):
-                theme = QtCore.QTextStream(theme).readAll()
-                self.setStyleSheet(theme)
+        theme = QtCore.QFile(path)
+        state = theme.open(QtCore.QFile.OpenModeFlag.ReadOnly)
 
-        except Exception as e:
-            logging.warning(f"Unable to apply theme {e}. Using system default.")
+        if state:
+            stream = QtCore.QTextStream(theme)
+            string = stream.readAll()
+            self.setStyleSheet(string)
 
     @staticmethod
     def _show_startup() -> int:
