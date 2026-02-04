@@ -76,7 +76,7 @@ class MainWindow(QtWidgets.QMainWindow):
             actions=[
                 (icon("ph.layout-fill", color="darkcyan"), "Dock", self._execute),
                 (icon("ph.folder-fill", color="#ffcb00"), "Open", self._execute),
-                (icon("ph.play-fill", color="green"), "Run", self._execute),
+                (icon("ph.cpu-fill", color="lightgreen"), "Run", self._execute),
                 (icon("ph.dots-three", color="#efefef"), "More", self._execute),
             ],
         )
@@ -106,11 +106,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Required
         from gui.main_ui.tabber import Tabber
+        from gui.graph.canvas import Canvas
         from qtawesome import icon
 
         # UI components
-        map_canvas = QtWidgets.QGraphicsScene()
-        scn_canvas = QtWidgets.QGraphicsScene()
+        map_canvas = Canvas()
+        scn_canvas = Canvas()
 
         map_viewer = Viewer(
             map_canvas,

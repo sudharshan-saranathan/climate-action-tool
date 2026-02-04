@@ -110,7 +110,7 @@ class MainApplication(QtWidgets.QApplication):
             if QtCore.QFile(path).exists():
                 QtGui.QFontDatabase.addApplicationFont(path)
 
-        name = "Ubuntu"
+        name = "Fira Code"
         size = 11 if platform.system().lower() == "darwin" else 8
         font = QtGui.QFont(name, size)
         self.setFont(font)
