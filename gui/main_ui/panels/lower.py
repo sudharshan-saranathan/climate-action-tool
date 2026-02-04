@@ -17,11 +17,8 @@ from PySide6 import QtWidgets
 from dataclasses import field
 from dataclasses import dataclass
 
-# Local imports
-from gui.widgets import FlowHub
 
-
-class LowerPanel(QtWidgets.QFrame):
+class LowerPanel(QtWidgets.QListWidget):
     """Lower panel containing the FlowHub widget."""
 
     @dataclass
@@ -45,28 +42,3 @@ class LowerPanel(QtWidgets.QFrame):
 
         # Instantiate dataclasses
         self._style = LowerPanel.Style()
-
-        # Set up layout with FlowHub
-        self._init_ui()
-
-    def _init_ui(self) -> None:
-        """Initialize the panel UI with FlowHub."""
-        self.setContentsMargins(8, 8, 8, 8)
-
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-        self._flowhub = FlowHub(self)
-        layout.addWidget(self._flowhub)
-
-    def paintEvent(self, event):
-        painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-
-        pen = QtGui.QPen(self._style.border["color"], self._style.border["width"])
-        brs = QtGui.QBrush(self._style.background["color"])
-
-        painter.setPen(pen)
-        painter.setBrush(brs)
-        painter.drawRoundedRect(self.rect(), 4, 4)
