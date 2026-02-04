@@ -96,9 +96,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         # Create and configure the traffic lights widget
         self._lights = TrafficLights(self)
-        self._lights.sig_minimize_clicked.connect(self.showMinimized)
-        self._lights.sig_maximize_clicked.connect(self._on_maximize)
-        self._lights.sig_close_clicked.connect(self.close)
+        self._lights.minimize_clicked.connect(self.showMinimized)
+        self._lights.maximize_clicked.connect(self._on_maximize)
+        self._lights.close_clicked.connect(self.close)
 
         # Configure menubar
         menubar = self.menuBar()
@@ -107,7 +107,7 @@ class MainWindow(QtWidgets.QMainWindow):
         menubar.addMenu("View")
         menubar.addMenu("Help")
 
-        # Use application's custom menu bar and set traffic lights as corner widget
+        # Use the application's custom menu bar and set traffic lights as the corner widget
         menubar.setNativeMenuBar(False)
         menubar.setCornerWidget(self._lights)
 

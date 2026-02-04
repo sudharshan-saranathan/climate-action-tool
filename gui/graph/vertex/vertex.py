@@ -2,6 +2,8 @@
 # Module name: graph
 # Description: Vertex graphics item for node graphs.
 
+from __future__ import annotations
+
 from PySide6 import QtGui, QtCore, QtWidgets
 from gui.graph.vertex.config import VertexConfig
 from gui.graph.vector.vector import VectorItem
@@ -49,8 +51,12 @@ class VertexItem(QtWidgets.QGraphicsObject):
     class Connections:
         """Database for incoming and outgoing connections."""
 
-        incoming: dict[VertexItem, VectorItem] = dataclasses.field(default_factory=dict)
-        outgoing: dict[VertexItem, VectorItem] = dataclasses.field(default_factory=dict)
+        incoming: dict[QtWidgets.QGraphicsObject, VectorItem] = dataclasses.field(
+            default_factory=dict
+        )
+        outgoing: dict[QtWidgets.QGraphicsObject, VectorItem] = dataclasses.field(
+            default_factory=dict
+        )
 
     # Class constructor
     def __init__(self, parent=None, **kwargs):
@@ -205,7 +211,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             "item_shifted": self.item_shifted,
         }
 
-    def connect_to(self, node: VertexItem) -> VectorItem | None:
+    def connect_to(self, node: QtWidgets.QGraphicsObject) -> VectorItem | None:
         """
         Connect this vertex to another.
 
@@ -273,7 +279,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         self._attr.label = text
         self.setObjectName(text)
 
-    def importers(self) -> set[VertexItem]:
+    def importers(self) -> set[QtWidgets.QGraphicsObject]:
         """The set of vertices that import from this vertex."""
         return set([vertex for vertex in self._connections.outgoing.keys()])
 

@@ -2,13 +2,21 @@
 # Module name: N/A
 # Description: Entry point for the Climate Action Tool (CAT)
 
-import dataclasses
-import resources  # noqa: F401 - Required to register Qt resources (DO NOT REMOVE)
+# Python
 import argparse
 import logging
 import sys
 
-from PySide6 import QtGui, QtCore, QtWidgets
+# PySide6 (Python/Qt)
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
+
+# Climact
 from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
@@ -22,7 +30,7 @@ class ClimateActionTool(QtWidgets.QApplication):
     startup_flag = True  # Flag to enable/disable the startup dialog.
     startup_file = None  # User-selected project file to load (if available).
 
-    @dataclasses.dataclass(frozen=True)
+    @dataclass(frozen=True)
     class Style:
         """Configuration options for the application.
 
