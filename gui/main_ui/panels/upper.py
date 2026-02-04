@@ -87,4 +87,8 @@ class UpperPanel(QtWidgets.QFrame):
 
         painter.setPen(pen)
         painter.setBrush(brs)
-        painter.drawRoundedRect(self.rect(), 4, 4)
+        painter.drawRoundedRect(self.rect(), 6, 6)
+        painter.end()
+
+        # Call super-class implementation
+        super().paintEvent(event)

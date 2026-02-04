@@ -641,7 +641,7 @@ QInputDialog QLineEdit {
 QTextEdit {
     background                  : #40474d;
     color                       : white;
-    padding                     : 2px;Q
+    padding                     : 2px;
     border-radius               : 4px;
 }
 
@@ -689,7 +689,7 @@ QPushButton:disabled {
 */
 
 QListWidget, QListView {
-    background                  : transparent;
+    background                  : #40474d;
     color                       : white;
     border                      : none;
     outline                     : 0px;
@@ -698,7 +698,6 @@ QListWidget, QListView {
 
 QListWidget::item, QListView::item {
     margin                      : 0px;
-    padding                     : 2px;
     background                  : transparent;
 }
 

@@ -18,6 +18,12 @@ from dataclasses import field
 from dataclasses import dataclass
 
 
+# Climact
+from qtawesome import icon as qta_icon
+from core.flow import BasicFlows
+from core.flow import ComboFlows
+
+
 class LowerPanel(QtWidgets.QListWidget):
     """Lower panel containing the FlowHub widget."""
 
@@ -42,3 +48,68 @@ class LowerPanel(QtWidgets.QListWidget):
 
         # Instantiate dataclasses
         self._style = LowerPanel.Style()
+
+        # Built-in streams
+        self._first_header = self._create_first_header_item()
+        self.add_items(BasicFlows)
+        self.add_items(ComboFlows)
+
+        # User-defined
+        self._second_header = self._create_second_header_item()
+
+    def _execute(self):
+        pass
+
+    def _create_first_header_item(self):
+
+        icon = qta_icon("ph.list-fill", color="white")
+        header_item = QtWidgets.QListWidgetItem(icon, "Built-in Resources", self)
+        header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
+        header_item.setSizeHint(QtCore.QSize(0, 40))
+        return header_item
+
+    def _create_second_header_item(self):
+
+        icon = qta_icon("ph.list-fill", color="white")
+        header_item = QtWidgets.QListWidgetItem(icon, "Custom Resources", self)
+        header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
+        header_item.setSizeHint(QtCore.QSize(0, 28))
+        return header_item
+
+    def add_items(self, flows: dict, editable=False, selectable=False):
+
+        # Add flows
+        for flow, _class in flows.items():
+
+            image = _class.ICON
+            color = _class.COLOR
+            label = _class.LABEL
+
+            item = QtWidgets.QListWidgetItem(qta_icon(image, color=color), label, self)
+            item.setSizeHint(QtCore.QSize(0, 28))
+
+            if not editable:
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+
+            if not selectable:
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
+
+    def paintEvent(self, event):
+
+        painter = QtGui.QPainter(self.viewport())
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+
+        first_section_bl = self.visualItemRect(self._first_header).bottomLeft()
+        first_section_br = self.visualItemRect(self._first_header).bottomRight()
+        second_section_tl = self.visualItemRect(self._second_header).topLeft()
+        second_section_tr = self.visualItemRect(self._second_header).topRight()
+
+        separator_pen = QtGui.QPen(QtGui.QColor(0xFFFFFF), 1.0)
+        painter.setPen(separator_pen)
+        painter.drawLine(first_section_bl, first_section_br)
+        painter.drawLine(second_section_tl, second_section_tr)
+        painter.end()
+
+        super().paintEvent(event)
