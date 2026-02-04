@@ -6,17 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="74aadbd2-79bb-4b2f-af8d-1f847f3137e0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/fonts/Special_Elite.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/theme/dark.qss" beforeDir="false" afterPath="$PROJECT_DIR$/assets/theme/dark.qss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/theme/light.qss" beforeDir="false" afterPath="$PROJECT_DIR$/assets/theme/light.qss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/main_ui/tabber.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_ui/tabber.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/main_ui/window.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_ui/window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/reusable/dock.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/widgets/dock.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/reusable/toolbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/widgets/toolbar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/reusable/traffic.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/widgets/traffic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rsrc.py" beforeDir="false" afterPath="$PROJECT_DIR$/rsrc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rsrc.qrc" beforeDir="false" afterPath="$PROJECT_DIR$/rsrc.qrc" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -144,7 +133,7 @@
       <workItem from="1770033640214" duration="681000" />
       <workItem from="1770097789002" duration="9950000" />
       <workItem from="1770113103368" duration="3424000" />
-      <workItem from="1770140944618" duration="2029000" />
+      <workItem from="1770140944618" duration="2748000" />
     </task>
     <servers />
   </component>
