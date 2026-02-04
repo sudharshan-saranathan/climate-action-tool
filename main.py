@@ -40,8 +40,16 @@ class MainApplication(QtWidgets.QApplication):
         theme: str = ":/theme/dark.qss"
         fonts: dict = field(
             default_factory=lambda: {
+                "Alkatra": ":/fonts/Alkatra-Regular.ttf",
+                "Bitcount": ":/fonts/Bitcount-Regular.ttf",
+                "Bitcount Single": ":/fonts/BitcountSingle-Regular.ttf",
+                "Baloo 2": ":/fonts/Baloo2-Regular.ttf",
+                "Doto": ":/fonts/Doto-Regular.ttf",
+                "Ubuntu": ":/fonts/Ubuntu-Regular.ttf",
+                "Special Elite": ":/fonts/SpecialElite-Regular.ttf",
                 "Fira Code": ":/fonts/FiraCode-Regular.ttf",
                 "Marmelad": ":/fonts/Marmelad-Regular.ttf",
+                "Roboto Mono": ":/fonts/RobotoMono-Regular.ttf",
                 "Bilbo": ":/fonts/Bilbo-Regular.ttf",
             }
         )
@@ -102,7 +110,7 @@ class MainApplication(QtWidgets.QApplication):
             if QtCore.QFile(path).exists():
                 QtGui.QFontDatabase.addApplicationFont(path)
 
-        name = "Fira Code"
+        name = "Ubuntu"
         size = 11 if platform.system().lower() == "darwin" else 8
         font = QtGui.QFont(name, size)
         self.setFont(font)

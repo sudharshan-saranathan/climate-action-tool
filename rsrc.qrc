@@ -7,10 +7,17 @@
 
   <qresource prefix="/fonts">
     <!-- Fonts -->
+    <file alias="Alkatra-Regular.ttf">assets/fonts/Alkatra/static/Alkatra-Regular.ttf</file>
+    <file alias="Bitcount-Regular.ttf">assets/fonts/Bitcount/static/Bitcount-Regular.ttf</file>
+    <file alias="BitcountSingle-Regular.ttf">assets/fonts/Bitcount_Single/static/BitcountSingle-Regular.ttf</file>
+    <file alias="Doto-Regular.ttf">assets/fonts/Doto/static/Doto-Regular.ttf</file>
+    <file alias="Baloo2-Regular.ttf">assets/fonts/Baloo/static/Baloo2-Regular.ttf</file>
+    <file alias="Ubuntu-Regular.ttf">assets/fonts/Ubuntu/Ubuntu-Regular.ttf</file>
     <file alias="FiraCode-Regular.ttf">assets/fonts/Fira_Code/static/FiraCode-Regular.ttf</file>
-    <file alias="FiraCode-Bold.ttf">assets/fonts/Fira_Code/static/FiraCode-Bold.ttf</file>
     <file alias="MarckScript-Regular.ttf">assets/fonts/Marck/MarckScript-Regular.ttf</file>
     <file alias="Marmelad-Regular.ttf">assets/fonts/Marmelad/Marmelad-Regular.ttf</file>
+    <file alias="SpecialElite-Regular.ttf">assets/fonts/Special_Elite/SpecialElite-Regular.ttf</file>
+    <file alias="RobotoMono-Regular.ttf">assets/fonts/Roboto_Mono/static/RobotoMono-Regular.ttf</file>
     <file alias="Bilbo-Regular.ttf">assets/fonts/Bilbo/Bilbo-Regular.ttf</file>
   </qresource>
 

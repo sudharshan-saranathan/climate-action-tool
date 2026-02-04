@@ -14,8 +14,7 @@ from PySide6 import QtWidgets
 from dataclasses import field
 from dataclasses import dataclass
 
-from gui.reusable.dock import DockWidget
-from gui.reusable.toolbar import ToolBar
+from gui.widgets.traffic import TrafficLights
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -53,65 +52,87 @@ class MainWindow(QtWidgets.QMainWindow):
         self._attrs = MainWindow.Attrs()
 
         # Customize appearance and behaviour
-        self.setContentsMargins(4, 4, 4, 4)
+        self.setContentsMargins(4, 8, 8, 8)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setGeometry(self._attrs.rect)
 
         # UI components
+        self._init_toolbar()
         self._init_dock()
         self._init_tabs()
-        self._init_toolbar()
-
-    def _init_dock(self):
-
-        from gui.reusable.dock import DockWidget
-
-        upper = DockWidget("Climate Action Tool", QtWidgets.QTableWidget())
-        lower = DockWidget("", QtWidgets.QTableWidget())
-
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, upper)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, lower)
-
-    def _init_tabs(self):
-
-        tabs = QtWidgets.QTabWidget(
-            self,
-            tabsClosable=True,
-            tabBarAutoHide=True,
-            tabShape=QtWidgets.QTabWidget.TabShape.Rounded,
-        )
-
-        self.setCentralWidget(tabs)
 
     def _init_toolbar(self):
 
         # Required
-        from gui.reusable.toolbar import ToolBar
+        from gui.widgets.toolbar import ToolBar
         from qtawesome import icon
 
-        toolbar_one = ToolBar(
+        toolbar = ToolBar(
             self,
+            trailing=False,
             iconSize=QtCore.QSize(18, 18),
             actions=[
-                (icon("ph.layout-fill", color_active="#f2d3aa"), "Dock", self._execute),
-                (icon("ph.folder-fill", color_active="#ffcb00"), "open", self._execute),
+                (icon("ph.layout-fill", color="darkcyan"), "Dock", self._execute),
+                (icon("ph.folder-fill", color="#ffcb00"), "Open", self._execute),
+                (icon("ph.play-fill", color="green"), "Run", self._execute),
+                (icon("ph.dots-three", color="#efefef"), "More", self._execute),
             ],
         )
 
-        toolbar_two = ToolBar(
-            self,
-            iconSize=QtCore.QSize(18, 18),
-            actions=[
-                (icon("ph.gear", color_active="#ababab"), "Settings", self._execute),
-            ],
+        toolbar.addAction(icon("ph.keyboard", color="white"), "Keys", self._execute)
+        toolbar.addAction(icon("ph.question", color="white"), "Help", self._execute)
+        self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar)
+
+    def _init_dock(self):
+
+        # Required
+        from gui.widgets.dock import DockWidget
+
+        lower_title = str()
+        upper_title = (
+            "<span style='font-family: Bitcount; font-size: 16pt'>Clim</span>"
+            "<span style='font-family: Bitcount; font-size: 16pt; color:darkcyan'>Act</span>"
         )
 
-        self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar_one)
-        self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar_two)
+        self._u_dock = DockWidget(upper_title, QtWidgets.QTableWidget())
+        self._l_dock = DockWidget(lower_title, QtWidgets.QTextEdit())
 
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._u_dock)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._l_dock)
+
+    def _init_tabs(self):
+
+        # Required
+        from gui.main_ui.tabber import Tabber
+        from qtawesome import icon
+
+        # UI components
+        map_viewer = QtWidgets.QGraphicsView()  # Map viewer.
+        sch_viewer = QtWidgets.QGraphicsView()  # Scene viewer.
+        traffic = TrafficLights(  # Traffic lights (corner widget).
+            self,
+            on_minimize=self.showMinimized,
+            on_maximize=self.showMaximized,
+            on_close=self.close,
+        )
+
+        tabs = Tabber(self)
+        tabs.addTab(map_viewer, icon("ph.map-trifold-fill", color="#4a556d"), "Map")
+        tabs.addTab(sch_viewer, icon("mdi.draw", color="red"), "Schematic")
+        tabs.setCornerWidget(traffic)
+
+        self.setCentralWidget(tabs)
+
+    @QtCore.Slot()
     def _execute(self):
-        pass
+
+        action = self.sender()
+        string = action.text() if isinstance(action, QtGui.QAction) else str()
+
+        if string.lower() == "dock":
+            self._u_dock.setVisible(not self._u_dock.isVisible())
+            self._l_dock.setVisible(not self._l_dock.isVisible())
 
     def paintEvent(self, event: QtGui.QPaintEvent):
 
@@ -123,6 +144,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pen = QtGui.QPen(QtGui.QColor(pen_color), pen_width)
 
         painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         painter.setPen(pen)
         painter.setBrush(brs)
         painter.drawRoundedRect(self.rect(), self._attrs.radius, self._attrs.radius)

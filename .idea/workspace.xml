@@ -5,18 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="74aadbd2-79bb-4b2f-af8d-1f847f3137e0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/gui/reusable/dock.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/fonts/Special_Elite.zip" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/theme/dark.qss" beforeDir="false" afterPath="$PROJECT_DIR$/assets/theme/dark.qss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/theme/light.qss" beforeDir="false" afterPath="$PROJECT_DIR$/assets/theme/light.qss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui/main_ui/tabber.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_ui/tabber.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui/main_ui/window.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_ui/window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/widgets/lights.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/reusable/traffic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/widgets/toolbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/reusable/toolbar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/reusable/dock.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/widgets/dock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/reusable/toolbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/widgets/toolbar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/reusable/traffic.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/widgets/traffic.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rsrc.py" beforeDir="false" afterPath="$PROJECT_DIR$/rsrc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rsrc.qrc" beforeDir="false" afterPath="$PROJECT_DIR$/rsrc.qrc" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,7 +24,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="66" />
+    <option name="cachedIndexableFilesCount" value="195" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -70,6 +70,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
@@ -83,7 +84,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.black.configuration.BlackFormatterConfigurable",
+    "settings.editor.selected.configurable": "editor.preferences.inline.completion",
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
@@ -113,8 +114,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.142" />
-        <option value="bundled-python-sdk-f2b7a9f6281b-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.142" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.308" />
+        <option value="bundled-python-sdk-ca5e2b39c7df-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.308" />
       </set>
     </attachedChunks>
   </component>
@@ -143,6 +144,7 @@
       <workItem from="1770033640214" duration="681000" />
       <workItem from="1770097789002" duration="9950000" />
       <workItem from="1770113103368" duration="3424000" />
+      <workItem from="1770140944618" duration="2029000" />
     </task>
     <servers />
   </component>

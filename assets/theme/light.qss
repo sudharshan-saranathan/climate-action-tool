@@ -51,11 +51,11 @@ QGroupBox::title {
 /*
 ------------------------------------------------------------------------------------------------------------------------
  -- General Widget customization
-    The following section customizes the appearance of several general reusable including QStackedWidget,
+    The following section customizes the appearance of several general widgets including QStackedWidget,
     QLabel, QFrame, QGraphicsView, and QStatusBar.
 */
 
-QStackedWidget {    /* Default appearance of stacked reusable */
+QStackedWidget {    /* Default appearance of stacked widgets */
     background                  : transparent;
     border                      : none;
     border-radius               : 4px;
@@ -72,7 +72,7 @@ QFrame {
     border                      : none;
 }
 
-QGraphicsView {                 /* Default appearance of graphics view reusable */
+QGraphicsView {                 /* Default appearance of graphics view widgets */
     background                  : white;
     border-radius               : 4px;
     margin                      : 0px 4px 4px 0px;
@@ -152,7 +152,7 @@ QSpinBox::down-button {
     menu bar background, items, hover effects, and selected states.
 */
 
-QMenuBar {          /* Default appearance of all reusable */
+QMenuBar {          /* Default appearance of all widgets */
     color                      : black;
     background: qlineargradient(
         x1: 0, y1: 0,

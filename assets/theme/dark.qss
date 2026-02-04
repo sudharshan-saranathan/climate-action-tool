@@ -59,11 +59,11 @@ QGroupBox::title {
 /*
 ------------------------------------------------------------------------------------------------------------------------
  -- General Widget customization
-    The following section customizes the appearance of several general reusable including QStackedWidget,
+    The following section customizes the appearance of several general widgets including QStackedWidget,
     QLabel, QFrame, QGraphicsView, and QStatusBar.
 */
 
-QStackedWidget {    /* Default appearance of stacked reusable */
+QStackedWidget {    /* Default appearance of stacked widgets */
     background                  : transparent;
     border                      : none;
     border-radius               : 4px;
@@ -72,7 +72,6 @@ QStackedWidget {    /* Default appearance of stacked reusable */
 QLabel {
     background                  : transparent;
     color                       : #efefef;
-    text-align                  : center;
 }
 
 QFrame {
@@ -80,9 +79,9 @@ QFrame {
     border                      : none;
 }
 
-QGraphicsView {                                     /* Default appearance of graphics view reusable */
+QGraphicsView {                                     /* Default appearance of graphics view widgets */
     background                  : #efefef;
-    border-radius               : 4px;
+    border-radius               : 3px;
 }
 
 QStatusBar { /* Default appearance of status bar */
@@ -159,7 +158,7 @@ QSpinBox::down-button {
     menu bar background, items, hover effects, and selected states.
 */
 
-QMenuBar {          /* Default appearance of all reusable */
+QMenuBar {          /* Default appearance of all widgets */
     color                       : gray;
     background                  : transparent;
     margin-bottom               : 4px;
@@ -219,7 +218,6 @@ QDockWidget::title {                           /* Dock widget title bar style */
 
 QTabWidget::pane {                              /* Tab pane style */
     background                  : #232a2e;
-    border-radius               : 4px;
     margin-top                  : 4px;
 }
 
@@ -231,17 +229,22 @@ QTabWidget QTabBar {                                      /* Tab bar style */
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
     height                      : 24px;
     width                       : 120px;
-    color                       : gray;
+    color                       : lightgray;
     background                  : transparent;
-    border-radius               : 4px;
     border                      : none;
-    margin-right                : 2px;
+    border-radius               : 4px;
+    margin-right                : 4px;
+    padding                     : 0px 4px 0px 4px;
 }
 
-QTabBar::tab:hover, QTabBar::tab:selected {                         /* Style for the selected tab */
+QTabBar::tab:hover {                         /* Style for the selected tab */
     background                  : #393e41;
-    color                       : white;
+    color                       : #efefef;
+}
 
+QTabBar::tab:selected {
+    background                  : #efefef;
+    color                       : #393e41;
 }
 
 QTabBar::close-button { /* Close button style */
@@ -250,8 +253,8 @@ QTabBar::close-button { /* Close button style */
     margin-right                : 2px;
     margin-top                  : 0px;
     image                       : url(:/png/close-gray.png);
-    width                       : 12px;
-    height                      : 12px;
+    width                       : 10px;
+    height                      : 10px;
     background-color            : transparent;
 }
 
@@ -276,7 +279,7 @@ QToolBar {                                      /* Navigation bar style */
 QToolBar QToolButton {
     background                  : transparent;
     border-radius               : 4px;
-    margin-right                : 4px;
+    margin                      : 0px 4px 4px 0px;
     color                       : white;
 }
 
@@ -288,17 +291,15 @@ QToolBar QToolButton:checked {
     background                  : lightslategray;
 }
 
-QToolBar::separator {
-    width                       : 2px;
-    margin                      : 2px;
-    background                  : #3e3e3e;
-    border-radius               : 2px;
+QToolBar QToolButton:hover,
+QToolBar QToolButton:selected {
+    background                  : #4a556d;
 }
 
 /*
 ------------------------------------------------------------------------------------------------------------------------
  -- QToolButton customization
-    The following section customizes the appearance of standalone QToolButton reusable
+    The following section customizes the appearance of standalone QToolButton widgets
     (outside of toolbars). It defines styles for normal, hover, pressed, and checked states.
 
 QToolButton {
@@ -594,7 +595,6 @@ QInputDialog {
 QInputDialog QLabel {
     background                  : #393e41;
     color                       : white;
-    padding                     : 1px;
 }
 
 QInputDialog QLineEdit {
