@@ -15,6 +15,7 @@ from dataclasses import field
 from dataclasses import dataclass
 
 from gui.widgets.traffic import TrafficLights
+from gui.widgets.viewer import Viewer
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -108,8 +109,21 @@ class MainWindow(QtWidgets.QMainWindow):
         from qtawesome import icon
 
         # UI components
-        map_viewer = QtWidgets.QGraphicsView()  # Map viewer.
-        sch_viewer = QtWidgets.QGraphicsView()  # Scene viewer.
+        map_canvas = QtWidgets.QGraphicsScene()
+        scn_canvas = QtWidgets.QGraphicsScene()
+
+        map_viewer = Viewer(
+            map_canvas,
+            sceneRect=QtCore.QRectF(0, 0, 10000, 10000),
+            backgroundBrush=QtGui.QColor(0xEFEFEF),
+        )
+
+        scn_viewer = Viewer(
+            scn_canvas,
+            sceneRect=QtCore.QRectF(0, 0, 10000, 10000),
+            backgroundBrush=QtGui.QColor(0xEFEFEF),
+        )
+
         traffic = TrafficLights(  # Traffic lights (corner widget).
             self,
             on_minimize=self.showMinimized,
@@ -119,9 +133,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         tabs = Tabber(self)
         tabs.addTab(map_viewer, icon("ph.map-trifold-fill", color="#4a556d"), "Map")
-        tabs.addTab(sch_viewer, icon("mdi.draw", color="red"), "Schematic")
+        tabs.addTab(scn_viewer, icon("mdi.draw", color="red"), "Schematic")
         tabs.setCornerWidget(traffic)
 
+        # Set tabs as the central widget
         self.setCentralWidget(tabs)
 
     @QtCore.Slot()

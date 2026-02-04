@@ -3,9 +3,6 @@
 # Description: A QGraphicsView-based graph viewer for the Climact application
 
 
-# Import - standard
-import types
-
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
@@ -14,6 +11,7 @@ from PySide6 import QtOpenGLWidgets
 
 
 # Dataclass
+from dataclasses import field
 from dataclasses import dataclass
 
 
@@ -26,10 +24,28 @@ class Viewer(QtWidgets.QGraphicsView):
         zoom_max: float = 2.0
         zoom_min: float = 0.2
         zoom_exp: float = 1.4
+        scale: float = 1.0
+
+    @dataclass
+    class Attrs:
+        sceneRect: QtCore.QRectF = field(
+            default_factory=lambda: QtCore.QRectF(0, 0, 5000, 5000)
+        )
+
+        backgroundBrush: QtGui.QBrush = field(
+            default_factory=lambda: QtGui.QBrush(QtGui.QColor(0xEFEFEF))
+        )
+
+        useOpenGL: bool = True
+        renderHints: QtGui.QPainter.RenderHint = QtGui.QPainter.RenderHint.Antialiasing
+        viewportUpdateMode: QtWidgets.QGraphicsView.ViewportUpdateMode = (
+            QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate
+        )
 
     def __init__(self, canvas: QtWidgets.QGraphicsScene, **kwargs):
 
         # Define zoom attrs before super().__init__()
+        self._attrs = Viewer.Attrs(useOpenGL=kwargs.pop("useOpenGL", True))
         self._zoom = Viewer.ZoomAttrs(
             zoom_max=kwargs.pop("zoom_max", 2.0),
             zoom_min=kwargs.pop("zoom_min", 0.2),
@@ -37,25 +53,40 @@ class Viewer(QtWidgets.QGraphicsView):
         )
 
         # Base-class initialization:
-        super().__init__(**kwargs)
+        super().__init__(
+            canvas,
+            sceneRect=self._attrs.sceneRect,
+            renderHints=self._attrs.renderHints,
+            backgroundBrush=self._attrs.backgroundBrush,
+            viewportUpdateMode=self._attrs.viewportUpdateMode,
+        )
+
+        # Customize appearance and behaviour:
         super().setScene(canvas)
-        super().setMouseTracking(True)
         super().setCornerWidget(QtWidgets.QFrame())
+
+        # Use an OpenGL viewport (enabled by default)
+        self._init_viewport()
 
         # Animations
         self._init_zoom_animation()
         self._init_focus_animation()
 
-        # Use an OpenGL viewport for hardware acceleration:
-        self._format = QtGui.QSurfaceFormat()
-        self._format.setSamples(4)
-        self._openGL_viewport = QtOpenGLWidgets.QOpenGLWidget(self)
-        self._openGL_viewport.setFormat(self._format)
-        self._openGL_viewport.setMouseTracking(True)
-        self.setViewport(self._openGL_viewport)
-
         # Define shortcuts
         self._init_shortcuts()
+
+    # Initialize the main viewport
+    def _init_viewport(self):
+
+        if self._attrs.useOpenGL:
+            self._format = QtGui.QSurfaceFormat()
+            self._format.setSamples(4)
+            self._openGL_viewport = QtOpenGLWidgets.QOpenGLWidget(self)
+            self._openGL_viewport.setFormat(self._format)
+            self._openGL_viewport.setMouseTracking(True)
+            self.setViewport(self._openGL_viewport)
+
+        return
 
     # Initialize zoom animation
     def _init_zoom_animation(self):
@@ -119,7 +150,7 @@ class Viewer(QtWidgets.QGraphicsView):
     def wheelEvent(self, event, /):
 
         delta = event.angleDelta().y()
-        delta = self._zoom.exp ** (delta / 100.0)
+        delta = self._zoom.zoom_exp ** (delta / 100.0)
 
         self.execute_zoom(
             delta, event.deviceType() == QtGui.QInputDevice.DeviceType.Mouse
@@ -184,7 +215,7 @@ class Viewer(QtWidgets.QGraphicsView):
 
         # Calculate the target zoom level:
         target = self._zoom.scale * factor
-        target = max(self._zoom.min, min(self._zoom.max, target))
+        target = max(self._zoom.zoom_min, min(self._zoom.zoom_max, target))
 
         # Set up and start the animation:
         if animate:
