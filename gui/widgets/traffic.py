@@ -70,8 +70,8 @@ class TrafficLights(QtWidgets.QToolBar):
 
         # Button attribute(s):
         default = "ph.circle-fill"
-        hovered = "ph.plus-circle-fill"
-        color = "green"
+        hovered = "ph.minus-circle-fill"
+        color = "#ffcb00"
 
         # Add icon button
         button = self.addAction(icon(default, color=color, active=hovered), "Maximize")
@@ -84,8 +84,8 @@ class TrafficLights(QtWidgets.QToolBar):
 
         # Button attribute(s):
         default = "ph.circle-fill"
-        hovered = "ph.minus-circle-fill"
-        color = "#ffcb00"
+        hovered = "ph.x-circle-fill"
+        color = "#ef6f6c"
 
         # Add icon button
         button = self.addAction(icon(default, color=color, active=hovered), "Close")

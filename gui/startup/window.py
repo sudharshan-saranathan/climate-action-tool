@@ -84,8 +84,9 @@ class StartupWindow(QtWidgets.QDialog):
             A QLabel displaying the application title and tagline with centered alignment.
         """
         header = QtWidgets.QLabel(
-            '<span style="color:white; font-family: Bilbo; font-size:30pt;">Climate Action Tool</span><br>'
-            '<span style="color:gray; font-weight: bold; font-size: 8pt;">Energy Systems Modeling Platform</span>',
+            '<span style="color:white; font-family: Bitcount; font-size:56pt;">Clim</span>'
+            '<span style="color:darkcyan; font-family: Bitcount; font-size:56pt;">Act</span><br>'
+            '<span style="color:gray; font-weight: bold; font-size: 12pt;">Energy Systems Modeling Platform</span>',
             self,
             alignment=QtCore.Qt.AlignmentFlag.AlignCenter,
         )

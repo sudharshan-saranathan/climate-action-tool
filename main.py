@@ -17,6 +17,7 @@ from dataclasses import field
 from dataclasses import dataclass
 
 # Climact
+import rsrc
 from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
@@ -65,9 +66,9 @@ class ClimateActionTool(QtWidgets.QApplication):
         self._rsrc = ClimateActionTool.Resources()
         self._geom = ClimateActionTool.Geometric()
 
-        image = self._rsrc.image  # The application's taskbar logo
-        theme = self._rsrc.theme  # Path to the QSS stylesheet
-        bezel = self._geom.margin
+        image = self._rsrc.image  # The application's taskbar logo.
+        theme = self._rsrc.theme  # Path to the QSS stylesheet.
+        bezel = self._geom.margin  #
         fonts = QtCore.QDir(self._rsrc.fonts)
 
         # Compute window geometry by padding screen bounds (primary screen only)
@@ -100,6 +101,9 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         else:
             sys.exit(0)
+
+    def _init_geometry(self):
+        pass
 
     def _init_args(self) -> None:
         """
@@ -136,6 +140,8 @@ class ClimateActionTool(QtWidgets.QApplication):
         font_list = path.entryList(["*.ttf"])
         font_size = 12 if platform.system().lower() == "darwin" else 8
 
+        print(font_list)
+
         # Load fonts
         for font in font_list:
             path = f":/fonts/{font}"
@@ -151,10 +157,6 @@ class ClimateActionTool(QtWidgets.QApplication):
         :param path: Path to the QSS stylesheet file.
         :return: None
         """
-
-        if not path.endswith(".qss"):
-            logging.warning(f"Unable to apply theme {path}. Using system default.")
-            return
 
         theme = QtCore.QFile(path)
         state = theme.open(QtCore.QFile.OpenModeFlag.ReadOnly)
@@ -180,9 +182,8 @@ class ClimateActionTool(QtWidgets.QApplication):
         result: int = startup.result()
         return result
 
-    @property
-    def options(self) -> Style:
-        return self._style
+    def resources(self):
+        return self._rsrc
 
 
 def main() -> None:
