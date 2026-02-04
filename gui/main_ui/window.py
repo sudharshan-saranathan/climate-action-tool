@@ -13,7 +13,7 @@ from __future__ import annotations
 from qtawesome import icon as qta_icon
 from PySide6 import QtCore, QtGui, QtWidgets
 from gui.widgets import ToolBar
-from gui.widgets import Lights
+from gui.widgets import TrafficLights
 import dataclasses
 
 
@@ -95,7 +95,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Installs event filter for window dragging via the menubar.
         """
         # Create and configure the traffic lights widget
-        self._lights = Lights(self)
+        self._lights = TrafficLights(self)
         self._lights.sig_minimize_clicked.connect(self.showMinimized)
         self._lights.sig_maximize_clicked.connect(self._on_maximize)
         self._lights.sig_close_clicked.connect(self.close)
