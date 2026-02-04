@@ -22,6 +22,8 @@ class ToolBar(QtWidgets.QToolBar):
     and trailing/leading action alignment relative to a spacer.
     """
 
+    sig_action_triggered = QtCore.Signal(str)
+
     @dataclasses.dataclass(frozen=True)
     class Options:
         """
@@ -106,16 +108,19 @@ class ToolBar(QtWidgets.QToolBar):
         Add actions to the toolbar.
 
         Each action is created from a tuple of (icon, label, callback).
-        Any malformed tuples are silently skipped with an error message.
+        Emits sig_action_triggered with the action label when triggered.
 
         Args:
             actions: List of (icon, label, callback) tuples where:
                 - icon: QIcon object for the action
                 - label: Text label for the action
-                - callback: Callable invoked when action is triggered
+                - callback: Callable invoked when action is triggered (can be None)
         """
         try:
             for icon, label, callback in actions:
-                self.addAction(icon, label, callback)
+                action = self.addAction(icon, label)
+                action.triggered.connect(lambda _, lbl=label: self.sig_action_triggered.emit(lbl))
+                if callback:
+                    action.triggered.connect(callback)
         except (RuntimeError, IndexError, ValueError) as e:
             print(f"Error adding actions to toolbar: {e}")

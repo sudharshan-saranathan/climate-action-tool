@@ -72,7 +72,6 @@ QStackedWidget {    /* Default appearance of stacked widgets */
 QLabel {
     background                  : transparent;
     color                       : #efefef;
-    padding                     : 2px;
 }
 
 QFrame {

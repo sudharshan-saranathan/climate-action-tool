@@ -188,8 +188,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def _init_panels(self):
 
         # Required
-        from gui.widgets.dock import Sidebar
-        from gui.main_ui.panels.setting import Preferences
+        from gui.widgets.dock import Dock
+        from gui.main_ui.panels import UpperPanel, LowerPanel
 
         lower_title = str()
         upper_title = """
@@ -197,11 +197,11 @@ class MainWindow(QtWidgets.QMainWindow):
         <span style='font-family: Bitcount; font-size: 32pt; color: darkcyan'>Act</span>
         """
 
-        upper_panel = Preferences()
-        lower_panel = QtWidgets.QTableWidget()
+        upper_panel = UpperPanel(self)
+        lower_panel = LowerPanel(self)
 
-        upper_dock = Sidebar(upper_title, upper_panel, parent=self)
-        lower_dock = Sidebar(lower_title, lower_panel, parent=self)
+        upper_dock = Dock(upper_title, upper_panel, parent=self)
+        lower_dock = Dock(lower_title, lower_panel, parent=self)
 
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, upper_dock)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, lower_dock)
