@@ -9,7 +9,6 @@
     <!-- Fonts -->
     <file alias="Bitcount-Regular.ttf">assets/fonts/Bitcount/static/Bitcount-Regular.ttf</file>
     <file alias="FiraCode-Regular.ttf">assets/fonts/Fira_Code/static/FiraCode-Regular.ttf</file>
-    <file alias="FiraCode-Bold.ttf">assets/fonts/Fira_Code/static/FiraCode-Bold.ttf</file>
     <file alias="MarckScript-Regular.ttf">assets/fonts/Marck/MarckScript-Regular.ttf</file>
     <file alias="Marmelad-Regular.ttf">assets/fonts/Marmelad/Marmelad-Regular.ttf</file>
     <file alias="Bilbo-Regular.ttf">assets/fonts/Bilbo/Bilbo-Regular.ttf</file>

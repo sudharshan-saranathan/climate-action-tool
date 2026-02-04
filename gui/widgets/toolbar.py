@@ -11,6 +11,7 @@ and support for custom styling.
 
 import dataclasses
 from PySide6 import QtCore
+from PySide6 import QtGui
 from PySide6 import QtWidgets
 
 
@@ -31,11 +32,12 @@ class ToolBar(QtWidgets.QToolBar):
 
         Attributes:
             iconSize: QSize for toolbar icons (default: 16x16).
-            floatable: Whether toolbar can float as a separate window (default: False).
+            floatable: Whether the toolbar can float as a separate window (default: False).
             trailing: Position actions after spacer (True) or before (False) (default: True).
             movable: Whether toolbar can be repositioned (default: False).
             orientation: Toolbar orientation - Horizontal or Vertical (default: Horizontal).
             toolButtonStyle: Button display style - IconOnly, TextOnly, or TextBesideIcon (default: IconOnly).
+            enable_counting: Enable counter on actions for left/right click increment/decrement (default: False).
         """
         iconSize: QtCore.QSize = QtCore.QSize(16, 16)
         floatable: bool = False
@@ -45,6 +47,7 @@ class ToolBar(QtWidgets.QToolBar):
         toolButtonStyle: QtCore.Qt.ToolButtonStyle = (
             QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly
         )
+        enable_counting: bool = False
 
     def __init__(self, parent=None, **kwargs):
         """
@@ -59,6 +62,7 @@ class ToolBar(QtWidgets.QToolBar):
                 - movable: Whether toolbar can be moved (default: False)
                 - orientation: Toolbar orientation (default: Horizontal)
                 - toolButtonStyle: Button style (default: IconOnly)
+                - enable_counting: Enable counter on actions (default: False)
                 - style: Custom stylesheet (default: "")
                 - actions: List of (icon, label, callback) tuples (default: [])
         """
@@ -72,16 +76,26 @@ class ToolBar(QtWidgets.QToolBar):
             toolButtonStyle=kwargs.get(
                 "toolButtonStyle", QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly
             ),
+            enable_counting=kwargs.get("enable_counting", False),
         )
+
+        # If counting is enabled, force TextUnderIcon style
+        tool_button_style = self._opts.toolButtonStyle
+        if self._opts.enable_counting:
+            tool_button_style = QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon
 
         super().__init__(
             parent,
             movable=self._opts.movable,
             floatable=self._opts.floatable,
             orientation=self._opts.orientation,
-            toolButtonStyle=self._opts.toolButtonStyle,
+            toolButtonStyle=tool_button_style,
             iconSize=self._opts.iconSize,
         )
+
+        # Initialize counter storage for actions
+        self._action_counters = {}
+        self._action_labels = {}
 
         style = kwargs.get("style", "")
         actions = kwargs.get("actions", [])
@@ -101,6 +115,10 @@ class ToolBar(QtWidgets.QToolBar):
             self.add_actions(actions)
             self.addWidget(spacer)
 
+        # Install event filter for right-click handling if counting is enabled
+        if self._opts.enable_counting:
+            self.installEventFilter(self)
+
         self.setStyleSheet(style)
 
     def add_actions(self, actions: list) -> None:
@@ -119,8 +137,50 @@ class ToolBar(QtWidgets.QToolBar):
         try:
             for icon, label, callback in actions:
                 action = self.addAction(icon, label)
-                action.triggered.connect(lambda _, lbl=label: self.sig_action_triggered.emit(lbl))
+
+                # Store original label and initialize counter if counting is enabled
+                if self._opts.enable_counting:
+                    self._action_labels[action] = label
+                    self._action_counters[action] = 0
+                    self._update_action_text(action)
+
+                    # Connect to handle increment on left-click
+                    action.triggered.connect(
+                        lambda _, act=action: self._on_action_increment(act)
+                    )
+                else:
+                    action.triggered.connect(lambda _, lbl=label: self.sig_action_triggered.emit(lbl))
+
                 if callback:
                     action.triggered.connect(callback)
         except (RuntimeError, IndexError, ValueError) as e:
             print(f"Error adding actions to toolbar: {e}")
+
+    def _on_action_increment(self, action: QtWidgets.QAction) -> None:
+        """Increment counter for an action and update its text."""
+        self._action_counters[action] += 1
+        self._update_action_text(action)
+        self.sig_action_triggered.emit(self._action_labels[action])
+
+    def _update_action_text(self, action: QtWidgets.QAction) -> None:
+        """Update action text to show counter."""
+        original_label = self._action_labels[action]
+        count = self._action_counters[action]
+        action.setText(f"{original_label}\n(x{count})")
+
+    def eventFilter(self, obj, event: QtCore.QEvent) -> bool:
+        """Handle right-click on toolbar buttons to decrement counter."""
+        if not self._opts.enable_counting:
+            return super().eventFilter(obj, event)
+
+        if event.type() == QtCore.QEvent.Type.MouseButtonRelease:
+            mouse_event = event
+            if mouse_event.button() == QtCore.Qt.MouseButton.RightButton:
+                # Find which action was clicked
+                action = self.actionAt(self.mapFromGlobal(QtGui.QCursor.pos()))
+                if action and action in self._action_counters:
+                    self._action_counters[action] = max(0, self._action_counters[action] - 1)
+                    self._update_action_text(action)
+                    return True
+
+        return super().eventFilter(obj, event)

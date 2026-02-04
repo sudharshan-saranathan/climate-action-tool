@@ -48,6 +48,8 @@ class ComboBox(QtWidgets.QComboBox):
     Custom combo box widget with enhanced styling and icon support.
     """
 
+    sig_item_added = QtCore.Signal(str)  # Emitted when a new item is added
+
     def __init__(self, parent=None, **kwargs):
         """
         Initialize the custom combo box widget.
@@ -88,6 +90,9 @@ class ComboBox(QtWidgets.QComboBox):
             else:
                 self.addItem(item)
 
+        # Track item count to detect new additions
+        self._item_count = self.count()
+
         # Connect the editor's signal
         if editor := self.lineEdit():
             editor.returnPressed.connect(self._confirm_addition)
@@ -95,15 +100,28 @@ class ComboBox(QtWidgets.QComboBox):
         self.currentIndexChanged.connect(lambda: self.clearFocus())
 
     def _confirm_addition(self):
-        """Shows a visual confirmation when an item is added to an editable combo box."""
+        """Shows a visual confirmation when a new item is added to an editable combo box."""
 
         if not self.isEditable():
             return
 
         editor = self.lineEdit()
-        action = QtGui.QAction(qta_icon("mdi.check-bold", color="cyan"), "", self)
-        editor.addAction(action, QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
+        string = editor.text().strip()
 
-        # Remove the action after 1 second and remove focus
-        QtCore.QTimer.singleShot(1000, action.deleteLater)
-        QtCore.QTimer.singleShot(1000, lambda: editor.clearFocus())
+        # Check if item count increased (Qt added a new item)
+        if self.count() > self._item_count:
+            # Show visual confirmation
+            action = QtGui.QAction(qta_icon("mdi.check-bold", color="cyan"), "", self)
+            editor.addAction(
+                action, QtWidgets.QLineEdit.ActionPosition.TrailingPosition
+            )
+
+            # Remove the action after 1 second and remove focus
+            QtCore.QTimer.singleShot(1000, action.deleteLater)
+            QtCore.QTimer.singleShot(1000, lambda: editor.clearFocus())
+
+            # Emit signal only when item is actually new
+            self.sig_item_added.emit(string)
+
+        # Update the count for next time
+        self._item_count = self.count()

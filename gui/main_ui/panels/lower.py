@@ -66,16 +66,28 @@ class LowerPanel(QtWidgets.QListWidget):
         header_item = QtWidgets.QListWidgetItem(icon, "Built-in Resources", self)
         header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
         header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
-        header_item.setSizeHint(QtCore.QSize(0, 40))
+        header_item.setSizeHint(QtCore.QSize(0, 28))
+
         return header_item
 
     def _create_second_header_item(self):
+
+        # Required
+        from gui.widgets.toolbar import ToolBar
 
         icon = qta_icon("ph.list-fill", color="white")
         header_item = QtWidgets.QListWidgetItem(icon, "Custom Resources", self)
         header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
         header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
         header_item.setSizeHint(QtCore.QSize(0, 28))
+
+
+        toolbar = ToolBar(self, trailing=True, actions=[
+            (qta_icon("mdi.minus", color="gray", active_color="white"), "Delete", self._execute),
+            (qta_icon("mdi.plus", color="gray", active_color="white"), "Add", self._execute),
+        ])
+
+        self.setItemWidget(header_item, toolbar)
         return header_item
 
     def add_items(self, flows: dict, editable=False, selectable=False):

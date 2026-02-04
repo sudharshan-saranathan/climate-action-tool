@@ -238,11 +238,11 @@ QTabWidget::tab-bar {                                      /* Tab bar style */
 }
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
-    height                      : 32px;
+    height                      : 24px;
     color                       : white;
     width                       : 100px;
     background                  : transparent;
-    border-radius               : 4px;
+    border-radius               : 2px;
     border                      : none;
     padding                     : 0px 8px 0px 8px;
     margin                      : 4px 4px 4px 0px;
@@ -329,37 +329,21 @@ QToolBar#traffic-lights QToolButton:hover {
  -- QToolButton customization
     The following section customizes the appearance of standalone QToolButton widgets
     (outside of toolbars). It defines styles for normal, hover, pressed, and checked states.
+*/
 
 QToolButton {
     background                  : transparent;
     border-radius               : 4px;
     padding                     : 2px;
     color                       : white;
-    border                      : 1px solid transparent;
     outline                     : 0px;
 }
 
-QToolButton:hover {
-    background                  : #4a556d;
-    border                      : 1px solid #5a6580;
-    outline                     : 0px;
-}
-
-QToolButton:pressed {
-    background                  : #3d4a5a;
-    border                      : 1px solid #5a6580;
-}
-
-QToolButton:checked {
-    background                  : #547778;
-    border                      : 1px solid #ffcb00;
-}
-
-QToolButton:disabled {
-    color                       : #5a5a5a;
+QToolButton::menu-indicator {
     background                  : transparent;
+    width                       : 0px;
+    image                       : none;
 }
-*/
 
 /*
 ------------------------------------------------------------------------------------------------------------------------
@@ -504,6 +488,12 @@ QTableWidget {
     margin                      : 0px;
 }
 
+QTableWidget QComboBox,
+QTableWidget QLineEdit
+{
+    margin                      : 2px;
+}
+
 QTableWidget QTableCornerButton::section {
     background                  : transparent;
     border                      : none;
@@ -573,7 +563,7 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-li
 
 QComboBox {
     color                           : white;
-    height                          : 24px;
+    height                          : 20px;
     border-radius                   : 4px;
     background                      : #4a556d;
     padding                         : 0px 2px 0px 2px;

@@ -73,6 +73,9 @@ class VertexItem(QtWidgets.QGraphicsObject):
             pos=kwargs.get("pos", QtCore.QPointF()),
         )
 
+        # Configuration widget:
+        self._config = VertexConfig(self)
+
         self._init_flags()
         self._init_attrs()
         self._init_label()
@@ -80,9 +83,6 @@ class VertexItem(QtWidgets.QGraphicsObject):
         self._allow_cloning: bool = kwargs.get("allow_cloning", True)
         self._outgoing_enabled: bool = kwargs.get("outgoing_enabled", True)
         self._incoming_enabled: bool = kwargs.get("incoming_enabled", True)
-
-        # Configuration widget:
-        self._config = VertexConfig()
 
     def _init_flags(self):
         """Initialize this item's flags."""
@@ -191,7 +191,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         bus = EventsBus.instance()
         bus.sig_item_focused.emit(self)
 
-        code = self._config.open()
+        self._config.open()
 
     def hoverEnterEvent(self, event):
         self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
@@ -276,13 +276,14 @@ class VertexItem(QtWidgets.QGraphicsObject):
     def rename(self, text: str):
         """Rename the vertex."""
 
-        self._attr.label = text
         self.setObjectName(text)
+        self._attr.label = text
+        self._config.set_label_text(text)
 
     def importers(self) -> set[QtWidgets.QGraphicsObject]:
         """The set of vertices that import from this vertex."""
         return set([vertex for vertex in self._connections.outgoing.keys()])
 
-    def exporters(self):
+    def exporters(self) -> set[QtWidgets.QGraphicsObject]:
         """The set of vertices that export to this vertex."""
         return set([vertex for vertex in self._connections.incoming.keys()])
