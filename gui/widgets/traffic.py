@@ -48,7 +48,10 @@ class TrafficLights(QtWidgets.QToolBar):
         self._init_close_button()
 
         # Use a blank stylesheet:
-        self.setStyleSheet("QToolBar QToolButton {background: transparent;}")
+        self.setStyleSheet(
+            "QToolBar {padding: 0px; margin: 0px;}"
+            "QToolBar QToolButton {background: transparent; margin: 0px; padding: 0px;}"
+        )
 
     def _init_maximize_button(self):
 

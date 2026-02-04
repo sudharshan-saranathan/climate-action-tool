@@ -85,34 +85,29 @@ class TabWidget(QtWidgets.QTabWidget):
         )
 
         # Set up keyboard shortcuts for tab management
-        self._new_tab_shortcut = QtGui.QShortcut(
-            QtGui.QKeySequence("Ctrl+T"), self, self.new_tab
-        )
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+T"), self, self.new_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.del_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Left"), self, self._go_to_previous_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Right"), self, self._go_to_next_tab)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+R"), self, self.rename_tab)
 
-        self._setup_corner_toolbar()
-        self._new_tab_shortcut.activated.emit()
+        self._init_corner_widget()
 
     def new_tab(
         self,
         widget: QtWidgets.QWidget = None,
-        icon: QtGui.QIcon = qta_icon("mdi.tab", color="#efefef"),
-        label: str = None,
+        icon: QtGui.QIcon = QtGui.QIcon(),
+        label: str = str(),
     ) -> None:
-        """
-        Create a new tab with the given widget.
+        """Create a new tab with the given widget.
 
-        Adds a new tab to the tab widget with the specified content, icon, and label.
-        If no label is provided, a default label is generated based on the tab count.
+        :param widget: The widget to display in the new tab.
+        :param icon: The icon to display in the tab (optional).
+        :param label: The label text for the tab (optional, default: "Tab N").
 
-        Args:
-            widget: The widget to display in the new tab.
-            icon: The icon to display in the tab (optional).
-            label: The label text for the tab (optional, default: "Tab N").
         """
+
+        # Required
         from gui.widgets.viewer import Viewer
         from gui.graph.canvas import Canvas
 
@@ -127,7 +122,7 @@ class TabWidget(QtWidgets.QTabWidget):
                 dragMode=QtWidgets.QGraphicsView.DragMode.NoDrag,
                 viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
                 renderHints=QtGui.QPainter.RenderHint.Antialiasing,
-                backgroundBrush=QtGui.QBrush(QtGui.QColor(0xFFFFFF)),
+                backgroundBrush=QtGui.QBrush(QtGui.QColor(0xEFEFEF)),
                 sceneRect=QtCore.QRectF(0, 0, 5000, 5000),
             )
 
@@ -138,11 +133,10 @@ class TabWidget(QtWidgets.QTabWidget):
         """
         Delete the tab at the specified index.
 
-        Removes a tab from the tab widget. If no index is provided, the currently active tab is deleted.
-
-        Args:
-            index: The index of the tab to delete (optional, default: current tab).
+        :param index: The index of the tab to delete (optional, default: current tab).
+        :return None:
         """
+
         index = index or self.currentIndex()
         self.removeTab(index)
 
@@ -150,13 +144,12 @@ class TabWidget(QtWidgets.QTabWidget):
         """
         Rename the tab at the specified index.
 
-        Changes the label of a tab. If no label is provided, a dialog is shown to prompt the user
-        for a new name. If no index is provided, the currently active tab is renamed.
-
-        Args:
-            index: The index of the tab to rename (optional, default: current tab).
-            label: The new label for the tab (optional, default: prompt user with dialog).
+        :param index: The index of the tab to rename (optional, default: current tab).
+        :param label: The new label for the tab (optional, default: prompt user with dialog).
+        :return None:
         """
+
+        # If no index is specified, use currentIndex()
         index = index or self.currentIndex()
 
         if index < 0 or index >= self.count():
@@ -176,13 +169,11 @@ class TabWidget(QtWidgets.QTabWidget):
 
         self.setTabText(index, label)
 
-    def _setup_corner_toolbar(self) -> None:
+    def _init_corner_widget(self) -> None:
         """
         Create and configure the corner toolbar.
-
-        Adds a toolbar to the top-right corner with a "New Tab" action button.
-        The toolbar is non-floatable and non-movable.
         """
+
         actions = [
             (
                 qta_icon("mdi.plus", color="gray", color_active="white"),
@@ -198,15 +189,16 @@ class TabWidget(QtWidgets.QTabWidget):
             floatable=False,
             movable=False,
         )
+
         toolbar.addWidget(
-            find := QtWidgets.QLineEdit(
+            finder := QtWidgets.QLineEdit(
                 parent=toolbar,
                 placeholderText="Find",
                 clearButtonEnabled=True,
             )
         )
-        find.setObjectName("Search-Input")
-        find.returnPressed.connect(self._find)
+        finder.setObjectName("finder")
+        finder.returnPressed.connect(self._find)
 
         self.setCornerWidget(toolbar, QtCore.Qt.Corner.TopRightCorner)
 
@@ -247,3 +239,16 @@ class TabWidget(QtWidgets.QTabWidget):
                     item.setSelected(True)
 
         finder.clear()
+
+    def paintEvent(self, event: QtGui.QPaintEvent) -> None:
+
+        indx = self.currentIndex()
+        rect = self.tabBar().tabRect(indx)
+        rect = rect.adjusted(0, 12, -4, 4)
+
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setBrush(QtGui.QBrush(QtGui.QColor(0xEFEFEF)))
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.drawRect(rect)
+        painter.end()

@@ -72,7 +72,7 @@ QStackedWidget {    /* Default appearance of stacked widgets */
 QLabel {
     background                  : transparent;
     color                       : #efefef;
-    text-align                  : center;
+    padding                     : 2px;
 }
 
 QFrame {
@@ -177,13 +177,13 @@ QMenuBar {          /* Default appearance of all widgets */
 QMenuBar::item {   /* Menu bar item style */
     background                  : transparent;
     padding                     : 2px 6px 2px 2px;
-    margin                      : 2px 6px 2px 4px;
+    margin                      : 2px 6px 2px 2px;
     border                      : none;
+    color                       : gray;
 }
 
 QMenuBar::item:hover, QMenuBar::item:selected { /* Hover effect for menu bar items */
-    padding                     : 2px 6px 1px 2px;
-    border-bottom               : 2px solid #ffcb00;
+    color                       : white;
 }
 
 /*
@@ -229,31 +229,35 @@ QDockWidget::title {                           /* Dock widget title bar style */
 */
 
 QTabWidget::pane {                              /* Tab pane style */
-    background                  : #232a2e;
+    background                  : #363e41;
     border-radius               : 4px;
 }
 
-QTabWidget QTabBar {                                      /* Tab bar style */
+QTabWidget::tab-bar {                                      /* Tab bar style */
     background                  : transparent;
-    padding                     : 4px 2px 4px 2px;
-    left                        : 2px;
+    left                        : 0px;
 }
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
-    height                      : 20px;
-    width                       : 120px;
-    color                       : gray;
+    height                      : 32px;
+    color                       : white;
+    width                       : 100px;
     background                  : transparent;
     border-radius               : 4px;
     border                      : none;
-    padding                     : 2px;
+    padding                     : 0px 8px 0px 8px;
     margin                      : 4px 4px 4px 0px;
+    left                        : 0px;
 }
 
-QTabBar::tab:hover, QTabBar::tab:selected {                         /* Style for the selected tab */
-    background                  : #393e41;
-    color                       : white;
+QTabBar::tab:hover {                         /* Style for the selected tab */
+    background                  : #363e41;
+    color                       : #efefef;
+}
 
+QTabBar::tab:selected {
+    background                  : #efefef;
+    color                       : #363e41;
 }
 
 QTabBar::close-button { /* Close button style */
@@ -284,17 +288,16 @@ QToolBar {                                      /* Navigation bar style */
     background                  : transparent;
     border                      : none;
     margin                      : 1px;
-    padding                     : 0px;
+    padding                     : 4px;
 }
 
 QToolBar QToolButton {
     background                  : transparent;
     border-radius               : 4px;
-    padding                     : 0px;
-    margin                      : 0px;
+    margin                      : 0px 4px 4px 4px;
     color                       : white;
 }
-/*
+
 QToolBar QToolButton:hover {
     background                  : #4a556d;
 }
@@ -306,7 +309,6 @@ QToolBar QToolButton:pressed {
 QToolBar QToolButton:checked {
     background                  : lightslategray;
 }
-*/
 
 QToolBar::separator {
     width                       : 2px;
@@ -640,7 +642,7 @@ QInputDialog QLineEdit {
 QTextEdit {
     background                  : #40474d;
     color                       : white;
-    padding                     : 2px;
+    padding                     : 2px;Q
     border-radius               : 4px;
 }
 
@@ -652,17 +654,9 @@ QTextEdit:focus {
 
 QLineEdit {
     background                  : #40474d;
-    height                      : 24px;
     color                       : white;
-    padding                     : 1px;
     border-radius               : 4px;
-}
-
-QLineEdit:focus {
-    padding-bottom              : 0px;
-    border-bottom               : 2px solid #ffcb00;
-    border-bottom-left-radius   : 0px;
-    border-bottom-right-radius  : 0px;
+    height                      : 24px;
 }
 
 /*

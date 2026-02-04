@@ -1,6 +1,6 @@
 # Filename: window.py
 # Module name: main_ui
-# Description: Main window interface for the Climate Action Tool.
+# Description: The main UI of Climact.
 
 """
 Main window interface for the Climate Action Tool.
@@ -11,10 +11,22 @@ Implemented as a singleton to ensure only one window instance exists.
 
 from __future__ import annotations
 from qtawesome import icon as qta_icon
-from PySide6 import QtCore, QtGui, QtWidgets
+
+
+# PySide6 (Python/Qt)
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+
+
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
+
+
+# Climact
 from gui.widgets import ToolBar
 from gui.widgets import TrafficLights
-import dataclasses
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -25,22 +37,29 @@ class MainWindow(QtWidgets.QMainWindow):
     and statusbar. Implemented as a singleton to ensure only one window instance exists at any time.
     """
 
-    @dataclasses.dataclass
-    class Options:
-        """
-        Configuration options for the main window.
+    @dataclass
+    class Style:
+        """Default border and background style.
 
         Attributes:
-            border: QPen for window border styling (default: empty pen).
-            background: QBrush for window background color (default: solid dark color).
+            radius: The radius of the rounded corners.
+            border: Default border styling.
+            background: Default background style.
         """
 
-        border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
-        background: QtGui.QBrush = dataclasses.field(
-            default_factory=lambda: QtGui.QBrush(
-                QtGui.QColor(0x232A2E),
-                QtCore.Qt.BrushStyle.SolidPattern,
-            )
+        radius: int = 8
+        border: dict = field(
+            default_factory=lambda: {
+                "color": QtGui.QColor(0x363E41),
+                "width": 1.0,
+            }
+        )
+
+        background: dict = field(
+            default_factory=lambda: {
+                "color": QtGui.QColor(0x232A2E),
+                "brush": QtCore.Qt.BrushStyle.SolidPattern,
+            }
         )
 
     # Singleton instance:
@@ -55,17 +74,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, **kwargs):
         """
-        Initialize the main window.
-
-        Prevents reinitialization by checking the _initialized flag.
+        Initialize the main window. Prevents reinitialization by checking the _initialized flag.
 
         Args:
             **kwargs: Optional initialization arguments (ignored for singleton).
         """
+
         # Prevent reinitialization of the singleton instance:
         if hasattr(self, "_initialized"):
             return
 
+        # Instantiate dataclasses
+        self._style = MainWindow.Style()
+
+        # Initialize super class
         super().__init__()
         super().setObjectName("main-window")
 
@@ -80,10 +102,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self._init_menubar()
         self._init_toolbar()
         self._init_tabview()
+        self._init_panels()
         self._init_status()
 
-        self._options = MainWindow.Options()
-        self._lights = None  # Will be set in _init_menubar
+        # Create an unclosable map viewer
+        self._init_map_view()
+
+        self._traffic = None  # Will be set in _init_menubar
         self._initialized = True
 
     def _init_menubar(self) -> None:
@@ -95,10 +120,10 @@ class MainWindow(QtWidgets.QMainWindow):
         Installs event filter for window dragging via the menubar.
         """
         # Create and configure the traffic lights widget
-        self._lights = TrafficLights(self)
-        self._lights.minimize_clicked.connect(self.showMinimized)
-        self._lights.maximize_clicked.connect(self._on_maximize)
-        self._lights.close_clicked.connect(self.close)
+        self._traffic = TrafficLights(self)
+        self._traffic.minimize_clicked.connect(self.showMinimized)
+        self._traffic.maximize_clicked.connect(self._on_maximize)
+        self._traffic.close_clicked.connect(self.close)
 
         # Configure menubar
         menubar = self.menuBar()
@@ -109,11 +134,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Use the application's custom menu bar and set traffic lights as the corner widget
         menubar.setNativeMenuBar(False)
-        menubar.setCornerWidget(self._lights)
+        menubar.setCornerWidget(self._traffic)
 
         # Install event filter for window dragging via menubar
         menubar.installEventFilter(self)
-        self._lights.installEventFilter(self)
+        self._traffic.installEventFilter(self)
 
     def _init_toolbar(self) -> None:
         """
@@ -130,49 +155,15 @@ class MainWindow(QtWidgets.QMainWindow):
             iconSize=QtCore.QSize(24, 24),
             trailing=False,
             actions=[
-                (
-                    qta_icon("ph.layout-fill", color="#fef9ef"),
-                    "Dock",
-                    self._on_action_triggered,
-                ),
-                (
-                    qta_icon("mdi.folder-plus", color="#ffcb77"),
-                    "Open",
-                    self._on_action_triggered,
-                ),
-                (
-                    qta_icon("mdi.floppy", color="#17c3b2"),
-                    "Save",
-                    self._on_action_triggered,
-                ),
-                (
-                    qta_icon("mdi.language-python", color="#227c9d"),
-                    "Optimize",
-                    self._on_action_triggered,
-                ),
-                (
-                    qta_icon("mdi.chart-box", color="#fe6d73", color_active="#ff3d44"),
-                    "Results",
-                    self._on_action_triggered,
-                ),
+                (qta_icon("ph.layout-fill", color="#fef9ef"), "Dock", self._execute),
+                (qta_icon("ph.folder-fill", color="#ffcb77"), "Open", self._execute),
+                (qta_icon("mdi.function", color="cyan"), "Optimize", self._execute),
+                (qta_icon("mdi.chart-box", color="#fe6d73"), "Results", self._execute),
+                (qta_icon("ph.dots-three", color="#efefef"), "More", self._execute),
             ],
         )
 
         self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar)
-
-    def _init_sidebar(self) -> None:
-        """
-        Initialize the sidebar dock widget.
-
-        Creates a SideBar (QDockWidget subclass) with a ComboBox in the title and QStackedWidget
-        as the main content. Adds it as a left-aligned dock widget and hides it by default.
-        """
-        from gui.sidebar.sidebar import SideBar
-
-        sidebar = SideBar(self)
-        sidebar.hide()
-
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, sidebar)
 
     def _init_tabview(self) -> None:
         """
@@ -194,22 +185,54 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(self._tabs)
 
-        # Show a permanent map tab and make it unclosable:
-        self._tabs.new_tab(
-            QtWidgets.QFrame(), icon=qta_icon("mdi.map", color="lightblue"), label="Map"
-        )
+    def _init_panels(self):
 
-        self._tabs.tabBar().setTabButton(
-            0, QtWidgets.QTabBar.ButtonPosition.RightSide, None
-        )
+        # Required
+        from gui.widgets.dock import Sidebar
+        from gui.main_ui.panels.setting import Preferences
+
+        lower_title = str()
+        upper_title = """
+        <span style='font-family: Bitcount; font-size: 32pt'>Clim</span>
+        <span style='font-family: Bitcount; font-size: 32pt; color: darkcyan'>Act</span>
+        """
+
+        upper_panel = Preferences()
+        lower_panel = QtWidgets.QTableWidget()
+
+        upper_dock = Sidebar(upper_title, upper_panel, parent=self)
+        lower_dock = Sidebar(lower_title, lower_panel, parent=self)
+
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, upper_dock)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, lower_dock)
 
     def _init_status(self) -> None:
         """Initialize the status bar at the bottom of the main window."""
         self._status = QtWidgets.QStatusBar()
         self.setStatusBar(self._status)
 
+    def _init_map_view(self):
+
+        # Required
+        from qtawesome import icon
+        from gui.widgets.viewer import Viewer
+
+        # Show a permanent map tab and make it unclosable:
+        tab_icon = icon("mdi.map", color="#4a556d")
+        position = QtWidgets.QTabBar.ButtonPosition.RightSide
+
+        map_canvas = QtWidgets.QGraphicsScene()
+        map_viewer = Viewer(
+            map_canvas,
+            sceneRect=QtCore.QRectF(0, 0, 5000.0, 5000.0),
+            backgroundBrush=QtGui.QBrush(QtGui.QColor(0xEFEFEF)),
+        )
+
+        self._tabs.new_tab(map_viewer, icon=tab_icon, label="Map")
+        self._tabs.tabBar().setTabButton(0, position, None)
+
     @QtCore.Slot()
-    def _on_action_triggered(self) -> None:
+    def _execute(self) -> None:
         """
         Handle toolbar action button clicks.
 
@@ -382,15 +405,19 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Paint the main window with a rounded rectangle background.
 
-        Args:
-            event: The paint event.
+        :param event: The mouse event.
+        :return: None
         """
+
+        pen = QtGui.QPen(self._style.border["color"], self._style.border["width"])
+        brs = QtGui.QBrush(self._style.background["color"])
+        rad = self._style.radius
+
         painter = QtGui.QPainter(self)
-        painter.save()
+        painter.setBrush(brs)
+        painter.setPen(pen)
+        painter.drawRoundedRect(self.rect(), rad, rad)
+        painter.end()
 
-        painter.setPen(QtCore.Qt.PenStyle.NoPen)
-        painter.setBrush(self._options.background)
-        painter.drawRoundedRect(self.rect(), 8, 8)
-
-        painter.restore()
+        # Call the super's paintEvent()
         super().paintEvent(event)

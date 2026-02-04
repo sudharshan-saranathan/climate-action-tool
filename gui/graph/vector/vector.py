@@ -35,7 +35,7 @@ class VectorItem(QtWidgets.QGraphicsObject):
         self._arrow = Image(":/svg/arrow.svg", parent=self)
         self._style = VectorItem.Style(
             pen={
-                ItemState.NORMAL: QtGui.QPen(QtGui.QColor(0xEFEFEF)),
+                ItemState.NORMAL: QtGui.QPen(QtGui.QColor(0xBEBEBE)),
                 ItemState.SELECTED: QtGui.QPen(QtGui.QColor(0xFFCB00)),
             }
         )
