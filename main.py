@@ -31,33 +31,44 @@ class ClimateActionTool(QtWidgets.QApplication):
     startup_file = None  # User-selected project file to load (if available).
 
     @dataclass(frozen=True)
-    class Style:
-        """Configuration options for the application.
+    class Resources:
+        """Resource paths.
 
         Attributes:
-            image: Path to the application's icon.
+            image: Path to the application's taskbar icon (PNG).
             theme: Path to the application's QSS stylesheet.
             fonts: Path to the application's font directory.
-            bezel: Padding around the window bounds (in pixels).
         """
 
         image: str = ":/logo/logo.png"
         theme: str = ":/theme/dark.qss"
         fonts: str = ":/fonts"
-        bezel: int = 64
+
+    @dataclass(frozen=True)
+    class Geometric:
+        """Geometric attribute(s).
+
+        Attributes:
+            margin: The application's default margin (on all sides)
+            normal: The application's default geometry.
+        """
+
+        margin: int = 64
+        normal: QtCore.QRect = field(default_factory=QtCore.QRect)
 
     def __init__(self):
-        """Initialize the application with style, fonts, and UI components."""
 
         super().__init__(sys.argv)
         super().setObjectName("climate-action-tool")
 
-        # Instantiate application options
-        self._style = ClimateActionTool.Style()
-        image = self._style.image
-        bezel = self._style.bezel
-        theme = self._style.theme
-        fonts = QtCore.QDir(self._style.fonts)
+        # Instantiate dataclasses
+        self._rsrc = ClimateActionTool.Resources()
+        self._geom = ClimateActionTool.Geometric()
+
+        image = self._rsrc.image  # The application's taskbar logo
+        theme = self._rsrc.theme  # Path to the QSS stylesheet
+        bezel = self._geom.margin
+        fonts = QtCore.QDir(self._rsrc.fonts)
 
         # Compute window geometry by padding screen bounds (primary screen only)
         screen = QtWidgets.QApplication.primaryScreen()
