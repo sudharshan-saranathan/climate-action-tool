@@ -14,8 +14,9 @@ from __future__ import annotations
 from qtawesome import icon as qta_icon
 from PySide6 import QtCore, QtWidgets
 
-from core.flow import BasicFlows, ComboFlows, Flow
+from core.flow import BasicFlows, ComboFlows
 from gui.widgets.toolbar import ToolBar
+from gui.widgets.layouts import HLayout
 
 
 class FlowHub(QtWidgets.QListWidget):
@@ -40,13 +41,20 @@ class FlowHub(QtWidgets.QListWidget):
                     "Clear Selection",
                     None,
                 ),
-                (qta_icon("mdi.minus", color="gray", color_active="white"), "Delete", None),
-                (qta_icon("mdi.plus", color="gray", color_active="white"), "Create", None),
+                (
+                    qta_icon("mdi.minus", color="gray", color_active="white"),
+                    "Delete",
+                    None,
+                ),
+                (
+                    qta_icon("mdi.plus", color="gray", color_active="white"),
+                    "Create",
+                    None,
+                ),
             ],
         )
 
-        layout = QtWidgets.QHBoxLayout(header)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout = HLayout(self, widgets=[tools])
         layout.addWidget(tools)
 
         # Add header as first item (non-selectable)
