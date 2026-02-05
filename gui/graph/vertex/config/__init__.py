@@ -13,7 +13,7 @@ from PySide6 import QtWidgets
 
 # Climact
 from gui.widgets.combobox import ComboBox
-from gui.widgets.layouts import GLayout, HLayout
+from gui.widgets.layouts import HLayout
 from gui.graph.vertex.config.stream import Stream
 
 # Dataclass
@@ -50,7 +50,7 @@ class VertexConfig(QtWidgets.QDialog):
 
     @dataclass(frozen=True)
     class Attrs:
-        bounds: QtCore.QSize = field(default_factory=lambda: QtCore.QSize(900, 720))
+        bounds: QtCore.QSize = field(default_factory=lambda: QtCore.QSize(900, 640))
         radius: int = 8
 
     @dataclass(frozen=True)
@@ -84,7 +84,7 @@ class VertexConfig(QtWidgets.QDialog):
         self._dataview = self._init_dataview()
         self._splitter = self._init_splitter()
 
-        HLayout(self, margins=(8, 8, 8, 8), widgets=[self._splitter])
+        HLayout(self, margins=(4, 4, 4, 4), widgets=[self._splitter])
 
     def _init_overview(self) -> QtWidgets.QFrame:
 
@@ -137,6 +137,7 @@ class VertexConfig(QtWidgets.QDialog):
 
         # Page components
         tab = self._create_tab_widget(label)
+        add = self._init_toolbar()
         cnf = QtWidgets.QTableWidget()
         cnf.setMinimumHeight(180)
 
@@ -152,7 +153,7 @@ class VertexConfig(QtWidgets.QDialog):
             frame,
             margins=(0, 0, 0, 0),
             spacing=4,
-            widgets=[tab, cnf],
+            widgets=[tab, add],
         )
 
         return frame
@@ -175,13 +176,38 @@ class VertexConfig(QtWidgets.QDialog):
 
         return menu
 
-    def _create_flow_toolbar(self) -> QtWidgets.QToolBar:
+    def _init_toolbar(self) -> QtWidgets.QToolBar:
 
         # Required
         from gui.widgets.toolbar import ToolBar
+        from core.flow import ComboFlows, Parameters
+
+        left_align = QtCore.Qt.AlignmentFlag.AlignLeft
+        vert_align = QtCore.Qt.AlignmentFlag.AlignVCenter
+        label = QtWidgets.QLabel("Click to add", alignment=left_align | vert_align)
 
         # Instantiate toolbar
-        toolbar = ToolBar(self, trailing=False)
+        button_style = QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly
+        toolbar = ToolBar(
+            self,
+            toolButtonStyle=button_style,
+            iconSize=QtCore.QSize(20, 20),
+        )
+        toolbar.addWidget(label)
+        toolbar.setStyleSheet("QToolButton {padding: 0px; margin: 0px;}")
+        toolbar.addSeparator()
+        for _class in ComboFlows.values():
+            action = toolbar.addAction(_class.Attrs.image, _class.Attrs.label)
+            action.triggered.connect(
+                lambda checked=False, cls=_class: self._on_add_flow(cls)
+            )
+
+        toolbar.addSeparator()
+        for _class in Parameters.values():
+            action = toolbar.addAction(_class.Attrs.image, _class.Attrs.label)
+            action.triggered.connect(
+                lambda checked=False, cls=_class: self._on_add_flow(cls)
+            )
 
         return toolbar
 
@@ -252,16 +278,8 @@ class VertexConfig(QtWidgets.QDialog):
         tab.addTab(Stream(self), icon("mdi.arrow-down", color="gray"), "Inputs")
         tab.addTab(Stream(self), icon("mdi.arrow-up", color="gray"), "Outputs")
         tab.addTab(Stream(self), icon("mdi.alpha", color="#ef6fc6"), "Parameters")
+        tab.addTab(Stream(self), icon("mdi.equal", color="cyan"), "Equations")
 
-        # Create an `Add` button with the flows as menu items
-        menu = self._create_flow_menu()
-        button = QtWidgets.QToolButton(self)
-        button.setIconSize(QtCore.QSize(20, 20))
-        button.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
-        button.setIcon(icon("mdi.plus", color="lightblue", color_active="white"))
-        button.setMenu(menu)
-
-        tab.setCornerWidget(button, QtCore.Qt.Corner.TopRightCorner)
         return tab
 
     @QtCore.Slot(str)
@@ -269,12 +287,13 @@ class VertexConfig(QtWidgets.QDialog):
         self._label.setText(text)
 
     def paintEvent(self, event):
-        """
+
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
         pen = QtGui.QPen(self._style.border["color"], self._style.border["width"])
         brs = QtGui.QBrush(self._style.background["color"])
+        brs.setTexture(QtGui.QPixmap(self._style.mosaic))
 
         painter.setPen(pen)
         painter.setBrush(brs)
@@ -283,6 +302,5 @@ class VertexConfig(QtWidgets.QDialog):
             self._attrs.radius,
             self._attrs.radius,
         )
-        """
 
         super().paintEvent(event)

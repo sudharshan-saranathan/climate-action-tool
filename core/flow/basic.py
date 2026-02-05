@@ -76,7 +76,7 @@ class MassFlow(Flow):
         keyID: ClassVar[str] = "mass_flow"
         color: ClassVar[str] = "#78cad2"
         label: ClassVar[str] = "Mass"
-        units: ClassVar[list[str]] = ["grams", "kgs", "tonnes", "MTs"]
+        units: ClassVar[list[str]] = ["gms", "kgs", "tons", "MTs"]
         image: ClassVar[QtGui.QIcon] = icon("mdi.weight-gram", color="#78cad2")
 
 
