@@ -21,11 +21,7 @@ COL_FLOW = 0
 COL_UNIT = 1
 COL_NAME = 2
 COL_SYMBOL = 3
-COL_MIN = 4
-COL_MAX = 5
-COL_VALUE = 6
-COL_FORMULA = 7
-COL_ACTIONS = 8
+COL_ACTIONS = 4
 
 
 class ConfigWidget(QtWidgets.QTreeWidget):
@@ -33,7 +29,7 @@ class ConfigWidget(QtWidgets.QTreeWidget):
     A tree widget for managing data streams with expandable parameter children.
 
     Columns:
-        Flow | Unit | Name | Symbol | Minimum | Maximum | Value | Formula | Actions
+        Flow | Unit | Name | Symbol | Actions
     """
 
     sig_delete_stream = QtCore.Signal(int)
@@ -48,10 +44,6 @@ class ConfigWidget(QtWidgets.QTreeWidget):
                 "Unit",
                 "Name",
                 "Symbol",
-                "Minimum",
-                "Maximum",
-                "Value",
-                "Formula",
                 "Actions",
             ]
         )
@@ -69,7 +61,7 @@ class ConfigWidget(QtWidgets.QTreeWidget):
         self.setHeaderLabels(self._attrs.columns)
         self.setRootIsDecorated(True)
         self.setUniformRowHeights(True)
-        self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.MultiSelection)
+        self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QtWidgets.QTreeWidget.SelectionBehavior.SelectRows)
 
         _fixed = QtWidgets.QHeaderView.ResizeMode.Fixed
@@ -78,31 +70,21 @@ class ConfigWidget(QtWidgets.QTreeWidget):
         # Configure column resizing
         header = self.header()
         header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        for col in range(COL_ACTIONS):
-            header.setSectionResizeMode(col, _fixed)
-        header.setSectionResizeMode(COL_ACTIONS, _stretch)
+        header.setSectionResizeMode(COL_FLOW, _stretch)
 
     def add_stream(
         self,
         flow=None,
         name: str = "",
         symbol: str = "",
-        minimum: str = "",
-        current: str = "",
-        maximum: str = "",
-        formula: str = "",
     ) -> QtWidgets.QTreeWidgetItem:
         """
         Add a new stream to the tree.
 
         Args:
-            flow: A Flow instance (carries _attrs, units, params).
+            flow: A Flow instance (carries label, image, units, params).
             name: Custom label for the stream.
             symbol: Symbol for this input.
-            minimum: Minimum value.
-            current: Current value.
-            maximum: Maximum value.
-            formula: Formula or calculation.
 
         Returns:
             The top-level QTreeWidgetItem.
@@ -122,14 +104,7 @@ class ConfigWidget(QtWidgets.QTreeWidget):
         self.setItemWidget(item, COL_UNIT, units_combo)
 
         # Editable text columns
-        for col, text in [
-            (COL_NAME, name),
-            (COL_SYMBOL, symbol),
-            (COL_MIN, minimum),
-            (COL_MAX, maximum),
-            (COL_VALUE, current),
-            (COL_FORMULA, formula),
-        ]:
+        for col, text in [(COL_NAME, name), (COL_SYMBOL, symbol)]:
             item.setText(col, text)
             item.setTextAlignment(col, QtCore.Qt.AlignmentFlag.AlignCenter)
 
@@ -142,22 +117,11 @@ class ConfigWidget(QtWidgets.QTreeWidget):
             child = QtWidgets.QTreeWidgetItem(item)
             child.setText(COL_FLOW, param.label)
             child.setIcon(COL_FLOW, param.image)
-            child.setFlags(
-                child.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable
-                | QtCore.Qt.ItemFlag.ItemIsEditable
-            )
+            child.setFlags(child.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
 
             # Parameter unit combo box
             param_combo = ComboBox(items=param.units)
             self.setItemWidget(child, COL_UNIT, param_combo)
-
-            # Value and Formula are editable for params
-            child.setTextAlignment(COL_VALUE, QtCore.Qt.AlignmentFlag.AlignCenter)
-            child.setTextAlignment(COL_FORMULA, QtCore.Qt.AlignmentFlag.AlignCenter)
-
-            # Disable non-applicable columns for parameters
-            for col in [COL_NAME, COL_SYMBOL, COL_MIN, COL_MAX]:
-                child.setFlags(child.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
 
         # Auto-expand if there are children
         if flow.params:
@@ -186,10 +150,6 @@ class ConfigWidget(QtWidgets.QTreeWidget):
             "unit": unit,
             "name": item.text(COL_NAME),
             "symbol": item.text(COL_SYMBOL),
-            "minimum": item.text(COL_MIN),
-            "maximum": item.text(COL_MAX),
-            "value": item.text(COL_VALUE),
-            "formula": item.text(COL_FORMULA),
             "params": [],
         }
 
@@ -199,12 +159,12 @@ class ConfigWidget(QtWidgets.QTreeWidget):
             child_unit_widget = self.itemWidget(child, COL_UNIT)
             child_unit = child_unit_widget.currentText() if child_unit_widget else ""
 
-            result["params"].append({
-                "flow": child.text(COL_FLOW),
-                "unit": child_unit,
-                "value": child.text(COL_VALUE),
-                "formula": child.text(COL_FORMULA),
-            })
+            result["params"].append(
+                {
+                    "flow": child.text(COL_FLOW),
+                    "unit": child_unit,
+                }
+            )
 
         return result
 

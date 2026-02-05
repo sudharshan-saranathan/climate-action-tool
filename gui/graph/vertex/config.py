@@ -14,7 +14,7 @@ from PySide6 import QtWidgets
 
 # Climact
 from gui.widgets.combobox import ComboBox
-from gui.widgets.layouts import HLayout
+from gui.widgets.layouts import GLayout, HLayout
 from gui.widgets.table import ConfigWidget
 from qtawesome import icon as qta_icon
 
@@ -52,7 +52,7 @@ class VertexConfig(QtWidgets.QDialog):
 
     @dataclass(frozen=True)
     class Attrs:
-        bounds: QtCore.QSize = field(default_factory=lambda: QtCore.QSize(1200, 720))
+        bounds: QtCore.QSize = field(default_factory=lambda: QtCore.QSize(1080, 720))
         radius: int = 8
 
     @dataclass(frozen=True)
@@ -74,30 +74,21 @@ class VertexConfig(QtWidgets.QDialog):
         self._dicts = VertexConfig.Dicts()
 
         # Initialize super class
-        super().__init__(parent)
+        super().__init__(modal=True)
 
         # Customize appearance and behaviour
         self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.resize(self._attrs.bounds)
 
-        # UI components
-        self._stack = QtWidgets.QStackedWidget()  # Stacked widget.
+        # Interface components
+        self._overview = self._init_overview()
+        self._dataview = self._init_dataview()
+        self._splitter = self._init_splitter()
 
-        # Add placeholder widget
-        self._dummy = self._create_placeholder()
-        self._stack.addWidget(self._dummy)
+        HLayout(self, margins=(0, 0, 0, 0), widgets=[self._splitter])
 
-        self._forms = self._init_forms()  # Form layout on the left-hand side.
-
-        # Simple horizontal layout
-        HLayout(
-            self,
-            margins=(8, 4, 8, 8),
-            widgets=[self._forms, self._stack],
-        )
-
-    def _init_forms(self) -> QtWidgets.QFrame:
+    def _init_overview(self) -> QtWidgets.QFrame:
 
         container = QtWidgets.QFrame(self)
         container.setFixedWidth(240)
@@ -121,18 +112,44 @@ class VertexConfig(QtWidgets.QDialog):
 
         return container
 
-    def _create_placeholder(self) -> QtWidgets.QTabWidget:
+    def _init_dataview(self) -> QtWidgets.QStackedWidget:
+
+        dummy = self._create_page()
+        dummy.setObjectName("dummy-page")
+        dummy.setGraphicsEffect(QtWidgets.QGraphicsBlurEffect(dummy, blurRadius=5))
+
+        stack = QtWidgets.QStackedWidget(self)
+        stack.addWidget(dummy)
+
+        return stack
+
+    def _init_splitter(self) -> QtWidgets.QSplitter:
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
+        splitter.addWidget(self._overview)
+        splitter.addWidget(self._dataview)
+
+        return splitter
+
+    def _create_page(self) -> QtWidgets.QFrame:
         """Create a blurred placeholder tab widget shown before any tech is added."""
 
-        # Create using the same structure as real tab widgets
-        tab = self.create_tab_widget("")
-        tab.setDisabled(True)
+        from pyqtgraph import PlotWidget
 
-        # Apply a blur-effect to indicate it's inactive
-        blur_effect = QtWidgets.QGraphicsBlurEffect(tab)
-        blur_effect.setBlurRadius(5)
-        tab.setGraphicsEffect(blur_effect)
-        return tab
+        # Page components
+        tab = self._create_tab_widget("")
+        cnf = QtWidgets.QFrame()
+        plt = PlotWidget(background=QtGui.QColor(0xEFEFEF))
+        plt.setFixedSize(360, 320)
+
+        # Arrange in a grid
+        frame = QtWidgets.QFrame(self)
+        layout = GLayout(frame, margins=(0, 0, 0, 0), spacing=4)
+        layout.addWidget(tab, 0, 0, 1, 2)
+        layout.addWidget(cnf, 1, 0)
+        layout.addWidget(plt, 1, 1)
+
+        return frame
 
     def _create_flow_menu(self) -> QtWidgets.QMenu:
 
@@ -142,6 +159,7 @@ class VertexConfig(QtWidgets.QDialog):
         # Create a menu and add actions
         menu = QtWidgets.QMenu(self)
         for flow_class in AllFlows.values():
+
             instance = flow_class()
             action = menu.addAction(instance.image, instance.label)
             action.triggered.connect(
@@ -175,54 +193,27 @@ class VertexConfig(QtWidgets.QDialog):
 
     def _on_tech_added(self, tech_name: str) -> None:
 
-        if tech_name not in self._dicts.tab_map:
-            # Remove placeholder if this is the first tech
-            if len(self._dicts.tab_map) == 0:
-                self._stack.removeWidget(self._dummy)
-                self._dummy.deleteLater()
-
-            # Create a new configuration widget for the new tech
-            tab_widget = self.create_tab_widget(tech_name)
-            self._dicts.tab_map[tech_name] = tab_widget
-            self._stack.addWidget(tab_widget)
-
-            # Switch to the newly added tech page
-            self._stack.setCurrentWidget(tab_widget)
+        tab_widget = self._create_tab_widget(tech_name)
 
     def _on_tech_changed(self, index: int) -> None:
-        """Handle switching between technology types."""
+        pass
 
-        if index < 0:
-            return
-
-        # Get the tech name from combo and switch the stack
-        technology = self._combo.itemText(index)
-        tab_widget = self._dicts.tab_map.get(technology, None)
-
-        if tab_widget:
-            self._stack.setCurrentWidget(tab_widget)
-
-    def create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
+    def _create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
 
         # Required
         from qtawesome import icon
-        from pyqtgraph import PlotWidget
 
         # Instantiate a tab-widget
         tab = QtWidgets.QTabWidget(self)
 
-        # Create data IO tables for this tech
+        # Create config trees for this tech
         inp_data = ConfigWidget(self)
         out_data = ConfigWidget(self)
         par_data = ConfigWidget(self)
-        equation = QtWidgets.QTextEdit(self)
-        plotting = PlotWidget(self, background=QtGui.QColor(0xEFEFEF))
 
         tab.addTab(inp_data, icon("mdi.arrow-down", color="gray"), "Inputs")
         tab.addTab(out_data, icon("mdi.arrow-up", color="gray"), "Outputs")
         tab.addTab(par_data, icon("mdi.alpha", color="#ef6fc6"), "Parameters")
-        tab.addTab(equation, icon("mdi.equal", color="darkcyan"), "Equations")
-        tab.addTab(plotting, icon("mdi.chart-line", color="pink"), "Plotting")
 
         # Create a tech name label for top-left corner
         tech_label = QtWidgets.QLabel(f"<b>{label}</b>")
