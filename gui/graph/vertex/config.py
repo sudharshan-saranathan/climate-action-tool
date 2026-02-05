@@ -91,8 +91,9 @@ class VertexConfig(QtWidgets.QDialog):
         container = QtWidgets.QFrame(self)
         container.setFixedWidth(240)
 
-        self._label = QtWidgets.QLineEdit("Vertex", self)
         self._combo = ComboBox(editable=True)
+        self._label = QtWidgets.QLineEdit("Vertex", self)
+        self._label.returnPressed.connect(self._on_label_edited)
 
         layout = QtWidgets.QFormLayout(
             container,
@@ -208,6 +209,27 @@ class VertexConfig(QtWidgets.QDialog):
 
         if page:
             self._dataview.setCurrentWidget(page)
+
+    @QtCore.Slot()
+    def _on_label_edited(self):
+
+        # Required
+        from gui.graph.vertex.vertex import VertexItem
+
+        string = self._label.text()
+        vertex = self._vertex()
+
+        if isinstance(vertex, VertexItem):
+            vertex.rename(string)
+
+        # Provide a visual confirmation
+        QtCore.QTimer.singleShot(
+            0, lambda: self._label.setStyleSheet("border: 1px solid green;")
+        )
+        QtCore.QTimer.singleShot(
+            1000, lambda: self._label.setStyleSheet("border: none;")
+        )
+        QtCore.QTimer.singleShot(1000, lambda: self._label.clearFocus())
 
     def _create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
 

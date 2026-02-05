@@ -71,6 +71,10 @@ class DataTree(QtWidgets.QTreeWidget):
         header = self.header()
         header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         header.setSectionResizeMode(COL_FLOW, _stretch)
+        header.setSectionResizeMode(COL_UNIT, _fixed)
+        header.setSectionResizeMode(COL_NAME, _fixed)
+        header.setSectionResizeMode(COL_SYMBOL, _fixed)
+        header.setSectionResizeMode(COL_ACTIONS, _fixed)
 
     def add_stream(
         self,
@@ -122,10 +126,6 @@ class DataTree(QtWidgets.QTreeWidget):
             # Parameter unit combo box
             param_combo = ComboBox(items=param.units)
             self.setItemWidget(child, COL_UNIT, param_combo)
-
-        # Auto-expand if there are children
-        if flow.params:
-            item.setExpanded(True)
 
         return item
 

@@ -211,7 +211,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             "item_shifted": self.item_shifted,
         }
 
-    def connect_to(self, node: QtWidgets.QGraphicsObject) -> VectorItem | None:
+    def connect_to(self, node: VertexItem) -> VectorItem | None:
         """
         Connect this vertex to another.
 
@@ -279,6 +279,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         self.setObjectName(text)
         self._attr.label = text
         self._config.set_label_text(text)
+        self._label.setPlainText(text)
 
     def importers(self) -> set[QtWidgets.QGraphicsObject]:
         """The set of vertices that import from this vertex."""

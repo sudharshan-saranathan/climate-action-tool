@@ -82,7 +82,7 @@ class ItemFlow(Flow):
         kwargs.setdefault("color", "#8a8a8a")
         kwargs.setdefault("label", "Item")
         kwargs.setdefault("image", "mdi.package")
-        units = ["count/year", "count/month", "count/day", "count/hr", "count/s"]
+        units = ["count"]
         super().__init__(units=units, default=units[0], **kwargs)
 
 
@@ -94,18 +94,7 @@ class MassFlow(Flow):
         kwargs.setdefault("color", "#78cad2")
         kwargs.setdefault("label", "Mass")
         kwargs.setdefault("image", "mdi.weight-gram")
-        units = [
-            "kg/year",
-            "kg/month",
-            "kg/day",
-            "kg/hr",
-            "kg/s",
-            "tonne/year",
-            "tonne/month",
-            "tonne/day",
-            "tonne/hour",
-            "tonne/s",
-        ]
+        units = ["grams", "kgs", "tonnes", "MTs"]
         super().__init__(units=units, default=units[0], **kwargs)
 
 
@@ -117,7 +106,7 @@ class EnergyFlow(Flow):
         kwargs.setdefault("color", "#ffa500")
         kwargs.setdefault("label", "Energy")
         kwargs.setdefault("image", "mdi.fire")
-        units = ["kW", "MW", "GW"]
+        units = ["J", "kJ", "MJ", "GJ"]
         super().__init__(units=units, default=units[0], **kwargs)
 
 
