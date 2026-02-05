@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import Dict, Type
 from core.flow.basic import Flow, ItemFlow, MassFlow, EnergyFlow, CreditFlow
-from core.flow.param import Parameter, Expense, Revenue, SpecificEnergy, EmissionFactor
+from core.flow.param import Parameter, SpecificQuantity, Temperature, Pressure
 from core.flow.combo import Fuel, Material, Power, Product
 
 # Dictionaries for lookup by KEY
@@ -15,10 +15,8 @@ BasicFlows: Dict[str, Type[Flow]] = {
 }
 
 Parameters: Dict[str, Type[Parameter]] = {
-    "expense": Expense,
-    "revenue": Revenue,
-    "specific_energy": SpecificEnergy,
-    "emission_factor": EmissionFactor,
+    "temperature": Temperature,
+    "pressure": Pressure,
 }
 
 ComboFlows: Dict[str, Type[Flow]] = {
@@ -37,7 +35,8 @@ AllFlows: Dict[str, Type[Flow]] = {
 
 def get_params(flow_instance) -> list:
     """Return Parameter classes associated with a flow instance."""
-    return flow_instance.params
+    return flow_instance.props
+
 
 __all__ = [
     # Basic flows
@@ -48,10 +47,9 @@ __all__ = [
     "CreditFlow",
     # Parameters
     "Parameter",
-    "Expense",
-    "Revenue",
-    "SpecificEnergy",
-    "EmissionFactor",
+    "SpecificQuantity",
+    "Temperature",
+    "Pressure",
     # Combo flows
     "Fuel",
     "Material",

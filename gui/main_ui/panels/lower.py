@@ -106,11 +106,7 @@ class LowerPanel(QtWidgets.QListWidget):
         # Add flows
         for flow, _class in flows.items():
 
-            instance = _class()
-            image = instance.image
-            label = instance.label
-
-            item = QtWidgets.QListWidgetItem(image, label, self)
+            item = QtWidgets.QListWidgetItem(_class.Attrs.image, _class.Attrs.label, self)
             item.setSizeHint(QtCore.QSize(0, 28))
 
             if not editable:

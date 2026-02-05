@@ -442,7 +442,7 @@ QTreeWidget::item {
     border                      : none;
 }
 
-QTreeWidget::item:hover, QTreeWidget::item:selected {
+QTreeWidget::item:selected {
     background                  : #4a556d;
     color                       : white;
 }
@@ -563,10 +563,10 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-li
 
 QComboBox {
     color                           : white;
-    height                          : 20px;
+    height                          : 24px;
     border-radius                   : 4px;
     background                      : #363e41;
-    padding                         : 0px 2px 0px 2px;
+    padding                         : 0px 2px 0px 4px;
 }
 
 QComboBox::drop-down {
@@ -629,7 +629,7 @@ QInputDialog QLineEdit {
 */
 
 QTextEdit {
-    background                  : #40474d;
+    background                  : #363e41;
     color                       : white;
     padding                     : 2px;
     border-radius               : 4px;
@@ -642,7 +642,7 @@ QTextEdit:focus {
 }
 
 QLineEdit {
-    background                  : #40474d;
+    background                  : #363e41;
     color                       : white;
     border-radius               : 4px;
     height                      : 24px;

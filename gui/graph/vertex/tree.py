@@ -117,7 +117,7 @@ class DataTree(QtWidgets.QTreeWidget):
         self._add_actions_toolbar(item, index)
 
         # -- Child items for parameters --
-        for key, param in flow.params.items():
+        for key, param in flow.props.items():
             child = QtWidgets.QTreeWidgetItem(item)
             child.setText(COL_FLOW, param.label)
             child.setIcon(COL_FLOW, param.image)

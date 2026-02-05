@@ -12,7 +12,8 @@ from __future__ import annotations
 from PySide6 import QtGui
 from qtawesome import icon
 
-from dataclasses import field
+import types
+from typing import ClassVar
 from dataclasses import dataclass
 
 
@@ -21,102 +22,83 @@ class Flow:
 
     @dataclass(frozen=True)
     class Attrs:
-        key: str = "flow"
-        color: int = "#ffffff"
-        label: str = "Flow"
-        image: QtGui.QIcon = field(
-            default_factory=lambda: icon("mdi.minus", color="#ffffff")
-        )
+        keyID: ClassVar[str] = "flow"
+        color: ClassVar[str] = "#ffffff"
+        label: ClassVar[str] = "Flow"
+        units: ClassVar[list[str]] = []
+        image: ClassVar[QtGui.QIcon] = icon("mdi.minus", color="#ffffff")
 
-    def __init__(
-        self,
-        units: list[str] = None,
-        default: str = str(),
-        primary: float = None,
-        params: dict[str, type] = None,
-        **kwargs,
-    ):
+    def __init__(self, units: list[str] = None, props: list = None):
+        props = {p.label: p for p in props} if props else dict()
 
-        # Instantiate dataclass
-        self._attrs = Flow.Attrs(
-            key=kwargs.get("key", Flow.Attrs.key),
-            color=kwargs.get("color", Flow.Attrs.color),
-            label=kwargs.get("label", Flow.Attrs.label),
-            image=icon(
-                kwargs.get("image", "mdi.minus"),
-                color=kwargs.get("color", Flow.Attrs.color),
-            ),
-        )
-
-        # Main class-members
-        self.units = units or []
-        self.default = default
-        self.primary = primary
-        self.params = params or {}
+        self._value = 0.0
+        self._units = units
+        self._attrs = types.SimpleNamespace(props=props)
 
     @property
-    def key(self):
-        return self._attrs.key
+    def label(self) -> str:
+        return self.Attrs.label
 
     @property
-    def color(self):
-        return self._attrs.color
+    def image(self) -> QtGui.QIcon:
+        return self.Attrs.image
 
     @property
-    def label(self):
-        return self._attrs.label
+    def color(self) -> str:
+        return self.Attrs.color
 
     @property
-    def image(self):
-        return self._attrs.image
+    def units(self) -> list[str]:
+        return self._units if self._units is not None else self.Attrs.units
 
-    def icon(self) -> QtGui.QIcon:
-        return self._attrs.image
+    @property
+    def props(self) -> dict:
+        return self._attrs.props
 
 
 class ItemFlow(Flow):
     """Flow of countable items."""
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault("key", "item_flow")
-        kwargs.setdefault("color", "#8a8a8a")
-        kwargs.setdefault("label", "Item")
-        kwargs.setdefault("image", "mdi.package")
-        units = ["count"]
-        super().__init__(units=units, default=units[0], **kwargs)
+    @dataclass(frozen=True)
+    class Attrs(Flow.Attrs):
+        keyID: ClassVar[str] = "item_flow"
+        color: ClassVar[str] = "#8a8a8a"
+        label: ClassVar[str] = "Item"
+        units: ClassVar[list[str]] = ["count"]
+        image: ClassVar[QtGui.QIcon] = icon("mdi.package", color="#8a8a8a")
 
 
 class MassFlow(Flow):
     """Flow of mass (weight)."""
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault("key", "mass_flow")
-        kwargs.setdefault("color", "#78cad2")
-        kwargs.setdefault("label", "Mass")
-        kwargs.setdefault("image", "mdi.weight-gram")
-        units = ["grams", "kgs", "tonnes", "MTs"]
-        super().__init__(units=units, default=units[0], **kwargs)
+    @dataclass(frozen=True)
+    class Attrs(Flow.Attrs):
+        keyID: ClassVar[str] = "mass_flow"
+        color: ClassVar[str] = "#78cad2"
+        label: ClassVar[str] = "Mass"
+        units: ClassVar[list[str]] = ["grams", "kgs", "tonnes", "MTs"]
+        image: ClassVar[QtGui.QIcon] = icon("mdi.weight-gram", color="#78cad2")
 
 
 class EnergyFlow(Flow):
     """Flow of energy."""
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault("key", "energy_flow")
-        kwargs.setdefault("color", "#ffa500")
-        kwargs.setdefault("label", "Energy")
-        kwargs.setdefault("image", "mdi.fire")
-        units = ["J", "kJ", "MJ", "GJ"]
-        super().__init__(units=units, default=units[0], **kwargs)
+    @dataclass(frozen=True)
+    class Attrs(Flow.Attrs):
+        keyID: ClassVar[str] = "energy_flow"
+        color: ClassVar[str] = "#ffa500"
+        label: ClassVar[str] = "Energy"
+        units: ClassVar[list[str]] = ["J", "kJ", "MJ", "GJ"]
+        image: ClassVar[QtGui.QIcon] = icon("mdi.fire", color="#ffa500")
 
 
 class CreditFlow(Flow):
     """Flow of currency/credits."""
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault("key", "credit_flow")
-        kwargs.setdefault("color", "#5eb616")
-        kwargs.setdefault("label", "Credit")
-        kwargs.setdefault("image", "mdi.cash-multiple")
-        units = ["INR/year", "INR/month", "INR/day", "INR/hour", "INR/s"]
-        super().__init__(units=units, default=units[0], **kwargs)
+    @dataclass(frozen=True)
+    class Attrs(Flow.Attrs):
+        keyID: ClassVar[str] = "credit_flow"
+        color: ClassVar[str] = "#5eb616"
+        label: ClassVar[str] = "Credit"
+        units: ClassVar[list[str]] = ["INR", "USD"]
+        image: ClassVar[QtGui.QIcon] = icon("mdi.cash-multiple", color="#5eb616")

@@ -17,10 +17,9 @@ from core.flow import (
     EnergyFlow,
     CreditFlow,
     Parameter,
-    Expense,
-    Revenue,
-    SpecificEnergy,
-    EmissionFactor,
+    SpecificQuantity,
+    Temperature,
+    Pressure,
     Fuel,
     Material,
     Power,
@@ -31,7 +30,7 @@ from core.flow import (
     AllFlows,
 )
 
-# Re-export dictionaries for backwards compatibility
+# Re-export for backwards compatibility
 __all__ = [
     "Flow",
     "ItemFlow",
@@ -39,10 +38,9 @@ __all__ = [
     "EnergyFlow",
     "CreditFlow",
     "Parameter",
-    "Expense",
-    "Revenue",
-    "SpecificEnergy",
-    "EmissionFactor",
+    "SpecificQuantity",
+    "Temperature",
+    "Pressure",
     "Fuel",
     "Material",
     "Power",
