@@ -3,7 +3,6 @@
 # Description: Vertex configuration dialog.
 
 # Python
-import logging
 import weakref
 
 
@@ -15,8 +14,7 @@ from PySide6 import QtWidgets
 # Climact
 from gui.widgets.combobox import ComboBox
 from gui.widgets.layouts import GLayout, HLayout
-from gui.widgets.table import ConfigWidget
-from qtawesome import icon as qta_icon
+from gui.graph.vertex.tree import DataTree
 
 # Dataclass
 from dataclasses import field
@@ -52,7 +50,7 @@ class VertexConfig(QtWidgets.QDialog):
 
     @dataclass(frozen=True)
     class Attrs:
-        bounds: QtCore.QSize = field(default_factory=lambda: QtCore.QSize(1080, 720))
+        bounds: QtCore.QSize = field(default_factory=lambda: QtCore.QSize(900, 720))
         radius: int = 8
 
     @dataclass(frozen=True)
@@ -74,7 +72,7 @@ class VertexConfig(QtWidgets.QDialog):
         self._dicts = VertexConfig.Dicts()
 
         # Initialize super class
-        super().__init__(modal=True)
+        super().__init__(parent, modal=True)
 
         # Customize appearance and behaviour
         self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
@@ -86,14 +84,14 @@ class VertexConfig(QtWidgets.QDialog):
         self._dataview = self._init_dataview()
         self._splitter = self._init_splitter()
 
-        HLayout(self, margins=(0, 0, 0, 0), widgets=[self._splitter])
+        HLayout(self, margins=(8, 8, 8, 8), widgets=[self._splitter])
 
     def _init_overview(self) -> QtWidgets.QFrame:
 
         container = QtWidgets.QFrame(self)
         container.setFixedWidth(240)
 
-        self._label = QtWidgets.QLabel("Vertex", self)
+        self._label = QtWidgets.QLineEdit("Vertex", self)
         self._combo = ComboBox(editable=True)
 
         layout = QtWidgets.QFormLayout(
@@ -114,13 +112,12 @@ class VertexConfig(QtWidgets.QDialog):
 
     def _init_dataview(self) -> QtWidgets.QStackedWidget:
 
-        dummy = self._create_page()
+        dummy = self._create_page("")
         dummy.setObjectName("dummy-page")
         dummy.setGraphicsEffect(QtWidgets.QGraphicsBlurEffect(dummy, blurRadius=5))
 
         stack = QtWidgets.QStackedWidget(self)
         stack.addWidget(dummy)
-
         return stack
 
     def _init_splitter(self) -> QtWidgets.QSplitter:
@@ -131,23 +128,31 @@ class VertexConfig(QtWidgets.QDialog):
 
         return splitter
 
-    def _create_page(self) -> QtWidgets.QFrame:
+    def _create_page(self, label: str) -> QtWidgets.QFrame:
         """Create a blurred placeholder tab widget shown before any tech is added."""
 
-        from pyqtgraph import PlotWidget
+        # Layout
+        from gui.widgets.layouts import VLayout
 
         # Page components
-        tab = self._create_tab_widget("")
-        cnf = QtWidgets.QFrame()
-        plt = PlotWidget(background=QtGui.QColor(0xEFEFEF))
-        plt.setFixedSize(360, 320)
+        tab = self._create_tab_widget(label)
+        cnf = QtWidgets.QTableWidget()
+        cnf.setMinimumHeight(180)
+
+        # Adjust relative sizing
+        cnf.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
 
         # Arrange in a grid
         frame = QtWidgets.QFrame(self)
-        layout = GLayout(frame, margins=(0, 0, 0, 0), spacing=4)
-        layout.addWidget(tab, 0, 0, 1, 2)
-        layout.addWidget(cnf, 1, 0)
-        layout.addWidget(plt, 1, 1)
+        VLayout(
+            frame,
+            margins=(0, 0, 0, 0),
+            spacing=4,
+            widgets=[tab, cnf],
+        )
 
         return frame
 
@@ -162,41 +167,47 @@ class VertexConfig(QtWidgets.QDialog):
 
             instance = flow_class()
             action = menu.addAction(instance.image, instance.label)
+            action.setShortcutVisibleInContextMenu(True)
+            action.setIconVisibleInMenu(True)
             action.triggered.connect(
                 lambda checked=False, cls=flow_class: self._on_add_flow(cls)
             )
 
         return menu
 
+    @QtCore.Slot()
     def _on_add_flow(self, flow_class) -> None:
-        """Handle adding a new flow stream to the current tab."""
 
-        # Get the currently active tech page (QTabWidget)
-        current_page_idx = self._stack.currentIndex()
-        tab_widget = self._stack.widget(current_page_idx)
+        # Retrieve the current page and find the tab widget inside it
+        page = self._dataview.currentWidget()
+        tab = page.findChild(QtWidgets.QTabWidget)
+        if tab is None:
+            return
 
-        # Get the currently active tab index in the tab widget
-        current_tab_index = tab_widget.currentIndex()
+        tree = tab.currentWidget()
+        if isinstance(tree, DataTree):
+            flow = flow_class()
+            tree.add_stream(flow=flow)
 
-        # Get the corresponding ConfigWidget (Inputs or Outputs)
-        # Tab 0 = Inputs, Tab 1 = Outputs
-        if current_tab_index == 0:
-            table = tab_widget.widget(0)  # Inputs table
-        elif current_tab_index == 1:
-            table = tab_widget.widget(1)  # Outputs table
-        else:
-            return  # Don't add to other tabs
+    @QtCore.Slot()
+    def _on_tech_added(self, label: str) -> None:
 
-        # Instantiate the flow and add it to the table
-        flow = flow_class()
-        table.add_stream(flow=flow)
+        # Instantiate a new page and add it to the stack
+        page = self._create_page(label)
+        self._dataview.addWidget(page)
+        self._dataview.setCurrentWidget(page)
 
-    def _on_tech_added(self, tech_name: str) -> None:
+        # Store reference in the dictionary
+        self._dicts.tab_map[label] = page
 
-        tab_widget = self._create_tab_widget(tech_name)
-
+    @QtCore.Slot()
     def _on_tech_changed(self, index: int) -> None:
-        pass
+
+        label = self._combo.currentText()
+        page = self._dicts.tab_map.get(label, None)
+
+        if page:
+            self._dataview.setCurrentWidget(page)
 
     def _create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
 
@@ -207,18 +218,13 @@ class VertexConfig(QtWidgets.QDialog):
         tab = QtWidgets.QTabWidget(self)
 
         # Create config trees for this tech
-        inp_data = ConfigWidget(self)
-        out_data = ConfigWidget(self)
-        par_data = ConfigWidget(self)
+        inp_data = DataTree(self)
+        out_data = DataTree(self)
+        par_data = DataTree(self)
 
         tab.addTab(inp_data, icon("mdi.arrow-down", color="gray"), "Inputs")
         tab.addTab(out_data, icon("mdi.arrow-up", color="gray"), "Outputs")
         tab.addTab(par_data, icon("mdi.alpha", color="#ef6fc6"), "Parameters")
-
-        # Create a tech name label for top-left corner
-        tech_label = QtWidgets.QLabel(f"<b>{label}</b>")
-        tech_label.setStyleSheet("color: gray; padding: 4px;")
-        tab.setCornerWidget(tech_label, QtCore.Qt.Corner.TopLeftCorner)
 
         # Create an `Add` button with the flows as menu items
         menu = self._create_flow_menu()
@@ -236,7 +242,7 @@ class VertexConfig(QtWidgets.QDialog):
         self._label.setText(text)
 
     def paintEvent(self, event):
-
+        """
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
@@ -250,3 +256,6 @@ class VertexConfig(QtWidgets.QDialog):
             self._attrs.radius,
             self._attrs.radius,
         )
+        """
+
+        super().paintEvent(event)

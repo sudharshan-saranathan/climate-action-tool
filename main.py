@@ -140,8 +140,6 @@ class ClimateActionTool(QtWidgets.QApplication):
         font_list = path.entryList(["*.ttf"])
         font_size = 12 if platform.system().lower() == "darwin" else 8
 
-        print(font_list)
-
         # Load fonts
         for font in font_list:
             path = f":/fonts/{font}"

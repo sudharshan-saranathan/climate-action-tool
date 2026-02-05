@@ -24,7 +24,7 @@ COL_SYMBOL = 3
 COL_ACTIONS = 4
 
 
-class ConfigWidget(QtWidgets.QTreeWidget):
+class DataTree(QtWidgets.QTreeWidget):
     """
     A tree widget for managing data streams with expandable parameter children.
 
@@ -51,7 +51,7 @@ class ConfigWidget(QtWidgets.QTreeWidget):
     def __init__(self, parent=None):
 
         # Instantiate dataclass
-        self._attrs = ConfigWidget.Attrs()
+        self._attrs = DataTree.Attrs()
 
         # Initialize super class
         super().__init__(parent)

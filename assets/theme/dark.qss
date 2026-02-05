@@ -228,7 +228,7 @@ QDockWidget::title {                           /* Dock widget title bar style */
 */
 
 QTabWidget::pane {                              /* Tab pane style */
-    background                  : #363e41;
+    background                  : #40474d;
     border-radius               : 4px;
 }
 
@@ -250,13 +250,13 @@ QTabWidget QTabBar::tab {                                  /* Individual tab sty
 }
 
 QTabBar::tab:hover {                         /* Style for the selected tab */
-    background                  : #363e41;
+    background                  : #40474d;
     color                       : #efefef;
 }
 
 QTabBar::tab:selected {
     background                  : #efefef;
-    color                       : #363e41;
+    color                       : #40474d;
 }
 
 QTabBar::close-button { /* Close button style */
@@ -421,7 +421,7 @@ QTreeWidget {
 }
 
 QTreeWidget QHeaderView::section {
-    background                  : #363e43;
+    background                  : #40474d;
     color                       : white;
     margin                      : 2px 2px 2px 0px;
     padding-left                : 8px;
@@ -438,7 +438,7 @@ QTreeWidget::item {
     margin                      : 0px;
     padding                     : 4px;
     color                       : lightgray;
-    height                      : 28px;
+    height                      : 24px;
     border                      : none;
 }
 
@@ -482,7 +482,7 @@ QTreeWidget::branch:open:has-children {
 */
 
 QTableWidget {
-    background                  : #393e41;
+    background                  : #40474d;
     border-radius               : 4px;
     outline                     : 0px;
     margin                      : 0px;
@@ -504,7 +504,7 @@ QTableWidget QHeaderView::section {
     color                       : gray;
     margin-right                : 4px;
     border-radius               : 4px;
-    height                      : 28px;
+    height                      : 24px;
     border                      : none;
 }
 
