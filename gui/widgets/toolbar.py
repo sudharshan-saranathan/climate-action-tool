@@ -39,6 +39,7 @@ class ToolBar(QtWidgets.QToolBar):
             toolButtonStyle: Button display style - IconOnly, TextOnly, or TextBesideIcon (default: IconOnly).
             enable_counting: Enable counter on actions for left/right click increment/decrement (default: False).
         """
+
         iconSize: QtCore.QSize = QtCore.QSize(16, 16)
         floatable: bool = False
         trailing: bool = True
@@ -149,20 +150,22 @@ class ToolBar(QtWidgets.QToolBar):
                         lambda _, act=action: self._on_action_increment(act)
                     )
                 else:
-                    action.triggered.connect(lambda _, lbl=label: self.sig_action_triggered.emit(lbl))
+                    action.triggered.connect(
+                        lambda _, lbl=label: self.sig_action_triggered.emit(lbl)
+                    )
 
                 if callback:
                     action.triggered.connect(callback)
         except (RuntimeError, IndexError, ValueError) as e:
             print(f"Error adding actions to toolbar: {e}")
 
-    def _on_action_increment(self, action: QtWidgets.QAction) -> None:
+    def _on_action_increment(self, action: QtGui.QAction) -> None:
         """Increment counter for an action and update its text."""
         self._action_counters[action] += 1
         self._update_action_text(action)
         self.sig_action_triggered.emit(self._action_labels[action])
 
-    def _update_action_text(self, action: QtWidgets.QAction) -> None:
+    def _update_action_text(self, action: QtGui.QAction) -> None:
         """Update action text to show counter."""
         original_label = self._action_labels[action]
         count = self._action_counters[action]
@@ -179,7 +182,9 @@ class ToolBar(QtWidgets.QToolBar):
                 # Find which action was clicked
                 action = self.actionAt(self.mapFromGlobal(QtGui.QCursor.pos()))
                 if action and action in self._action_counters:
-                    self._action_counters[action] = max(0, self._action_counters[action] - 1)
+                    self._action_counters[action] = max(
+                        0, self._action_counters[action] - 1
+                    )
                     self._update_action_text(action)
                     return True
 
