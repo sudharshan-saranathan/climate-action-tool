@@ -13,69 +13,57 @@ from core.flow.basic import Flow
 class Parameter(Flow):
     """Base class for stream parameters."""
 
-    KEY: str = "parameter"
-    ICON: str = "mdi.pound"
-    COLOR: str = "#8b0000"
-    LABEL: str = "Parameter"
-    UNITS: list = []
-    DEFAULT: str = None
+    def __init__(self, **kwargs):
+        kwargs.setdefault("key", "parameter")
+        kwargs.setdefault("color", "#8b0000")
+        kwargs.setdefault("label", "Parameter")
+        kwargs.setdefault("image", "mdi.pound")
+        super().__init__(**kwargs)
 
 
 class Expense(Parameter):
     """Cost per unit of resource."""
 
-    KEY = "expense"
-    ICON = "mdi.cash-minus"
-    COLOR = "#90ee90"
-    LABEL = "Expense"
-    UNITS = [
-        "INR/count",
-        "INR/kg",
-        "INR/tonne",
-        "INR/MJ",
-        "INR/GJ",
-        "INR/kWh",
-        "INR/MWh",
-    ]
-    DEFAULT = UNITS[0]
+    def __init__(self, **kwargs):
+        kwargs.setdefault("key", "expense")
+        kwargs.setdefault("color", "#90ee90")
+        kwargs.setdefault("label", "Expense")
+        kwargs.setdefault("image", "mdi.cash-minus")
+        units = ["INR/count", "INR/kg", "INR/tonne", "INR/MJ", "INR/GJ", "INR/kWh", "INR/MWh"]
+        super().__init__(units=units, default=units[0], **kwargs)
 
 
 class Revenue(Parameter):
     """Income per unit of product."""
 
-    KEY = "revenue"
-    ICON = "mdi.cash-plus"
-    COLOR = "#90ee90"
-    LABEL = "Revenue"
-    UNITS = [
-        "INR/count",
-        "INR/kg",
-        "INR/tonne",
-        "INR/MJ",
-        "INR/GJ",
-        "INR/kWh",
-        "INR/MWh",
-    ]
-    DEFAULT = UNITS[0]
+    def __init__(self, **kwargs):
+        kwargs.setdefault("key", "revenue")
+        kwargs.setdefault("color", "#90ee90")
+        kwargs.setdefault("label", "Revenue")
+        kwargs.setdefault("image", "mdi.cash-plus")
+        units = ["INR/count", "INR/kg", "INR/tonne", "INR/MJ", "INR/GJ", "INR/kWh", "INR/MWh"]
+        super().__init__(units=units, default=units[0], **kwargs)
 
 
 class SpecificEnergy(Parameter):
     """Energy content per unit mass."""
 
-    KEY = "specific_energy"
-    ICON = "mdi.thermometer"
-    COLOR = "#ffcb00"
-    LABEL = "Specific Energy"
-    UNITS = ["kJ/kg", "MJ/kg", "GJ/tonne"]
-    DEFAULT = UNITS[0]
+    def __init__(self, **kwargs):
+        kwargs.setdefault("key", "specific_energy")
+        kwargs.setdefault("color", "#ffcb00")
+        kwargs.setdefault("label", "Specific Energy")
+        kwargs.setdefault("image", "mdi.thermometer")
+        units = ["kJ/kg", "MJ/kg", "GJ/tonne"]
+        super().__init__(units=units, default=units[0], **kwargs)
 
 
 class EmissionFactor(Parameter):
     """Emissions per unit of flow."""
 
-    KEY = "emission_factor"
-    ICON = "mdi.percent"
-    COLOR = "#a9a9a9"
-    LABEL = "Emission Factor"
-    UNITS = ["kg/kg", "kg/tonne", "kg/kWh", "kg/MWh"]
-    DEFAULT = UNITS[0]
+    def __init__(self, **kwargs):
+        kwargs.setdefault("key", "emission_factor")
+        kwargs.setdefault("color", "#a9a9a9")
+        kwargs.setdefault("label", "Emission Factor")
+        kwargs.setdefault("image", "mdi.percent")
+        units = ["kg/kg", "kg/tonne", "kg/kWh", "kg/MWh"]
+        super().__init__(units=units, default=units[0], **kwargs)

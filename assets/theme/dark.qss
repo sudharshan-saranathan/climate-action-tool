@@ -565,7 +565,7 @@ QComboBox {
     color                           : white;
     height                          : 20px;
     border-radius                   : 4px;
-    background                      : #4a556d;
+    background                      : #363e41;
     padding                         : 0px 2px 0px 2px;
 }
 

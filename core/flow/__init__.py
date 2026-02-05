@@ -34,6 +34,11 @@ AllFlows: Dict[str, Type[Flow]] = {
     **ComboFlows,
 }
 
+
+def get_params(flow_instance) -> list:
+    """Return Parameter classes associated with a flow instance."""
+    return flow_instance.params
+
 __all__ = [
     # Basic flows
     "Flow",
@@ -57,4 +62,6 @@ __all__ = [
     "Parameters",
     "ComboFlows",
     "AllFlows",
+    # Utilities
+    "get_params",
 ]

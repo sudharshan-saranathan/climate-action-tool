@@ -81,11 +81,22 @@ class LowerPanel(QtWidgets.QListWidget):
         header_item.setFlags(header_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
         header_item.setSizeHint(QtCore.QSize(0, 28))
 
-
-        toolbar = ToolBar(self, trailing=True, actions=[
-            (qta_icon("mdi.minus", color="gray", active_color="white"), "Delete", self._execute),
-            (qta_icon("mdi.plus", color="gray", active_color="white"), "Add", self._execute),
-        ])
+        toolbar = ToolBar(
+            self,
+            trailing=True,
+            actions=[
+                (
+                    qta_icon("mdi.minus", color="gray", active_color="white"),
+                    "Delete",
+                    self._execute,
+                ),
+                (
+                    qta_icon("mdi.plus", color="gray", active_color="white"),
+                    "Add",
+                    self._execute,
+                ),
+            ],
+        )
 
         self.setItemWidget(header_item, toolbar)
         return header_item
@@ -95,11 +106,11 @@ class LowerPanel(QtWidgets.QListWidget):
         # Add flows
         for flow, _class in flows.items():
 
-            image = _class.ICON
-            color = _class.COLOR
-            label = _class.LABEL
+            instance = _class()
+            image = instance.image
+            label = instance.label
 
-            item = QtWidgets.QListWidgetItem(qta_icon(image, color=color), label, self)
+            item = QtWidgets.QListWidgetItem(image, label, self)
             item.setSizeHint(QtCore.QSize(0, 28))
 
             if not editable:

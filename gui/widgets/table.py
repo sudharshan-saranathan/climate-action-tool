@@ -1,6 +1,6 @@
 # Filename: table.py
 # Module name: widgets
-# Description: Custom table widget for managing data streams (inputs/outputs).
+# Description: Custom tree widget for managing data streams (inputs/outputs).
 
 
 # PySide6 (Python/Qt)
@@ -16,43 +16,31 @@ from gui.widgets.combobox import ComboBox
 from gui.widgets.toolbar import ToolBar
 
 
-class DataIOTable(QtWidgets.QTableWidget):
+# Column indices
+COL_FLOW = 0
+COL_UNIT = 1
+COL_NAME = 2
+COL_SYMBOL = 3
+COL_MIN = 4
+COL_MAX = 5
+COL_VALUE = 6
+COL_FORMULA = 7
+COL_ACTIONS = 8
+
+
+class ConfigWidget(QtWidgets.QTreeWidget):
     """
-    A custom table widget for managing data streams with comprehensive properties.
+    A tree widget for managing data streams with expandable parameter children.
 
     Columns:
-    1. Stream Type
-    2. Custom Label
-    3. Description
-    4. Units (combo box)
-    5. Minimum Value
-    6. Value
-    7. Maximum Value
-    8. Time-Series (checkbox)
-    9. Formula
-    10. Actions (delete, edit)
+        Flow | Unit | Name | Symbol | Minimum | Maximum | Value | Formula | Actions
     """
 
-    sig_delete_stream = QtCore.Signal(int)  # Emitted when delete is clicked
-    sig_edit_stream = QtCore.Signal(int)  # Emitted when edit is clicked
+    sig_delete_stream = QtCore.Signal(int)
+    sig_edit_stream = QtCore.Signal(int)
 
     @dataclass(frozen=True)
     class Attrs:
-        """Configuration options for the data IO table.
-
-        Attributes:
-            row_height: Row height in pixels.
-            columns: Table column labels.
-        """
-
-        selectionMode: QtWidgets.QTableWidget.SelectionMode = (
-            QtWidgets.QTableWidget.SelectionMode.MultiSelection
-        )
-
-        selectionBehavior: QtWidgets.QTableWidget.SelectionBehavior = (
-            QtWidgets.QTableWidget.SelectionBehavior.SelectRows
-        )
-
         row_height: int = 24
         columns: list[str] = field(
             default_factory=lambda: [
@@ -69,134 +57,172 @@ class DataIOTable(QtWidgets.QTableWidget):
         )
 
     def __init__(self, parent=None):
-        """
-        Initialize the data IO table widget.
-        """
 
         # Instantiate dataclass
-        self._attrs = DataIOTable.Attrs()
+        self._attrs = ConfigWidget.Attrs()
 
         # Initialize super class
-        super().__init__(
-            parent,
-            columnCount=len(self._attrs.columns),
-        )
+        super().__init__(parent)
 
-        # Configure table appearance
-        self.setShowGrid(False)
-        self.setHorizontalHeaderLabels(self._attrs.columns)
-        self.setSelectionBehavior(self._attrs.selectionBehavior)
-        self.setSelectionMode(self._attrs.selectionMode)
-        self.verticalHeader().setVisible(False)
+        # Configure tree appearance
+        self.setColumnCount(len(self._attrs.columns))
+        self.setHeaderLabels(self._attrs.columns)
+        self.setRootIsDecorated(True)
+        self.setUniformRowHeights(True)
+        self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.MultiSelection)
+        self.setSelectionBehavior(QtWidgets.QTreeWidget.SelectionBehavior.SelectRows)
 
         _fixed = QtWidgets.QHeaderView.ResizeMode.Fixed
-        _resize = QtWidgets.QHeaderView.ResizeMode.ResizeToContents
         _stretch = QtWidgets.QHeaderView.ResizeMode.Stretch
 
         # Configure column resizing
-        header = self.horizontalHeader()
+        header = self.header()
         header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        header.setSectionResizeMode(0, _fixed)  # Flow Type
-        header.setSectionResizeMode(1, _fixed)  # Units
-        header.setSectionResizeMode(2, _fixed)  # Name
-        header.setSectionResizeMode(3, _fixed)  # Symbol
-        header.setSectionResizeMode(4, _fixed)  # Minimum
-        header.setSectionResizeMode(5, _fixed)  # Maximum
-        header.setSectionResizeMode(6, _fixed)  # Value
-        header.setSectionResizeMode(7, _fixed)  # Formula
-        header.setSectionResizeMode(8, _stretch)
+        for col in range(COL_ACTIONS):
+            header.setSectionResizeMode(col, _fixed)
+        header.setSectionResizeMode(COL_ACTIONS, _stretch)
 
     def add_stream(
         self,
-        flow: str = "",
+        flow=None,
         name: str = "",
         symbol: str = "",
         minimum: str = "",
         current: str = "",
         maximum: str = "",
         formula: str = "",
-        units_list: list = None,
-    ) -> int:
+    ) -> QtWidgets.QTreeWidgetItem:
         """
-        Add a new stream row to the table.
+        Add a new stream to the tree.
 
         Args:
-            flow: Type of stream (e.g., flow class label).
+            flow: A Flow instance (carries _attrs, units, params).
             name: Custom label for the stream.
-            symbol: Symbol of this input.
+            symbol: Symbol for this input.
             minimum: Minimum value.
             current: Current value.
             maximum: Maximum value.
             formula: Formula or calculation.
-            units_list: List of available units for this flow (overrides default units).
 
         Returns:
-            The row index of the new stream.
+            The top-level QTreeWidgetItem.
         """
 
-        row = self.rowCount()
-        self.insertRow(row)
-        self.setRowHeight(row, self._attrs.row_height)
+        if flow is None:
+            return None
 
-        # 1. Flow Type (read-only text with icon)
-        from core.flow import AllFlows
+        # -- Top-level item --
+        item = QtWidgets.QTreeWidgetItem(self)
+        item.setText(COL_FLOW, flow.label)
+        item.setIcon(COL_FLOW, flow.image)
+        item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
 
-        flow_item = QtWidgets.QTableWidgetItem(flow)
-        flow_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        flow_item.setFlags(flow_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        # Unit combo box
+        units_combo = ComboBox(items=flow.units)
+        self.setItemWidget(item, COL_UNIT, units_combo)
 
-        # Set the flow icon
-        for flow_class in AllFlows.values():
-            if flow_class.LABEL == flow:
-                icon = qta_icon(flow_class.ICON, color=flow_class.COLOR)
-                flow_item.setIcon(icon)
-                break
+        # Editable text columns
+        for col, text in [
+            (COL_NAME, name),
+            (COL_SYMBOL, symbol),
+            (COL_MIN, minimum),
+            (COL_MAX, maximum),
+            (COL_VALUE, current),
+            (COL_FORMULA, formula),
+        ]:
+            item.setText(col, text)
+            item.setTextAlignment(col, QtCore.Qt.AlignmentFlag.AlignCenter)
 
-        self.setItem(row, 0, flow_item)
+        # Actions toolbar
+        index = self.indexOfTopLevelItem(item)
+        self._add_actions_toolbar(item, index)
 
-        # 4. Units (combo box)
-        units_combo = ComboBox(items=units_list)
-        self.setCellWidget(row, 1, units_combo)
+        # -- Child items for parameters --
+        for key, param in flow.params.items():
+            child = QtWidgets.QTreeWidgetItem(item)
+            child.setText(COL_FLOW, param.label)
+            child.setIcon(COL_FLOW, param.image)
+            child.setFlags(
+                child.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable
+                | QtCore.Qt.ItemFlag.ItemIsEditable
+            )
 
-        # 2. Custom Label (editable text)
-        name_item = QtWidgets.QTableWidgetItem(name)
-        name_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setItem(row, 2, name_item)
+            # Parameter unit combo box
+            param_combo = ComboBox(items=param.units)
+            self.setItemWidget(child, COL_UNIT, param_combo)
 
-        # 3. Symbol (editable text)
-        symb_item = QtWidgets.QTableWidgetItem(symbol)
-        symb_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setItem(row, 3, symb_item)
+            # Value and Formula are editable for params
+            child.setTextAlignment(COL_VALUE, QtCore.Qt.AlignmentFlag.AlignCenter)
+            child.setTextAlignment(COL_FORMULA, QtCore.Qt.AlignmentFlag.AlignCenter)
 
-        # 5. Minimum Value (editable text)
-        min_item = QtWidgets.QTableWidgetItem(minimum)
-        min_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setItem(row, 4, min_item)
+            # Disable non-applicable columns for parameters
+            for col in [COL_NAME, COL_SYMBOL, COL_MIN, COL_MAX]:
+                child.setFlags(child.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
 
-        # 6. Value (editable text)
-        val_item = QtWidgets.QTableWidgetItem(current)
-        val_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setItem(row, 5, val_item)
+        # Auto-expand if there are children
+        if flow.params:
+            item.setExpanded(True)
 
-        # 7. Maximum Value (editable text)
-        max_item = QtWidgets.QTableWidgetItem(maximum)
-        max_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setItem(row, 6, max_item)
+        return item
 
-        # 8. Formula (editable text)
-        formula_item = QtWidgets.QTableWidgetItem(formula)
-        formula_item.setTextAlignment(
-            QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
-        self.setItem(row, 7, formula_item)
+    def get_stream(self, index: int) -> dict:
+        """
+        Get stream data from a top-level item by index.
 
-        # 9. Actions (delete and edit buttons)
+        Returns:
+            Dict with flow data and nested params list.
+        """
+
+        item = self.topLevelItem(index)
+        if item is None:
+            return {}
+
+        # Get unit from combo widget
+        unit_widget = self.itemWidget(item, COL_UNIT)
+        unit = unit_widget.currentText() if unit_widget else ""
+
+        result = {
+            "flow": item.text(COL_FLOW),
+            "unit": unit,
+            "name": item.text(COL_NAME),
+            "symbol": item.text(COL_SYMBOL),
+            "minimum": item.text(COL_MIN),
+            "maximum": item.text(COL_MAX),
+            "value": item.text(COL_VALUE),
+            "formula": item.text(COL_FORMULA),
+            "params": [],
+        }
+
+        # Collect child parameter data
+        for i in range(item.childCount()):
+            child = item.child(i)
+            child_unit_widget = self.itemWidget(child, COL_UNIT)
+            child_unit = child_unit_widget.currentText() if child_unit_widget else ""
+
+            result["params"].append({
+                "flow": child.text(COL_FLOW),
+                "unit": child_unit,
+                "value": child.text(COL_VALUE),
+                "formula": child.text(COL_FORMULA),
+            })
+
+        return result
+
+    def remove_stream(self, index: int) -> None:
+        """Remove a top-level stream and all its children."""
+
+        if 0 <= index < self.topLevelItemCount():
+            self.takeTopLevelItem(index)
+
+    def _add_actions_toolbar(self, item, index: int) -> None:
+        """Attach the actions toolbar to a top-level item."""
+
         style = """
         QToolBar {
             margin: 0px;
             padding: 0px;
         }
-        
+
         QToolButton, QToolButton:hovered, QToolButton:selected {
             background: transparent;
             margin: 0px;
@@ -211,75 +237,18 @@ class DataIOTable(QtWidgets.QTableWidget):
                 (
                     qta_icon("ph.trend-up", color="orange", color_active="#ffcb00"),
                     "Plot",
-                    lambda: print(f"Plotting entity"),
+                    lambda: print("Plotting entity"),
                 ),
                 (
                     qta_icon("mdi.pencil", color="darkcyan", color_active="cyan"),
                     "Edit",
-                    lambda r=row: self.sig_edit_stream.emit(r),
+                    lambda idx=index: self.sig_edit_stream.emit(idx),
                 ),
                 (
                     qta_icon("mdi.delete", color="darkred", color_active="red"),
                     "Delete",
-                    lambda r=row: self.sig_delete_stream.emit(r),
+                    lambda idx=index: self.sig_delete_stream.emit(idx),
                 ),
             ],
         )
-        self.setCellWidget(row, 8, actions_toolbar)
-
-        return row
-
-    def get_stream(self, row: int) -> dict:
-        """
-        Get stream data from a specific row.
-        """
-
-        if row < 0 or row >= self.rowCount():
-            return {}
-
-        stream_type = self.item(row, 0).text() if self.item(row, 0) else ""
-        label = self.item(row, 1).text() if self.item(row, 1) else ""
-        description = self.item(row, 2).text() if self.item(row, 2) else ""
-        min_value = self.item(row, 4).text() if self.item(row, 4) else ""
-        value = self.item(row, 5).text() if self.item(row, 5) else ""
-        max_value = self.item(row, 6).text() if self.item(row, 6) else ""
-        formula = self.item(row, 8).text() if self.item(row, 8) else ""
-
-        # Get units from combo box
-        units_widget = self.cellWidget(row, 3)
-        units = ""
-        if units_widget:
-            combo = units_widget.findChild(QtWidgets.QComboBox)
-            if combo:
-                units = combo.currentText()
-
-        # Get time-series checkbox state
-        ts_widget = self.cellWidget(row, 7)
-        time_series = False
-        if ts_widget:
-            checkbox = ts_widget.findChild(QtWidgets.QCheckBox)
-            if checkbox:
-                time_series = checkbox.isChecked()
-
-        return {
-            "stream_type": stream_type,
-            "label": label,
-            "description": description,
-            "units": units,
-            "min_value": min_value,
-            "value": value,
-            "max_value": max_value,
-            "time_series": time_series,
-            "formula": formula,
-        }
-
-    def remove_stream(self, row: int) -> None:
-        """
-        Remove a stream row from the table.
-
-        Args:
-            row: The row index to remove.
-        """
-
-        if 0 <= row < self.rowCount():
-            self.removeRow(row)
+        self.setItemWidget(item, COL_ACTIONS, actions_toolbar)

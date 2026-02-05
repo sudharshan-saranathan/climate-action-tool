@@ -15,7 +15,7 @@ from PySide6 import QtWidgets
 # Climact
 from gui.widgets.combobox import ComboBox
 from gui.widgets.layouts import HLayout
-from gui.widgets.table import DataIOTable
+from gui.widgets.table import ConfigWidget
 from qtawesome import icon as qta_icon
 
 # Dataclass
@@ -31,6 +31,7 @@ class VertexConfig(QtWidgets.QDialog):
         """Default vertex styling options.
 
         Attributes:
+            mosaic: Path to the background texture (default: ":/theme/pattern.png").
             border: Default border styling.
             background: Default background style.
         """
@@ -84,8 +85,8 @@ class VertexConfig(QtWidgets.QDialog):
         self._stack = QtWidgets.QStackedWidget()  # Stacked widget.
 
         # Add placeholder widget
-        self._placeholder = self._create_placeholder()
-        self._stack.addWidget(self._placeholder)
+        self._dummy = self._create_placeholder()
+        self._stack.addWidget(self._dummy)
 
         self._forms = self._init_forms()  # Form layout on the left-hand side.
 
@@ -127,7 +128,7 @@ class VertexConfig(QtWidgets.QDialog):
         tab = self.create_tab_widget("")
         tab.setDisabled(True)
 
-        # Apply blur effect to indicate it's inactive
+        # Apply a blur-effect to indicate it's inactive
         blur_effect = QtWidgets.QGraphicsBlurEffect(tab)
         blur_effect.setBlurRadius(5)
         tab.setGraphicsEffect(blur_effect)
@@ -140,18 +141,17 @@ class VertexConfig(QtWidgets.QDialog):
 
         # Create a menu and add actions
         menu = QtWidgets.QMenu(self)
-        for _class in AllFlows.values():
-            icon = qta_icon(_class.ICON, color=_class.COLOR)
-            action = menu.addAction(icon, _class.LABEL)
+        for flow_class in AllFlows.values():
+            instance = flow_class()
+            action = menu.addAction(instance.image, instance.label)
             action.triggered.connect(
-                lambda checked=False, label=_class.LABEL: self._on_add_flow(label)
+                lambda checked=False, cls=flow_class: self._on_add_flow(cls)
             )
 
         return menu
 
-    def _on_add_flow(self, flow_label: str) -> None:
+    def _on_add_flow(self, flow_class) -> None:
         """Handle adding a new flow stream to the current tab."""
-        from core.flow import AllFlows
 
         # Get the currently active tech page (QTabWidget)
         current_page_idx = self._stack.currentIndex()
@@ -160,7 +160,7 @@ class VertexConfig(QtWidgets.QDialog):
         # Get the currently active tab index in the tab widget
         current_tab_index = tab_widget.currentIndex()
 
-        # Get the corresponding DataIOTable (Inputs or Outputs)
+        # Get the corresponding ConfigWidget (Inputs or Outputs)
         # Tab 0 = Inputs, Tab 1 = Outputs
         if current_tab_index == 0:
             table = tab_widget.widget(0)  # Inputs table
@@ -169,23 +169,17 @@ class VertexConfig(QtWidgets.QDialog):
         else:
             return  # Don't add to other tabs
 
-        # Find the flow class by label and get its units
-        units_list = []
-        for flow_class in AllFlows.values():
-            if flow_class.LABEL == flow_label:
-                units_list = getattr(flow_class, "UNITS", [])
-                break
-
-        # Add a new stream row with the flow label and its specific units
-        table.add_stream(flow=flow_label, units_list=units_list)
+        # Instantiate the flow and add it to the table
+        flow = flow_class()
+        table.add_stream(flow=flow)
 
     def _on_tech_added(self, tech_name: str) -> None:
 
         if tech_name not in self._dicts.tab_map:
             # Remove placeholder if this is the first tech
             if len(self._dicts.tab_map) == 0:
-                self._stack.removeWidget(self._placeholder)
-                self._placeholder.deleteLater()
+                self._stack.removeWidget(self._dummy)
+                self._dummy.deleteLater()
 
             # Create a new configuration widget for the new tech
             tab_widget = self.create_tab_widget(tech_name)
@@ -218,9 +212,9 @@ class VertexConfig(QtWidgets.QDialog):
         tab = QtWidgets.QTabWidget(self)
 
         # Create data IO tables for this tech
-        inp_data = DataIOTable(self)
-        out_data = DataIOTable(self)
-        par_data = DataIOTable(self)
+        inp_data = ConfigWidget(self)
+        out_data = ConfigWidget(self)
+        par_data = ConfigWidget(self)
         equation = QtWidgets.QTextEdit(self)
         plotting = PlotWidget(self, background=QtGui.QColor(0xEFEFEF))
 
