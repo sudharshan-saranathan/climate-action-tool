@@ -55,14 +55,14 @@ class Material(MassFlow):
         )
 
 
-class Power(EnergyFlow):
+class Electricity(EnergyFlow):
     """Power/Electricity flow with cost."""
 
     @dataclass(frozen=True)
     class Attrs(EnergyFlow.Attrs):
-        keyID: ClassVar[str] = "power"
+        keyID: ClassVar[str] = "electricity"
         color: ClassVar[str] = "#8491a3"
-        label: ClassVar[str] = "Power"
+        label: ClassVar[str] = "Electricity"
         image: ClassVar[QtGui.QIcon] = icon("mdi.flash", color="#8491a3")
 
     def __init__(self):

@@ -708,21 +708,19 @@ QListWidget::item:selected, QListView::item:selected {
 QToolBox {
     background                  : transparent;
     border                      : none;
-    color                       : gray;
 }
 
 QToolBox::tab {
     background                  : transparent;
-    color                       : lightgray;
+    color                       : gray;
     border                      : none;
     margin                      : 0px;
     height                      : 24px;
 }
 
 QToolBox::tab:selected {
-    background                  : transparent;
+    background                  : #4a556d;
     color                       : white;
-    font-weight                 : bold;
 }
 
 QToolBox::tab:hover:!selected {

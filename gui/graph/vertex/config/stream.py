@@ -1,6 +1,6 @@
 # Filename: stream.py
 # Module name: config
-# Description: StreamTree-based widget for managing streams (one collapsible item per flow).
+# Description: QToolBox-based widget for managing streams (one collapsible item per flow).
 
 
 # PySide6 (Python/Qt)
@@ -11,14 +11,13 @@ from PySide6 import QtWidgets
 
 from gui.widgets.combobox import ComboBox
 from gui.widgets.layouts import VLayout
-from gui.graph.vertex.tree import StreamTree
 
 
-class Stream(StreamTree):
+class Stream(QtWidgets.QToolBox):
     """
-    A tree widget where each top-level item represents a single flow/stream.
+    A toolbox widget where each page represents a single flow/stream.
 
-    Adding a flow creates a collapsible item containing:
+    Adding a flow creates a collapsible page containing:
         - Name, Symbol, Extrema, Quantity fields
         - Per-parameter unit selectors
         - Time evolution controls
@@ -28,9 +27,9 @@ class Stream(StreamTree):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-    def add_flow(self, flow, name: str = "", symbol: str = "") -> QtWidgets.QTreeWidgetItem:
+    def add_flow(self, flow, name: str = "", symbol: str = "") -> int:
         """
-        Add a new collapsible item for the given flow.
+        Add a new collapsible page for the given flow.
 
         Args:
             flow: A Flow instance.
@@ -38,7 +37,7 @@ class Stream(StreamTree):
             symbol: Symbol for this stream.
 
         Returns:
-            The top-level QTreeWidgetItem.
+            The index of the added page.
         """
 
         container = QtWidgets.QFrame()
@@ -60,33 +59,16 @@ class Stream(StreamTree):
         layout.addWidget(delete, alignment=alignment)
         layout.addStretch(1)
 
-        item = self.add_item(flow.image, flow.label, container)
-        delete.clicked.connect(lambda: self._remove_flow(item))
+        index = self.addItem(container, flow.image, flow.label)
+        delete.clicked.connect(lambda: self._remove_flow(container))
 
-        return item
+        return index
 
-    def _remove_flow(self, item: QtWidgets.QTreeWidgetItem) -> None:
-        """Remove a flow item from the tree."""
-        self.remove_item(item)
-
-    def paintEvent(self, event):
-        """Draw placeholder text when no flows have been added."""
-
-        if self.topLevelItemCount() == 0:
-            painter = QtGui.QPainter(self.viewport())
-            painter.setOpacity(0.5)
-            icon = QtGui.QIcon(":/png/empty.png")
-            icon.paint(painter, self.viewport().rect())
-
-            painter.setPen(QtGui.QColor("gray"))
-            painter.drawText(
-                self.viewport().rect(),
-                QtCore.Qt.AlignmentFlag.AlignCenter,
-                "Use the toolbar to add flows",
-            )
-            painter.end()
-        else:
-            super().paintEvent(event)
+    def _remove_flow(self, widget: QtWidgets.QWidget) -> None:
+        """Remove a flow page from the toolbox."""
+        index = self.indexOf(widget)
+        if index >= 0:
+            self.removeItem(index)
 
     @staticmethod
     def _init_primary_form(flow, name: str) -> QtWidgets.QGroupBox:
@@ -204,3 +186,18 @@ class Stream(StreamTree):
         delete = QtWidgets.QPushButton("Delete")
         delete.setStyleSheet("background: #FF5F57; color: white;")
         return delete
+
+    def paintEvent(self, event):
+        """Draw placeholder text when no flows have been added."""
+
+        if self.count() == 0:
+            painter = QtGui.QPainter(self)
+            painter.setPen(QtGui.QColor("gray"))
+            painter.drawText(
+                self.rect(),
+                QtCore.Qt.AlignmentFlag.AlignCenter,
+                "Use the toolbar to add flows",
+            )
+            painter.end()
+        else:
+            super().paintEvent(event)
