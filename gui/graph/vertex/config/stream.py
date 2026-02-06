@@ -56,7 +56,7 @@ class StreamDialog(QtWidgets.QDialog):
         form.setContentsMargins(8, 8, 8, 8)
 
         name_edit = QtWidgets.QLineEdit(flow.label)
-        symb_edit = QtWidgets.QLineEdit(flow.key, readOnly=True)
+        symb_edit = QtWidgets.QLineEdit(flow.Attrs.keyID, readOnly=True)
 
         name_edit.textChanged.connect(
             lambda text: symb_edit.setText("_".join(text.strip().lower().split()))

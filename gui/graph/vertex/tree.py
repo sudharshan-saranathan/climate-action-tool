@@ -2,6 +2,8 @@
 # Module name: vertex
 # Description: Two-column QTreeWidget with category headers and stream items.
 
+from __future__ import annotations
+
 # PySide6 (Python/Qt)
 from PySide6 import QtCore
 from PySide6 import QtWidgets
@@ -47,9 +49,8 @@ class StreamTree(QtWidgets.QTreeWidget):
         header = self.header()
         header.setStretchLastSection(False)
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(
-            1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents
-        )
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Fixed)
+        self.setColumnWidth(1, 56)
 
         self._categories: dict[str, QtWidgets.QTreeWidgetItem] = {}
 
@@ -124,18 +125,23 @@ class StreamTree(QtWidgets.QTreeWidget):
             item.setData(0, self.FLOW_ROLE, flow)
 
         # Action buttons container
-        style = "QToolBar {margin: 0px; padding: 0px;} QToolBar QToolButton {margin: 0px; padding: 0px;}"
-
-        actions = ToolBar(self, style=style, iconSize=QtCore.QSize(14, 14))
-        actions.addAction(
-            qta.icon("mdi.cog-outline"),
-            "Configure",
-            lambda: self.configure_requested.emit(item, item.data(0, self.FLOW_ROLE)),
-        )
-        actions.addAction(
-            qta.icon("mdi.trash-can-outline", color="red"),
-            "Delete",
-            lambda: self.delete_requested.emit(item),
+        actions = ToolBar(
+            self,
+            trailing=False,
+            actions=[
+                (
+                    qta.icon("mdi.cog-outline"),
+                    "Configure",
+                    lambda: self.configure_requested.emit(
+                        item, item.data(0, self.FLOW_ROLE)
+                    ),
+                ),
+                (
+                    qta.icon("mdi.trash-can-outline", color="red"),
+                    "Delete",
+                    lambda: self.delete_requested.emit(item),
+                ),
+            ],
         )
 
         self.setItemWidget(item, 1, actions)
