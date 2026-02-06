@@ -15,7 +15,7 @@ from PySide6 import QtWidgets
 from gui.widgets.combobox import ComboBox
 from gui.widgets.layouts import HLayout
 from gui.graph.vertex.tree import StreamTree
-from core.flow import Fuel, Material, Electricity
+from core.flow import Fuel, Material, Electricity, Product, Temperature, Pressure
 
 # Dataclass
 from dataclasses import field
@@ -269,36 +269,75 @@ class VertexConfig(QtWidgets.QDialog):
         # Instantiate a tab-widget
         tab = QtWidgets.QTabWidget(self)
 
-        # Create a StreamTree per tab with predefined categories
-        categories = [
+        # Input categories: Fuel, Material, Electricity
+        input_categories = [
             ("fuel", Fuel),
             ("material", Material),
             ("electricity", Electricity),
         ]
+        input_map = {key: cls for key, cls in input_categories}
 
-        # Map category key to flow class for add_requested handler
-        category_map = {key: cls for key, cls in categories}
+        # Output categories: Product
+        output_categories = [
+            ("product", Product),
+        ]
+        output_map = {key: cls for key, cls in output_categories}
 
-        for tab_icon, tab_label, tab_color in [
-            ("mdi.arrow-down", "Inputs", "gray"),
-            ("mdi.arrow-up", "Outputs", "gray"),
-            ("mdi.alpha", "Parameters", "#ef6fc6"),
-            ("mdi.equal", "Equations", "cyan"),
-        ]:
-            tree = StreamTree(self)
-            for key, flow_cls in categories:
+        # Parameter types (top-level, not categories)
+        param_types = [
+            ("temperature", Temperature),
+            ("pressure", Pressure),
+        ]
+        param_map = {key: cls for key, cls in param_types}
+
+        # -- Inputs tab --
+        inp_tree = StreamTree(self)
+        for key, flow_cls in input_categories:
+            flow = flow_cls()
+            inp_tree.add_category(key, flow.image, flow.label)
+
+        def on_add_input(cat_key, t=inp_tree):
+            flow_cls = input_map.get(cat_key)
+            if flow_cls:
                 flow = flow_cls()
-                tree.add_category(key, flow.image, flow.label)
+                t.add_stream(cat_key, flow.label, flow)
 
-            # Connect add_requested to create a new stream
-            def on_add(cat_key, t=tree):
-                flow_cls = category_map.get(cat_key)
-                if flow_cls:
-                    flow = flow_cls()
-                    t.add_stream(cat_key, flow.label, flow)
+        inp_tree.add_requested.connect(on_add_input)
+        tab.addTab(inp_tree, icon("mdi.arrow-down", color="gray"), "Inputs")
 
-            tree.add_requested.connect(on_add)
-            tab.addTab(tree, icon(tab_icon, color=tab_color), tab_label)
+        # -- Outputs tab --
+        out_tree = StreamTree(self)
+        for key, flow_cls in output_categories:
+            flow = flow_cls()
+            out_tree.add_category(key, flow.image, flow.label)
+
+        def on_add_output(cat_key, t=out_tree):
+            flow_cls = output_map.get(cat_key)
+            if flow_cls:
+                flow = flow_cls()
+                t.add_stream(cat_key, flow.label, flow)
+
+        out_tree.add_requested.connect(on_add_output)
+        tab.addTab(out_tree, icon("mdi.arrow-up", color="gray"), "Outputs")
+
+        # -- Parameters tab --
+        par_tree = StreamTree(self)
+        for key, param_cls in param_types:
+            param = param_cls()
+            par_tree.add_category(key, param.image, param.label)
+
+        def on_add_param(cat_key, t=par_tree):
+            param_cls = param_map.get(cat_key)
+            if param_cls:
+                param = param_cls()
+                t.add_stream(cat_key, param.label, param)
+
+        par_tree.add_requested.connect(on_add_param)
+        tab.addTab(par_tree, icon("mdi.alpha", color="#ef6fc6"), "Parameters")
+
+        # -- Equations tab (placeholder) --
+        eq_tree = StreamTree(self)
+        tab.addTab(eq_tree, icon("mdi.equal", color="cyan"), "Equations")
 
         return tab
 

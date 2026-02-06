@@ -98,7 +98,7 @@ class StreamDialog(QtWidgets.QDialog):
 
         # Populate with flow's props (e.g., Temperature, Pressure for Fuel)
         for key, param in flow.props.items():
-            value_edit = QtWidgets.QLineEdit(placeholderText=f"e.g. {param.default}")
+            value_edit = QtWidgets.QLineEdit(placeholderText="0.0")
             unit_combo = ComboBox(items=param.units)
             row = QtWidgets.QHBoxLayout()
             row.addWidget(value_edit)
