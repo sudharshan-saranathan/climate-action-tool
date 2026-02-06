@@ -14,7 +14,8 @@ from PySide6 import QtWidgets
 # Climact
 from gui.widgets.combobox import ComboBox
 from gui.widgets.layouts import HLayout
-from gui.graph.vertex.config.stream import Stream
+from gui.graph.vertex.tree import StreamTree
+from core.flow import Fuel, Material, Electricity
 
 # Dataclass
 from dataclasses import field
@@ -113,7 +114,7 @@ class VertexConfig(QtWidgets.QDialog):
 
     def _init_dataview(self) -> QtWidgets.QStackedWidget:
 
-        dummy = self._create_page("")
+        dummy = self._create_stack_page("")
         dummy.setObjectName("dummy-page")
         dummy.setGraphicsEffect(QtWidgets.QGraphicsBlurEffect(dummy, blurRadius=5))
 
@@ -129,32 +130,26 @@ class VertexConfig(QtWidgets.QDialog):
 
         return splitter
 
-    def _create_page(self, label: str) -> QtWidgets.QFrame:
-        """Create a blurred placeholder tab widget shown before any tech is added."""
+    def _create_stack_page(self, label: str) -> QtWidgets.QFrame:
 
-        # Layout
+        # Required
         from gui.widgets.layouts import VLayout
+        from gui.graph.vertex.config.stream import StreamDialog
 
         # Page components
         tab = self._create_tab_widget(label)
-        add = self._init_toolbar()
-        cnf = QtWidgets.QTableWidget()
-        cnf.setMinimumHeight(180)
-
-        # Adjust relative sizing
-        cnf.setSizePolicy(
-            QtWidgets.QSizePolicy.Policy.Expanding,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-        )
 
         # Arrange in a grid
         frame = QtWidgets.QFrame(self)
-        VLayout(
-            frame,
-            margins=(0, 0, 0, 0),
-            spacing=4,
-            widgets=[tab, add],
-        )
+        VLayout(frame, margins=(0, 0, 0, 0), spacing=4, widgets=[tab])
+
+        # Connect each StreamTree's configure_requested signal to show dialog
+        for i in range(tab.count()):
+            tree = tab.widget(i)
+            if isinstance(tree, StreamTree):
+                tree.configure_requested.connect(
+                    lambda item, flow: StreamDialog(item, flow, self).exec()
+                )
 
         return frame
 
@@ -220,16 +215,16 @@ class VertexConfig(QtWidgets.QDialog):
         if tab is None:
             return
 
-        stream = tab.currentWidget()
-        if isinstance(stream, Stream):
+        tree = tab.currentWidget()
+        if isinstance(tree, StreamTree):
             flow = flow_class()
-            stream.add_flow(flow)
+            tree.add_stream(flow.key, flow.label, flow)
 
     @QtCore.Slot()
     def _on_tech_added(self, label: str) -> None:
 
         # Instantiate a new page and add it to the stack
-        page = self._create_page(label)
+        page = self._create_stack_page(label)
         self._dataview.addWidget(page)
         self._dataview.setCurrentWidget(page)
 
@@ -274,11 +269,36 @@ class VertexConfig(QtWidgets.QDialog):
         # Instantiate a tab-widget
         tab = QtWidgets.QTabWidget(self)
 
-        # Create a Stream toolbox per category
-        tab.addTab(Stream(self), icon("mdi.arrow-down", color="gray"), "Inputs")
-        tab.addTab(Stream(self), icon("mdi.arrow-up", color="gray"), "Outputs")
-        tab.addTab(Stream(self), icon("mdi.alpha", color="#ef6fc6"), "Parameters")
-        tab.addTab(Stream(self), icon("mdi.equal", color="cyan"), "Equations")
+        # Create a StreamTree per tab with predefined categories
+        categories = [
+            ("fuel", Fuel),
+            ("material", Material),
+            ("electricity", Electricity),
+        ]
+
+        # Map category key to flow class for add_requested handler
+        category_map = {key: cls for key, cls in categories}
+
+        for tab_icon, tab_label, tab_color in [
+            ("mdi.arrow-down", "Inputs", "gray"),
+            ("mdi.arrow-up", "Outputs", "gray"),
+            ("mdi.alpha", "Parameters", "#ef6fc6"),
+            ("mdi.equal", "Equations", "cyan"),
+        ]:
+            tree = StreamTree(self)
+            for key, flow_cls in categories:
+                flow = flow_cls()
+                tree.add_category(key, flow.image, flow.label)
+
+            # Connect add_requested to create a new stream
+            def on_add(cat_key, t=tree):
+                flow_cls = category_map.get(cat_key)
+                if flow_cls:
+                    flow = flow_cls()
+                    t.add_stream(cat_key, flow.label, flow)
+
+            tree.add_requested.connect(on_add)
+            tab.addTab(tree, icon(tab_icon, color=tab_color), tab_label)
 
         return tab
 

@@ -1,80 +1,52 @@
 # Filename: stream.py
 # Module name: config
-# Description: QToolBox-based widget for managing streams (one collapsible item per flow).
-
+# Description: Stream configuration widget with category tree and form panel.
 
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-
 from gui.widgets.combobox import ComboBox
 from gui.widgets.layouts import VLayout
 
 
-class Stream(QtWidgets.QToolBox):
-    """
-    A toolbox widget where each page represents a single flow/stream.
+class StreamDialog(QtWidgets.QDialog):
+    """Dialog for configuring a single stream."""
 
-    Adding a flow creates a collapsible page containing:
-        - Name, Symbol, Extrema, Quantity fields
-        - Per-parameter unit selectors
-        - Time evolution controls
-        - Delete button
-    """
-
-    def __init__(self, parent=None):
+    def __init__(self, item: QtWidgets.QTreeWidgetItem, flow, parent=None):
         super().__init__(parent)
 
-    def add_flow(self, flow, name: str = "", symbol: str = "") -> int:
-        """
-        Add a new collapsible page for the given flow.
+        self._item = item
+        self._flow = flow
 
-        Args:
-            flow: A Flow instance.
-            name: Custom label for the stream.
-            symbol: Symbol for this stream.
+        self.setWindowTitle(f"Configure: {item.text(0)}")
+        self.setMinimumWidth(320)
 
-        Returns:
-            The index of the added page.
-        """
+        layout = VLayout(self, spacing=12)
 
-        container = QtWidgets.QFrame()
-        p_form = self._init_primary_form(flow, name)
-        s_form = self._init_secondary_form(flow)
-        t_form = self._init_temporal_form()
-        delete = self._init_delete_button()
+        self._p_form = self._init_primary_form(flow)
+        self._s_form = self._init_secondary_form(flow)
+        self._t_form = self._init_temporal_form()
 
-        fixed_width = 400
-        p_form.setFixedWidth(fixed_width)
-        s_form.setFixedWidth(fixed_width)
-        t_form.setFixedWidth(fixed_width)
+        layout.addWidget(self._p_form)
+        layout.addWidget(self._s_form)
+        layout.addWidget(self._t_form)
 
-        alignment = QtCore.Qt.AlignmentFlag.AlignHCenter
-        layout = VLayout(container, spacing=12)
-        layout.addWidget(p_form, alignment=alignment)
-        layout.addWidget(s_form, alignment=alignment)
-        layout.addWidget(t_form, alignment=alignment)
-        layout.addWidget(delete, alignment=alignment)
-        layout.addStretch(1)
-
-        index = self.addItem(container, flow.image, flow.label)
-        delete.clicked.connect(lambda: self._remove_flow(container))
-
-        return index
-
-    def _remove_flow(self, widget: QtWidgets.QWidget) -> None:
-        """Remove a flow page from the toolbox."""
-        index = self.indexOf(widget)
-        if index >= 0:
-            self.removeItem(index)
+        # OK/Cancel buttons
+        buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok
+            | QtWidgets.QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
 
     @staticmethod
-    def _init_primary_form(flow, name: str) -> QtWidgets.QGroupBox:
+    def _init_primary_form(flow) -> QtWidgets.QGroupBox:
         """Create the Primary Attributes group box."""
 
-        group = QtWidgets.QGroupBox("Primary Attributes")
+        group = QtWidgets.QGroupBox("Primary")
         form = QtWidgets.QFormLayout(
             group,
             formAlignment=QtCore.Qt.AlignmentFlag.AlignCenter,
@@ -83,8 +55,8 @@ class Stream(QtWidgets.QToolBox):
         )
         form.setContentsMargins(8, 8, 8, 8)
 
-        name_edit = QtWidgets.QLineEdit(name or flow.label)
-        symb_edit = QtWidgets.QLineEdit(flow.label.lower(), readOnly=True)
+        name_edit = QtWidgets.QLineEdit(flow.label)
+        symb_edit = QtWidgets.QLineEdit(flow.key, readOnly=True)
 
         name_edit.textChanged.connect(
             lambda text: symb_edit.setText("_".join(text.strip().lower().split()))
@@ -113,9 +85,9 @@ class Stream(QtWidgets.QToolBox):
 
     @staticmethod
     def _init_secondary_form(flow) -> QtWidgets.QGroupBox:
-        """Create the Secondary Attributes group box."""
+        """Create the Secondary Attributes group box with flow's props."""
 
-        group = QtWidgets.QGroupBox("Secondary Attributes")
+        group = QtWidgets.QGroupBox("Secondary")
         form = QtWidgets.QFormLayout(
             group,
             formAlignment=QtCore.Qt.AlignmentFlag.AlignCenter,
@@ -124,12 +96,13 @@ class Stream(QtWidgets.QToolBox):
         )
         form.setContentsMargins(8, 8, 8, 8)
 
+        # Populate with flow's props (e.g., Temperature, Pressure for Fuel)
         for key, param in flow.props.items():
-            value = QtWidgets.QLineEdit(placeholderText="e.g. 4")
-            combo = ComboBox(items=param.units)
+            value_edit = QtWidgets.QLineEdit(placeholderText=f"e.g. {param.default}")
+            unit_combo = ComboBox(items=param.units)
             row = QtWidgets.QHBoxLayout()
-            row.addWidget(value)
-            row.addWidget(combo)
+            row.addWidget(value_edit)
+            row.addWidget(unit_combo)
             form.addRow(f"{param.label}:", row)
 
         return group
@@ -138,7 +111,12 @@ class Stream(QtWidgets.QToolBox):
     def _init_temporal_form() -> QtWidgets.QGroupBox:
         """Create the Time Evolution group box."""
 
-        group = QtWidgets.QGroupBox("Time Evolution")
+        def on_mode_changed(text):
+            visible = mode_fields.get(text, [])
+            for field in all_fields:
+                form.setRowVisible(field, field in visible)
+
+        group = QtWidgets.QGroupBox("Temporal")
         form = QtWidgets.QFormLayout(
             group,
             formAlignment=QtCore.Qt.AlignmentFlag.AlignCenter,
@@ -151,53 +129,26 @@ class Stream(QtWidgets.QToolBox):
             items=["Constant", "Linear", "Exponential", "Linear-Markov"]
         )
 
-        coeff_s = QtWidgets.QLineEdit(placeholderText="volatility")
-        coeff_a = QtWidgets.QLineEdit(placeholderText="slope / amplitude")
-        coeff_b = QtWidgets.QLineEdit(placeholderText="intercept / rate")
-        coeff_c = QtWidgets.QLineEdit(placeholderText="offset")
+        cfs = QtWidgets.QLineEdit(placeholderText="volatility")
+        cfa = QtWidgets.QLineEdit(placeholderText="slope / amplitude")
+        cfb = QtWidgets.QLineEdit(placeholderText="intercept / rate")
+        cfc = QtWidgets.QLineEdit(placeholderText="offset")
 
         form.addRow("Mode:", mode_combo)
-        form.addRow("\u03c3:", coeff_s)
-        form.addRow("a:", coeff_a)
-        form.addRow("b:", coeff_b)
-        form.addRow("c:", coeff_c)
+        form.addRow("\u03c3:", cfs)
+        form.addRow("a:", cfa)
+        form.addRow("b:", cfb)
+        form.addRow("c:", cfc)
 
-        all_fields = [coeff_s, coeff_a, coeff_b, coeff_c]
+        all_fields = [cfs, cfa, cfb, cfc]
         mode_fields = {
             "Constant": [],
-            "Linear": [coeff_a, coeff_b],
-            "Exponential": [coeff_a, coeff_b, coeff_c],
-            "Linear-Markov": [coeff_s, coeff_a, coeff_b],
+            "Linear": [cfa, cfb],
+            "Exponential": [cfa, cfb, cfc],
+            "Linear-Markov": [cfs, cfa, cfb],
         }
-
-        def on_mode_changed(text):
-            visible = mode_fields.get(text, [])
-            for field in all_fields:
-                form.setRowVisible(field, field in visible)
 
         mode_combo.currentTextChanged.connect(on_mode_changed)
         on_mode_changed("Constant")
 
         return group
-
-    @staticmethod
-    def _init_delete_button() -> QtWidgets.QPushButton:
-
-        delete = QtWidgets.QPushButton("Delete")
-        delete.setStyleSheet("background: #FF5F57; color: white;")
-        return delete
-
-    def paintEvent(self, event):
-        """Draw placeholder text when no flows have been added."""
-
-        if self.count() == 0:
-            painter = QtGui.QPainter(self)
-            painter.setPen(QtGui.QColor("gray"))
-            painter.drawText(
-                self.rect(),
-                QtCore.Qt.AlignmentFlag.AlignCenter,
-                "Use the toolbar to add flows",
-            )
-            painter.end()
-        else:
-            super().paintEvent(event)
