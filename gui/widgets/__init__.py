@@ -1,10 +1,12 @@
+from .combobox import ComboBox
 from .dock import Dock
+from .layouts import *
 from .toolbar import ToolBar
-from .layouts import GLayout, HLayout, VLayout
 from .traffic import TrafficLights
 from .viewer import Viewer
 
 __all__ = [
+    "ComboBox",
     "Dock",
     "GLayout",
     "HLayout",
