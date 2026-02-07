@@ -25,7 +25,12 @@ class Dock(QtWidgets.QDockWidget):
             default_factory=lambda: QtCore.QSize(360, 360)
         )
 
-    def __init__(self, title: str, widget: QtWidgets.QWidget, parent=None):
+    def __init__(
+        self,
+        title: QtWidgets.QWidget = None,
+        widget: QtWidgets.QWidget = None,
+        parent=None,
+    ):
         """
         Initialize the sidebar dock widget.
         """
@@ -44,16 +49,5 @@ class Dock(QtWidgets.QDockWidget):
         self.setMinimumSize(self._attrs.minimumSize)
 
         # UI components
-        self._init_titlebar(title)
-        self._init_main_panel(widget)
-
-    def _init_titlebar(self, title: str) -> None:
-
-        self.setTitleBarWidget(
-            QtWidgets.QLabel(title, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-            if title
-            else QtWidgets.QFrame()
-        )
-
-    def _init_main_panel(self, widget: QtWidgets.QWidget) -> None:
+        self.setTitleBarWidget(title)
         self.setWidget(widget)

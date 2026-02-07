@@ -12,17 +12,14 @@ Implemented as a singleton to ensure only one window instance exists.
 from __future__ import annotations
 from qtawesome import icon as qta_icon
 
-
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
-
 
 # Climact
 from gui.widgets import ToolBar
@@ -75,9 +72,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, **kwargs):
         """
         Initialize the main window. Prevents reinitialization by checking the _initialized flag.
-
-        Args:
-            **kwargs: Optional initialization arguments (ignored for singleton).
         """
 
         # Prevent reinitialization of the singleton instance:
@@ -102,16 +96,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self._init_menubar()
         self._init_toolbar()
         self._init_tabview()
-        self._init_panels()
         self._init_status()
+        self._init_docks()
 
         # Create an unclosable map viewer
         self._init_map_view()
 
         # Connect to application signals
         app = QtWidgets.QApplication.instance()
-        if hasattr(app, 'show_as_dock'):
-            app.show_as_dock.connect(self._on_show_as_dock)
+        if hasattr(app, "show_as_dock"):
+            app.show_as_dock.connect(self.show_contextual_dock)
 
         self._traffic = None  # Will be set in _init_menubar
         self._initialized = True
@@ -190,26 +184,28 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(self._tabs)
 
-    def _init_panels(self):
+    def _init_docks(self):
 
         # Required
         from gui.widgets.dock import Dock
         from gui.main_ui.panels import UpperPanel, LowerPanel
 
-        lower_title = str()
-        upper_title = """
+        lower_title = QtWidgets.QFrame()
+        upper_title = QtWidgets.QLabel("""
         <span style='font-family: Bitcount; font-size: 32pt'>Clim</span>
         <span style='font-family: Bitcount; font-size: 32pt; color: darkcyan'>Act</span>
-        """
+        """)
 
         upper_panel = UpperPanel(self)
         lower_panel = LowerPanel(self)
 
         upper_dock = Dock(upper_title, upper_panel, parent=self)
         lower_dock = Dock(lower_title, lower_panel, parent=self)
+        right_dock = Dock(QtWidgets.QFrame(), QtWidgets.QWidget(), parent=self)
 
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, upper_dock)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, lower_dock)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, right_dock)
 
     def _init_status(self) -> None:
         """Initialize the status bar at the bottom of the main window."""
@@ -236,14 +232,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self._tabs.new_tab(map_viewer, icon=tab_icon, label="Map")
         self._tabs.tabBar().setTabButton(0, position, None)
 
-    @QtCore.Slot(object, object, QtCore.Qt.DockWidgetArea)
-    def _on_show_as_dock(self, title: str, widget: QtWidgets.QWidget, dock_area: QtCore.Qt.DockWidgetArea) -> None:
-        """Handle request to show a widget in a dock area."""
+    def show_contextual_dock(self, title, widget):
+
         from gui.widgets.dock import Dock
 
-        dock = Dock(title, widget, parent=self)
-        self.addDockWidget(dock_area, dock)
-        dock.show()
+        self.addDockWidget(
+            QtCore.Qt.DockWidgetArea.RightDockWidgetArea,
+            Dock(title, widget),
+        )
 
     @QtCore.Slot()
     def _execute(self) -> None:

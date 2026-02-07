@@ -28,9 +28,7 @@ class ClimateActionTool(QtWidgets.QApplication):
     """
 
     # Signals for global event dispatching
-    show_as_dock = QtCore.Signal(
-        object, object, QtCore.Qt.DockWidgetArea
-    )  # title, widget, dock_area
+    show_as_dock = QtCore.Signal(object, object)
     show_as_tab = QtCore.Signal(object, str, object)  # widget, title, icon
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.

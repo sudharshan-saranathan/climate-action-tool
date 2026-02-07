@@ -7,8 +7,9 @@ from __future__ import annotations
 # PySide6 (Python/Qt)
 from PySide6 import QtCore
 from PySide6 import QtWidgets
-
 import qtawesome as qta
+
+from .form import StreamForm
 
 
 class StreamTree(QtWidgets.QTreeWidget):
@@ -72,19 +73,17 @@ class StreamTree(QtWidgets.QTreeWidget):
             item.setSizeHint(0, QtCore.QSize(0, 24))
 
             # Find the flow class associated with this item
-            _class = ResourceDictionary.get(label.lower(), None)
-            if _class:
-                instance = _class()
-                item.setData(0, QtCore.Qt.ItemDataRole.UserRole, instance)
+            form = StreamForm()
+            item.setData(0, QtCore.Qt.ItemDataRole.UserRole, form)
 
             toolbar = ToolBar(
                 self,
                 trailing=True,
                 actions=[
                     (
-                        qta.icon("mdi.cog", color="gray"),
+                        qta.icon("mdi.cog", color="gray", color_active="white"),
                         "Configure",
-                        lambda: print("Configuring stream"),
+                        lambda _, f=form: self._raise_signal(f),
                     ),
                     (
                         qta.icon("mdi.delete", color="red"),
@@ -96,3 +95,12 @@ class StreamTree(QtWidgets.QTreeWidget):
 
             self.setItemWidget(item, 2, toolbar)
             root.setExpanded(True)
+
+    @staticmethod
+    def _raise_signal(widget: QtWidgets.QWidget):
+
+        app = QtWidgets.QApplication
+        if hasattr(app, "show_as_dock"):
+            app.show_as_dock(
+                str(), widget, QtCore.Qt.DockWidgetArea.RightDockWidgetArea
+            )

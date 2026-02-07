@@ -2,12 +2,6 @@
     background                  : #232a2e;
 }
 
-QMainWindow::separator {
-    background                  : transparent;
-    border                      : none;
-    width                       : 4px;
-}
-
 QOpenGLWidget {
     background                  : black;
     border                      : none;
@@ -22,14 +16,6 @@ QFrame#startup-dialog-container {
 }
 
 QWidget {
-    /*
-    background: qlineargradient(
-        x1: 0, y1: 0,
-        x2: 1, y2: 0,
-        stop: 0 #393e41,
-        stop: 1 lightslategray
-    );
-    */
     background                  : transparent;
 }
 
@@ -441,7 +427,7 @@ QTreeWidget::item {
     background                  : transparent;
     margin                      : 0px;
     padding                     : 4px;
-    color                       : lightgray;
+    color                       : gray;
     height                      : 24px;
     border                      : none;
 }
