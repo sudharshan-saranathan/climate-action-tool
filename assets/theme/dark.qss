@@ -428,13 +428,16 @@ QTreeWidget::item {
     margin                      : 0px;
     padding                     : 4px;
     color                       : gray;
-    height                      : 24px;
+    height                      : 20px;
     border                      : none;
+}
+
+QTreeWidget::item:has-children {
+    color                       : white;
 }
 
 QTreeWidget::item:selected {
     background                  : #4a556d;
-    color                       : white;
 }
 
 QTreeWidget::item:selected:first, QTreeWidget::item:hover:first {

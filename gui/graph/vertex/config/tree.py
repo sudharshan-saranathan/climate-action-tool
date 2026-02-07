@@ -20,6 +20,7 @@ class StreamTree(QtWidgets.QTreeWidget):
         # Customize appearance and behaviour
         self.setHeaderHidden(True)
         self.setColumnWidth(2, 60)
+        self.setStyleSheet("QTreeWidget::item { height: 20px; }")
         self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
 
         # Customize header
@@ -44,7 +45,6 @@ class StreamTree(QtWidgets.QTreeWidget):
             item = QtWidgets.QTreeWidgetItem(self)
             item.setText(0, label)
             item.setIcon(0, image)
-            item.setSizeHint(0, QtCore.QSize(0, 24))
 
             toolbar = ToolBar(
                 self,
@@ -61,7 +61,6 @@ class StreamTree(QtWidgets.QTreeWidget):
 
         # Import toolbar
         from gui.widgets.toolbar import ToolBar
-        from core.flow import ResourceDictionary
 
         root = self.findItems(label, QtCore.Qt.MatchFlag.MatchExactly, column=0)
         if root:
@@ -70,20 +69,18 @@ class StreamTree(QtWidgets.QTreeWidget):
             item.setText(0, "New Stream")
             item.setText(1, "Not configured")
             item.setIcon(0, qta.icon("ph.warning-fill", color="#ffcb00"))
-            item.setSizeHint(0, QtCore.QSize(0, 24))
 
             # Find the flow class associated with this item
-            form = StreamForm()
-            item.setData(0, QtCore.Qt.ItemDataRole.UserRole, form)
 
             toolbar = ToolBar(
                 self,
                 trailing=True,
+                iconSize=QtCore.QSize(14, 14),
                 actions=[
                     (
                         qta.icon("mdi.cog", color="gray", color_active="white"),
                         "Configure",
-                        lambda _, f=form: self._raise_signal(f),
+                        lambda: print(f"Configuring"),
                     ),
                     (
                         qta.icon("mdi.delete", color="red"),
@@ -97,10 +94,13 @@ class StreamTree(QtWidgets.QTreeWidget):
             root.setExpanded(True)
 
     @staticmethod
-    def _raise_signal(widget: QtWidgets.QWidget):
+    def _create_primary() -> QtWidgets.QFrame:
+        pass
 
-        app = QtWidgets.QApplication
-        if hasattr(app, "show_as_dock"):
-            app.show_as_dock(
-                str(), widget, QtCore.Qt.DockWidgetArea.RightDockWidgetArea
-            )
+    @staticmethod
+    def _create_secondary() -> QtWidgets.QFrame:
+        pass
+
+    @staticmethod
+    def _create_temporal() -> QtWidgets.QFrame:
+        pass

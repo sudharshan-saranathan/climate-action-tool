@@ -102,11 +102,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create an unclosable map viewer
         self._init_map_view()
 
-        # Connect to application signals
-        app = QtWidgets.QApplication.instance()
-        if hasattr(app, "show_as_dock"):
-            app.show_as_dock.connect(self.show_contextual_dock)
-
         self._traffic = None  # Will be set in _init_menubar
         self._initialized = True
 
@@ -191,24 +186,25 @@ class MainWindow(QtWidgets.QMainWindow):
         from gui.main_ui.panels import UpperPanel, LowerPanel
 
         lower_title = QtWidgets.QFrame()
-        upper_title = QtWidgets.QLabel("""
-        <span style='font-family: Bitcount; font-size: 32pt'>Clim</span>
-        <span style='font-family: Bitcount; font-size: 32pt; color: darkcyan'>Act</span>
-        """)
+        upper_title = QtWidgets.QLabel(
+            """
+        <span style='font-family: Bitcount; font-size: 20pt'>Clim</span>
+        <span style='font-family: Bitcount; font-size: 20pt; color: darkcyan'>Act</span>
+        """,
+            alignment=QtCore.Qt.AlignmentFlag.AlignCenter,
+        )
 
         upper_panel = UpperPanel(self)
         lower_panel = LowerPanel(self)
 
         upper_dock = Dock(upper_title, upper_panel, parent=self)
         lower_dock = Dock(lower_title, lower_panel, parent=self)
-        right_dock = Dock(QtWidgets.QFrame(), QtWidgets.QWidget(), parent=self)
 
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, upper_dock)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, lower_dock)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, right_dock)
 
         # Store dock reference(s)
-        self._docks = {"upper": upper_dock, "lower": lower_dock, "right": right_dock}
+        self._docks = {"upper": upper_dock, "lower": lower_dock}
 
     def _init_status(self) -> None:
         """Initialize the status bar at the bottom of the main window."""
@@ -234,15 +230,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._tabs.new_tab(map_viewer, icon=tab_icon, label="Map")
         self._tabs.tabBar().setTabButton(0, position, None)
-
-    def show_contextual_dock(
-        self,
-        title: QtWidgets.QWidget,
-        widget: QtWidgets.QWidget,
-    ):
-        dock = self._docks["right"]
-        dock.setTitleBarWidget(title)
-        dock.setTitleBarWidget(widget)
 
     @QtCore.Slot()
     def _execute(self) -> None:

@@ -4,18 +4,18 @@
 
 import weakref
 
+from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from gui.widgets.combobox import ComboBox
+from gui.widgets import ComboBox, HLayout
 from gui.graph.vertex.config.tree import StreamTree
 from gui.graph.vertex.config.form import StreamForm
 
 from core.flow import ResourceDictionary, ParameterDictionary
 
 
-
-class VertexConfig(QtWidgets.QFrame):
+class VertexConfig(QtWidgets.QDialog):
 
     def __init__(
         self,
@@ -24,16 +24,25 @@ class VertexConfig(QtWidgets.QFrame):
     ):
         self._vertex = weakref.ref(vertex)
         self._dicts = dict()
-
         super().__init__(parent)
+
+        # Customize appearance and behaviour:
+        self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.resize(900, 720)
 
         self._overview = self._init_overview()
         self._dataview = self._init_dataview()
-        self._form = StreamForm(self)
-        self._form.setDisabled(True)
-        self._form.setGraphicsEffect(QtWidgets.QGraphicsBlurEffect(self._form, blurRadius=5))
+
+        HLayout(
+            self,
+            spacing=4,
+            margins=(4, 4, 4, 4),
+            widgets=[self._overview, self._dataview],
+        )
 
     def _init_overview(self) -> QtWidgets.QFrame:
+
         container = QtWidgets.QFrame(self)
         container.setFixedWidth(240)
 
@@ -83,7 +92,7 @@ class VertexConfig(QtWidgets.QFrame):
 
     @QtCore.Slot()
     def _on_label_edited(self):
-        from gui.graph.vertex import VertexItem
+        from gui.graph.vertex.vertex import VertexItem
 
         string = self._label.text()
         vertex = self._vertex()
@@ -114,6 +123,17 @@ class VertexConfig(QtWidgets.QFrame):
         tab.addTab(QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Equations")
 
         return tab
+
+    def paintEvent(self, event, /):
+
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.setBrush(QtGui.QColor(0x232A2E))
+        painter.drawRoundedRect(self.rect(), 8, 8)
+
+        super().paintEvent(event)
 
     @property
     def overview(self) -> QtWidgets.QFrame:
