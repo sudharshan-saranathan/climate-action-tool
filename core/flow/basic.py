@@ -56,48 +56,48 @@ class Flow:
         return self._attrs.props
 
 
-class ItemFlow(Flow):
+class Item(Flow):
     """Flow of countable items."""
 
     @dataclass(frozen=True)
     class Attrs(Flow.Attrs):
-        keyID: ClassVar[str] = "item_flow"
+        keyID: ClassVar[str] = "item"
         color: ClassVar[str] = "#8a8a8a"
         label: ClassVar[str] = "Item"
         units: ClassVar[list[str]] = ["count"]
         image: ClassVar[QtGui.QIcon] = icon("mdi.package", color="#8a8a8a")
 
 
-class MassFlow(Flow):
+class Mass(Flow):
     """Flow of mass (weight)."""
 
     @dataclass(frozen=True)
     class Attrs(Flow.Attrs):
-        keyID: ClassVar[str] = "mass_flow"
+        keyID: ClassVar[str] = "mass"
         color: ClassVar[str] = "#78cad2"
         label: ClassVar[str] = "Mass"
         units: ClassVar[list[str]] = ["gms", "kgs", "tons", "MTs"]
         image: ClassVar[QtGui.QIcon] = icon("mdi.weight-gram", color="#78cad2")
 
 
-class EnergyFlow(Flow):
+class Energy(Flow):
     """Flow of energy."""
 
     @dataclass(frozen=True)
     class Attrs(Flow.Attrs):
-        keyID: ClassVar[str] = "energy_flow"
+        keyID: ClassVar[str] = "energy"
         color: ClassVar[str] = "#ffa500"
         label: ClassVar[str] = "Energy"
         units: ClassVar[list[str]] = ["J", "kJ", "MJ", "GJ"]
         image: ClassVar[QtGui.QIcon] = icon("mdi.fire", color="#ffa500")
 
 
-class CreditFlow(Flow):
+class Credit(Flow):
     """Flow of currency/credits."""
 
     @dataclass(frozen=True)
     class Attrs(Flow.Attrs):
-        keyID: ClassVar[str] = "credit_flow"
+        keyID: ClassVar[str] = "credit"
         color: ClassVar[str] = "#5eb616"
         label: ClassVar[str] = "Credit"
         units: ClassVar[list[str]] = ["INR", "USD"]

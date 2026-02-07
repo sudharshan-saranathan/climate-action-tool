@@ -27,6 +27,12 @@ class ClimateActionTool(QtWidgets.QApplication):
     Main application class to manage app lifecycle and UI components.
     """
 
+    # Signals for global event dispatching
+    show_as_dock = QtCore.Signal(
+        object, object, QtCore.Qt.DockWidgetArea
+    )  # title, widget, dock_area
+    show_as_tab = QtCore.Signal(object, str, object)  # widget, title, icon
+
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.
     startup_file = None  # User-selected project file to load (if available).
@@ -89,15 +95,10 @@ class ClimateActionTool(QtWidgets.QApplication):
         # Create and show the main window
         if self.startup_code:
 
-            try:
-                self._win = MainWindow(project=self.startup_file)
-                self._win.setWindowTitle("Climate Action Tool")
-                self._win.setGeometry(padded)
-                self._win.show()
-
-            except Exception as e:
-                logging.error(e)
-                sys.exit(1)  # Exit with non-zero status code
+            self._win = MainWindow(project=self.startup_file)
+            self._win.setWindowTitle("Climate Action Tool")
+            self._win.setGeometry(padded)
+            self._win.show()
 
         else:
             sys.exit(0)

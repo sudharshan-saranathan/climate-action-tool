@@ -245,7 +245,7 @@ QTabWidget QTabBar::tab {                                  /* Individual tab sty
     color                       : white;
     width                       : 100px;
     background                  : transparent;
-    border-radius               : 2px;
+    border-radius               : 4px;
     border                      : none;
     padding                     : 0px 8px 0px 8px;
     margin                      : 4px 4px 4px 0px;

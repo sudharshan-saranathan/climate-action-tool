@@ -108,6 +108,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create an unclosable map viewer
         self._init_map_view()
 
+        # Connect to application signals
+        app = QtWidgets.QApplication.instance()
+        if hasattr(app, 'show_as_dock'):
+            app.show_as_dock.connect(self._on_show_as_dock)
+
         self._traffic = None  # Will be set in _init_menubar
         self._initialized = True
 
@@ -230,6 +235,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._tabs.new_tab(map_viewer, icon=tab_icon, label="Map")
         self._tabs.tabBar().setTabButton(0, position, None)
+
+    @QtCore.Slot(object, object, QtCore.Qt.DockWidgetArea)
+    def _on_show_as_dock(self, title: str, widget: QtWidgets.QWidget, dock_area: QtCore.Qt.DockWidgetArea) -> None:
+        """Handle request to show a widget in a dock area."""
+        from gui.widgets.dock import Dock
+
+        dock = Dock(title, widget, parent=self)
+        self.addDockWidget(dock_area, dock)
+        dock.show()
 
     @QtCore.Slot()
     def _execute(self) -> None:

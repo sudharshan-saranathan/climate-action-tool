@@ -13,15 +13,15 @@ from qtawesome import icon
 from typing import ClassVar
 from dataclasses import dataclass
 
-from core.flow.basic import MassFlow, EnergyFlow, CreditFlow
+from core.flow.basic import Mass, Energy, Credit
 from core.flow.param import SpecificQuantity
 
 
-class Fuel(MassFlow):
+class Fuel(Mass):
     """Fuel flow with energy content, emission factors, and cost."""
 
     @dataclass(frozen=True)
-    class Attrs(MassFlow.Attrs):
+    class Attrs(Mass.Attrs):
         keyID: ClassVar[str] = "fuel"
         color: ClassVar[str] = "#bd8b9c"
         label: ClassVar[str] = "Fuel"
@@ -30,18 +30,18 @@ class Fuel(MassFlow):
     def __init__(self):
         super().__init__(
             props=[
-                SpecificQuantity(EnergyFlow, MassFlow, label="specific_energy"),
-                SpecificQuantity(MassFlow, MassFlow, label="emission_factor"),
-                SpecificQuantity(CreditFlow, MassFlow, label="cost"),
+                SpecificQuantity(Energy, Mass, label="specific_energy"),
+                SpecificQuantity(Mass, Mass, label="emission_factor"),
+                SpecificQuantity(Credit, Mass, label="cost"),
             ]
         )
 
 
-class Material(MassFlow):
+class Material(Mass):
     """Material flow with cost information."""
 
     @dataclass(frozen=True)
-    class Attrs(MassFlow.Attrs):
+    class Attrs(Mass.Attrs):
         keyID: ClassVar[str] = "material"
         color: ClassVar[str] = "#f63c6b"
         label: ClassVar[str] = "Material"
@@ -50,16 +50,16 @@ class Material(MassFlow):
     def __init__(self):
         super().__init__(
             props=[
-                SpecificQuantity(CreditFlow, MassFlow, label="cost"),
+                SpecificQuantity(Credit, Mass, label="cost"),
             ]
         )
 
 
-class Electricity(EnergyFlow):
+class Electricity(Energy):
     """Power/Electricity flow with cost."""
 
     @dataclass(frozen=True)
-    class Attrs(EnergyFlow.Attrs):
+    class Attrs(Energy.Attrs):
         keyID: ClassVar[str] = "electricity"
         color: ClassVar[str] = "#8491a3"
         label: ClassVar[str] = "Electricity"
@@ -68,16 +68,16 @@ class Electricity(EnergyFlow):
     def __init__(self):
         super().__init__(
             props=[
-                SpecificQuantity(CreditFlow, EnergyFlow, label="tariff"),
+                SpecificQuantity(Credit, Energy, label="tariff"),
             ]
         )
 
 
-class Product(MassFlow):
+class Product(Mass):
     """Product flow with revenue information."""
 
     @dataclass(frozen=True)
-    class Attrs(MassFlow.Attrs):
+    class Attrs(Mass.Attrs):
         keyID: ClassVar[str] = "product"
         color: ClassVar[str] = "#c5ff99"
         label: ClassVar[str] = "Product"
@@ -86,6 +86,6 @@ class Product(MassFlow):
     def __init__(self):
         super().__init__(
             props=[
-                SpecificQuantity(CreditFlow, MassFlow, label="revenue"),
+                SpecificQuantity(Credit, Mass, label="revenue"),
             ]
         )

@@ -2,34 +2,25 @@
 
 from __future__ import annotations
 from typing import Dict, Type
-from core.flow.basic import Flow, ItemFlow, MassFlow, EnergyFlow, CreditFlow
+from core.flow.basic import Flow, Item, Mass, Energy, Credit
 from core.flow.param import Parameter, SpecificQuantity, Temperature, Pressure
 from core.flow.combo import Fuel, Material, Electricity, Product
 
 # Dictionaries for lookup by KEY
-BasicFlows: Dict[str, Type[Flow]] = {
-    "item_flow": ItemFlow,
-    "mass_flow": MassFlow,
-    "energy_flow": EnergyFlow,
-    "credit_flow": CreditFlow,
-}
-
-Parameters: Dict[str, Type[Parameter]] = {
-    "temperature": Temperature,
-    "pressure": Pressure,
-}
-
-ComboFlows: Dict[str, Type[Flow]] = {
+ResourceDictionary: Dict[str, Type[Flow]] = {
+    "item": Item,
+    "mass": Mass,
+    "energy": Energy,
+    "credit": Credit,
     "fuel": Fuel,
     "material": Material,
     "electricity": Electricity,
     "product": Product,
 }
 
-# All flows combined
-AllFlows: Dict[str, Type[Flow]] = {
-    **BasicFlows,
-    **ComboFlows,
+ParameterDictionary: Dict[str, Type[Parameter]] = {
+    "temperature": Temperature,
+    "pressure": Pressure,
 }
 
 
@@ -41,10 +32,10 @@ def get_params(flow_instance) -> list:
 __all__ = [
     # Basic flows
     "Flow",
-    "ItemFlow",
-    "MassFlow",
-    "EnergyFlow",
-    "CreditFlow",
+    "Item",
+    "Mass",
+    "Energy",
+    "Credit",
     # Parameters
     "Parameter",
     "SpecificQuantity",
@@ -56,10 +47,8 @@ __all__ = [
     "Electricity",
     "Product",
     # Dictionaries
-    "BasicFlows",
-    "Parameters",
-    "ComboFlows",
-    "AllFlows",
+    "ResourceDictionary",
+    "ParameterDictionary",
     # Utilities
     "get_params",
 ]
