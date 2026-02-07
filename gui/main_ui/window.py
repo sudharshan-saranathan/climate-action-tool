@@ -207,6 +207,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, lower_dock)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, right_dock)
 
+        # Store dock reference(s)
+        self._docks = {"upper": upper_dock, "lower": lower_dock, "right": right_dock}
+
     def _init_status(self) -> None:
         """Initialize the status bar at the bottom of the main window."""
         self._status = QtWidgets.QStatusBar()
@@ -232,14 +235,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self._tabs.new_tab(map_viewer, icon=tab_icon, label="Map")
         self._tabs.tabBar().setTabButton(0, position, None)
 
-    def show_contextual_dock(self, title, widget):
-
-        from gui.widgets.dock import Dock
-
-        self.addDockWidget(
-            QtCore.Qt.DockWidgetArea.RightDockWidgetArea,
-            Dock(title, widget),
-        )
+    def show_contextual_dock(
+        self,
+        title: QtWidgets.QWidget,
+        widget: QtWidgets.QWidget,
+    ):
+        dock = self._docks["right"]
+        dock.setTitleBarWidget(title)
+        dock.setTitleBarWidget(widget)
 
     @QtCore.Slot()
     def _execute(self) -> None:
