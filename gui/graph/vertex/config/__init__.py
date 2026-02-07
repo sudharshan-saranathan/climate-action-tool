@@ -1,6 +1,6 @@
 # Filename: __init__.py
 # Module name: config
-# Description: Vertex configuration dialog.
+# Description: Vertex configuration window.
 
 import weakref
 
@@ -9,13 +9,14 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from gui.widgets import ComboBox, HLayout
+from gui.widgets.dock import Dock
 from gui.graph.vertex.config.tree import StreamTree
 from gui.graph.vertex.config.form import StreamForm
 
 from core.flow import ResourceDictionary, ParameterDictionary
 
 
-class VertexConfig(QtWidgets.QDialog):
+class VertexConfig(QtWidgets.QMainWindow):
 
     def __init__(
         self,
@@ -34,12 +35,20 @@ class VertexConfig(QtWidgets.QDialog):
         self._overview = self._init_overview()
         self._dataview = self._init_dataview()
 
+        # Central widget: overview + dataview side by side
+        central = QtWidgets.QWidget(self)
         HLayout(
-            self,
+            central,
             spacing=4,
             margins=(4, 4, 4, 4),
             widgets=[self._overview, self._dataview],
         )
+        self.setCentralWidget(central)
+
+        # Right dock: StreamForm
+        self._form = StreamForm()
+        dock = Dock(QtWidgets.QLabel("Stream Configuration"), self._form, parent=self)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
     def _init_overview(self) -> QtWidgets.QFrame:
 
@@ -108,6 +117,12 @@ class VertexConfig(QtWidgets.QDialog):
         )
         QtCore.QTimer.singleShot(1000, lambda: self._label.clearFocus())
 
+    @QtCore.Slot(QtWidgets.QTreeWidgetItem)
+    def _on_item_selected(self, item: QtWidgets.QTreeWidgetItem):
+        """Update the dock's StreamForm when a tree item is selected."""
+        if item and item.parent():
+            self._form.configure_item(item)
+
     def _create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
 
         from qtawesome import icon
@@ -115,6 +130,10 @@ class VertexConfig(QtWidgets.QDialog):
         inp_tree = StreamTree(list(ResourceDictionary.values()), self)
         out_tree = StreamTree(list(ResourceDictionary.values()), self)
         par_tree = StreamTree(list(ParameterDictionary.values()), self)
+
+        # Connect tree selection to dock form
+        for tree in (inp_tree, out_tree, par_tree):
+            tree.itemClicked.connect(self._on_item_selected)
 
         tab = QtWidgets.QTabWidget(self)
         tab.addTab(inp_tree, icon("mdi.arrow-down-bold", color="#efefef"), "Inputs")

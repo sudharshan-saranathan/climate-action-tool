@@ -33,6 +33,7 @@ Thumbs.db
 
 # Project specific
 *.h5
+.init_backup.py
 
 # Large data files (optional - uncomment if you want to exclude them)
 # models/*.xlsx
