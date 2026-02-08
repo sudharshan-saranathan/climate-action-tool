@@ -125,6 +125,10 @@ class VertexConfig(QtWidgets.QDialog):
         form = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
         form_stack = self._current_form_stack()
 
+        if form and form_stack:
+            form_stack.addWidget(form)
+            form_stack.setCurrentWidget(form)
+
     def _create_tab_widget(self, label: str) -> QtWidgets.QSplitter:
 
         from qtawesome import icon
