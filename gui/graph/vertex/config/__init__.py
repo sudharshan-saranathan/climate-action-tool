@@ -108,6 +108,15 @@ class VertexConfig(QtWidgets.QDialog):
         )
         QtCore.QTimer.singleShot(1000, lambda: self._label.clearFocus())
 
+    def _current_form_stack(self) -> QtWidgets.QStackedWidget | None:
+        """Return the form stack from the currently visible page's splitter."""
+        page = self._dataview.currentWidget()
+        if isinstance(page, QtWidgets.QSplitter) and page.count() >= 2:
+            stack = page.widget(1)
+            if isinstance(stack, QtWidgets.QStackedWidget):
+                return stack
+        return None
+
     @QtCore.Slot(QtWidgets.QTreeWidgetItem)
     def _on_item_selected(self, item: QtWidgets.QTreeWidgetItem):
         """Show the selected child item's StreamForm in the form stack."""
@@ -115,10 +124,11 @@ class VertexConfig(QtWidgets.QDialog):
             return
 
         form = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
-        if isinstance(form, StreamForm):
-            if self._form_stack.indexOf(form) == -1:
-                self._form_stack.addWidget(form)
-            self._form_stack.setCurrentWidget(form)
+        form_stack = self._current_form_stack()
+        if isinstance(form, StreamForm) and form_stack:
+            if form_stack.indexOf(form) == -1:
+                form_stack.addWidget(form)
+            form_stack.setCurrentWidget(form)
 
     def _create_tab_widget(self, label: str) -> QtWidgets.QSplitter:
 
@@ -140,11 +150,11 @@ class VertexConfig(QtWidgets.QDialog):
             QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Constraints"
         )
 
-        self._form_stack = QtWidgets.QStackedWidget(self)
+        form_stack = QtWidgets.QStackedWidget(self)
 
         splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical, self)
         splitter.addWidget(tab)
-        splitter.addWidget(self._form_stack)
+        splitter.addWidget(form_stack)
 
         return splitter
 
@@ -169,8 +179,11 @@ class VertexConfig(QtWidgets.QDialog):
 
     @property
     def form(self) -> StreamForm | None:
-        widget = self._form_stack.currentWidget()
-        return widget if isinstance(widget, StreamForm) else None
+        form_stack = self._current_form_stack()
+        if form_stack:
+            widget = form_stack.currentWidget()
+            return widget if isinstance(widget, StreamForm) else None
+        return None
 
     @QtCore.Slot(str)
     def set_label_text(self, text):
