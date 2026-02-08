@@ -27,7 +27,7 @@ class StreamTree(QtWidgets.QTreeWidget):
         self.setHeaderHidden(True)
         self.setMouseTracking(True)
         self.setColumnWidth(2, 140)
-        self.setStyleSheet("QTreeWidget::item { height: 20px; }")
+        self.setStyleSheet("QTreeWidget::item { height: 35px; }")
         self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
 
         # Customize header
@@ -90,8 +90,8 @@ class StreamTree(QtWidgets.QTreeWidget):
     # Method to add a resource-class to the tree
     def add_resource_class(self, flow_class):
 
-        item = QtWidgets.QTreeWidgetItem(self, [flow_class.Attrs.label])
-        # item.setIcon(0, flow_class.Attrs.image)
+        item = QtWidgets.QTreeWidgetItem([flow_class.Attrs.label])
+        item.setIcon(0, flow_class.Attrs.image)
 
         toggle = QtGui.QAction(
             "Auto-balance",
@@ -110,6 +110,7 @@ class StreamTree(QtWidgets.QTreeWidget):
             toolbar.addAction(action)
 
         self.addTopLevelItem(item)
+        toolbar.show()
         self.setItemWidget(item, self.columnCount() - 1, toolbar)
 
     # Method to create a new entity under the specified parent
