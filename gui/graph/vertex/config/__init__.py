@@ -15,7 +15,9 @@ from dataclasses import field
 from dataclasses import dataclass
 
 # Climact
-from gui.widgets import GLayout, HLayout, VLayout, ToolBar
+from gui.widgets import GLayout
+from core.flow import ResourceDictionary, ParameterDictionary
+from gui.graph.vertex.config.tree import StreamTree
 from qtawesome import icon as qta_icon
 
 
@@ -71,12 +73,15 @@ class VertexConfigDialog(QtWidgets.QDialog):
         # UI components
         self._form = self._init_form()
         self._tabs = self._init_tabs()
+        self._drawer = self._init_drawer()
 
         # Parent Layout
-        layout = HLayout(
-            self, spacing=4, margins=(4, 4, 4, 4), widgets=[self._form, self._tabs]
-        )
-        layout.setStretch(1, 10)
+        layout = GLayout(self, spacing=4, margins=(4, 4, 4, 4))
+        layout.addWidget(self._form, 0, 0, 2, 1)
+        layout.addWidget(self._tabs, 0, 1)
+        layout.addWidget(self._drawer, 1, 1)
+        layout.setRowStretch(0, 10)
+        layout.setColumnStretch(1, 10)
 
     def _init_form(self) -> QtWidgets.QFrame:
 
@@ -107,18 +112,14 @@ class VertexConfigDialog(QtWidgets.QDialog):
 
     def _init_tabs(self) -> QtWidgets.QTabWidget:
 
-        # Import StreamTree
-        from gui.graph.vertex.config.tree import StreamTree
-        from core.flow import ResourceDictionary, ParameterDictionary
-
         tabs = QtWidgets.QTabWidget(self)
         tabs.addTab(
-            StreamTree(self, ResourceDictionary),
+            StreamTree(self),
             qta_icon("ph.arrows-down-up", color="gray"),
             "Streams",
         )
         tabs.addTab(
-            StreamTree(self, ParameterDictionary),
+            StreamTree(self),
             qta_icon("mdi.alpha", color="magenta"),
             "Parameters",
         )
@@ -126,6 +127,19 @@ class VertexConfigDialog(QtWidgets.QDialog):
             QtWidgets.QWidget(self), qta_icon("mdi.equal", color="cyan"), "Constraints"
         )
         return tabs
+
+    def _init_drawer(self) -> QtWidgets.QToolBar:
+
+        toolbar = QtWidgets.QToolBar(self)
+        toolbar.addWidget(QtWidgets.QLabel("Resource Drawer:"))
+        toolbar.addSeparator()
+
+        for flow_id, _class in ResourceDictionary.items():
+            label = _class.Attrs.label
+            image = _class.Attrs.image
+            toolbar.addAction(image, label, self.add_category)
+
+        return toolbar
 
     def _on_label_edited(self, text: str):
 
@@ -138,6 +152,21 @@ class VertexConfigDialog(QtWidgets.QDialog):
 
     def _on_tunit_edited(self, text: str):
         pass
+
+    def add_category(self):
+
+        action = self.sender()
+        if not isinstance(action, QtGui.QAction):
+            return
+
+        label = action.text()
+        widget = self._tabs.currentWidget()
+        if not isinstance(widget, StreamTree):
+            return
+
+        flow_class = (ResourceDictionary | ParameterDictionary).get(label, None)
+        if flow_class:
+            widget.add_top_level_item(flow_class)
 
     # Public methods
     def set_label_text(self, text: str):

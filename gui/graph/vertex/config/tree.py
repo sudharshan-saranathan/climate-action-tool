@@ -27,7 +27,7 @@ class StreamTree(QtWidgets.QTreeWidget):
         self.setHeaderHidden(True)
         self.setMouseTracking(True)
         self.setColumnWidth(2, 140)
-        self.setStyleSheet("QTreeWidget::item { height: 35px; }")
+        self.setStyleSheet("QTreeWidget::item { height: 20px; }")
         self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
 
         # Customize header
@@ -88,30 +88,27 @@ class StreamTree(QtWidgets.QTreeWidget):
         self.delete_entity(root.text(0), item.text(0))
 
     # Method to add a resource-class to the tree
-    def add_resource_class(self, flow_class):
+    def add_top_level_item(self, flow_class):
 
         item = QtWidgets.QTreeWidgetItem([flow_class.Attrs.label])
         item.setIcon(0, flow_class.Attrs.image)
 
-        toggle = QtGui.QAction(
-            "Auto-balance",
-            icon=icon("mdi.check-bold", color_off="gray", color_on="cyan"),
-            checkable=True,
+        widget = ToolBar(self, trailing=True)
+        toggle = widget.addAction(
+            icon("mdi.check-bold", color_off="gray", color_on="cyan"),
+            "Toggle auto-balance",
         )
-
-        create = QtGui.QAction(
+        create = widget.addAction(
+            icon("mdi.plus", color="gray", color_active="white"),
             "Create Entity",
-            icon=icon("mdi.plus", color="gray", color_active="white"),
-            checkable=False,
+            self._on_item_created,
         )
 
-        toolbar = ToolBar(self, trailing=True)
-        for action in (toggle, create):
-            toolbar.addAction(action)
-
+        toggle.setCheckable(True)
+        create.setData(item)
         self.addTopLevelItem(item)
-        toolbar.show()
-        self.setItemWidget(item, self.columnCount() - 1, toolbar)
+        self.setItemWidget(item, self.columnCount() - 1, widget)
+        self._flow_to_item_map[item.text(0)] = item
 
     # Method to create a new entity under the specified parent
     def create_entity(self, flow_id: str):
