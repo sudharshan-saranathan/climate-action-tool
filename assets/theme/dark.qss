@@ -204,14 +204,21 @@ QMenuBar::item:hover, QMenuBar::item:selected { /* Hover effect for menu bar ite
 */
 
 QCheckBox {
-    background                  : #efefef;
-    border                      : 1px solid black;
-    border-radius               : 4px;
+    background                  : transparent;
+    border-radius               : 2px;
 }
 
 QCheckBox::indicator {
-    width                       : 14px;
-    height                      : 14px;
+    background                  : #efefef;
+    width                       : 10px;
+    height                      : 10px;
+    border-radius               : 2px;
+}
+
+QCheckBox::indicator:checked {
+    background                  : #0078d7;
+    width                       : 10px;
+    height                      : 10px;
 }
 
 /*
@@ -451,7 +458,7 @@ QTreeWidget::item {
     background                  : transparent;
     margin                      : 0px;
     padding                     : 4px;
-    color                       : gray;
+    color                       : lightgray;
     height                      : 20px;
     border                      : none;
 }
@@ -461,7 +468,7 @@ QTreeWidget::item:has-children {
 }
 
 QTreeWidget::item:selected {
-    background                  : #4a556d;
+    background                  : gray;
 }
 
 QTreeWidget::item:selected:first, QTreeWidget::item:hover:first {

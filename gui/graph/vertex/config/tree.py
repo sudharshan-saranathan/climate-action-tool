@@ -97,6 +97,8 @@ class StreamTree(QtWidgets.QTreeWidget):
                 ],
             )
 
+            self.setItemWidget(item, 1, QtWidgets.QCheckBox("Input", self))
+            self.setItemWidget(item, 2, QtWidgets.QCheckBox("Output", self))
             self.setItemWidget(item, self.columnCount() - 1, toolbar)
             root.setExpanded(True)
 

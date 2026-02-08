@@ -73,6 +73,32 @@ class Pressure(Parameter):
         image: ClassVar[QtGui.QIcon] = icon("mdi.gauge", color="#4682b4")
 
 
+class Factor(Parameter):
+    """Generic factor parameter (0-1 range) with custom label."""
+
+    def __init__(self, label: str = "Factor", color: str = "#808080", icon_name: str = "mdi.percent"):
+        super().__init__()
+        self._label = label
+        self._color = color
+        self._icon_name = icon_name
+
+    @property
+    def label(self) -> str:
+        return self._label
+
+    @property
+    def image(self) -> QtGui.QIcon:
+        return icon(self._icon_name, color=self._color)
+
+    @property
+    def color(self) -> str:
+        return self._color
+
+    @property
+    def units(self) -> list[str]:
+        return ["0-1"]
+
+
 class SpecificQuantity(Parameter):
     """A ratio parameter derived from two types (numerator/denominator).
 
@@ -102,4 +128,9 @@ class SpecificQuantity(Parameter):
     def units(self) -> list[str]:
         num_units = self._numerator.Attrs.units
         den_units = self._denominator.Attrs.units
+
+        # If numerator and denominator are the same type, return dimensionless symbol
+        if self._numerator == self._denominator:
+            return ["-"]
+
         return [f"{n}/{d}" for n in num_units for d in den_units]

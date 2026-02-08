@@ -14,7 +14,7 @@ from typing import ClassVar
 from dataclasses import dataclass
 
 from core.flow.basic import Mass, Energy, Credit
-from core.flow.param import SpecificQuantity
+from core.flow.param import SpecificQuantity, Temperature, Pressure, Factor
 
 
 class Fuel(Mass):
@@ -56,7 +56,7 @@ class Material(Mass):
 
 
 class Electricity(Energy):
-    """Power/Electricity flow with cost."""
+    """Power/Electricity flow with cost, emissions, and grid characteristics."""
 
     @dataclass(frozen=True)
     class Attrs(Energy.Attrs):
@@ -69,6 +69,9 @@ class Electricity(Energy):
         super().__init__(
             props=[
                 SpecificQuantity(Credit, Energy, label="tariff"),
+                SpecificQuantity(Mass, Energy, label="emissions_factor"),
+                Factor("Variability", color="#daa520", icon_name="mdi.sine-wave"),
+                Factor("Ramp Rate", color="#20b2aa", icon_name="mdi.speedometer"),
             ]
         )
 
@@ -87,5 +90,24 @@ class Product(Mass):
         super().__init__(
             props=[
                 SpecificQuantity(Credit, Mass, label="revenue"),
+            ]
+        )
+
+
+class Fluid(Mass):
+    """Fluid flow with thermodynamic properties."""
+
+    @dataclass(frozen=True)
+    class Attrs(Mass.Attrs):
+        keyID: ClassVar[str] = "fluid"
+        color: ClassVar[str] = "#1e90ff"
+        label: ClassVar[str] = "Fluid"
+        image: ClassVar[QtGui.QIcon] = icon("mdi.gas-cylinder", color="#ffd791")
+
+    def __init__(self):
+        super().__init__(
+            props=[
+                Temperature(),
+                Pressure(),
             ]
         )

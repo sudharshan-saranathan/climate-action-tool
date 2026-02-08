@@ -3,8 +3,8 @@
 from __future__ import annotations
 from typing import Dict, Type
 from core.flow.basic import Flow, Item, Mass, Energy, Credit
-from core.flow.param import Parameter, SpecificQuantity, Temperature, Pressure
-from core.flow.combo import Fuel, Material, Electricity, Product
+from core.flow.param import Parameter, SpecificQuantity, Temperature, Pressure, Factor
+from core.flow.combo import Fuel, Material, Electricity, Product, Fluid
 
 # Dictionaries for lookup by KEY
 ResourceDictionary: Dict[str, Type[Flow]] = {
@@ -16,6 +16,7 @@ ResourceDictionary: Dict[str, Type[Flow]] = {
     "material": Material,
     "electricity": Electricity,
     "product": Product,
+    "fluid": Fluid,
 }
 
 ParameterDictionary: Dict[str, Type[Parameter]] = {
@@ -41,11 +42,13 @@ __all__ = [
     "SpecificQuantity",
     "Temperature",
     "Pressure",
+    "Factor",
     # Combo flows
     "Fuel",
     "Material",
     "Electricity",
     "Product",
+    "Fluid",
     # Dictionaries
     "ResourceDictionary",
     "ParameterDictionary",

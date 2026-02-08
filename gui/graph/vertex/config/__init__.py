@@ -10,7 +10,6 @@ from PySide6 import QtWidgets
 
 from gui.widgets import ComboBox, HLayout
 from gui.graph.vertex.config.tree import StreamTree
-from gui.graph.vertex.config.form import StreamForm
 
 from core.flow import ResourceDictionary, ParameterDictionary
 
@@ -125,10 +124,6 @@ class VertexConfig(QtWidgets.QDialog):
 
         form = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
         form_stack = self._current_form_stack()
-        if isinstance(form, StreamForm) and form_stack:
-            if form_stack.indexOf(form) == -1:
-                form_stack.addWidget(form)
-            form_stack.setCurrentWidget(form)
 
     def _create_tab_widget(self, label: str) -> QtWidgets.QSplitter:
 
@@ -176,14 +171,6 @@ class VertexConfig(QtWidgets.QDialog):
     @property
     def dataview(self) -> QtWidgets.QStackedWidget:
         return self._dataview
-
-    @property
-    def form(self) -> StreamForm | None:
-        form_stack = self._current_form_stack()
-        if form_stack:
-            widget = form_stack.currentWidget()
-            return widget if isinstance(widget, StreamForm) else None
-        return None
 
     @QtCore.Slot(str)
     def set_label_text(self, text):
