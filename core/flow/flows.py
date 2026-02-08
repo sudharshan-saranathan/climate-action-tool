@@ -24,7 +24,7 @@ from core.flow.dimensions import Mass, Volume, Energy, Currency
 from core.flow.time import FlowMixin
 
 
-class MassFlow(Mass, FlowMixin):
+class MassFlow(FlowMixin, Mass):
     """Flow of mass per unit time."""
 
     @dataclass(frozen=True)
@@ -33,7 +33,7 @@ class MassFlow(Mass, FlowMixin):
         label: ClassVar[str] = "Mass Flow"
 
 
-class VolumeFlow(Volume, FlowMixin):
+class VolumeFlow(FlowMixin, Volume):
     """Flow of volume per unit time."""
 
     @dataclass(frozen=True)
@@ -42,7 +42,7 @@ class VolumeFlow(Volume, FlowMixin):
         label: ClassVar[str] = "Volume Flow"
 
 
-class EnergyFlow(Energy, FlowMixin):
+class EnergyFlow(FlowMixin, Energy):
     """Flow of energy per unit time (power)."""
 
     @dataclass(frozen=True)
@@ -51,7 +51,7 @@ class EnergyFlow(Energy, FlowMixin):
         label: ClassVar[str] = "Energy Flow"
 
 
-class CurrencyFlow(Currency, FlowMixin):
+class CurrencyFlow(FlowMixin, Currency):
     """Flow of currency per unit time."""
 
     @dataclass(frozen=True)
