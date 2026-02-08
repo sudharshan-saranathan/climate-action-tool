@@ -9,24 +9,24 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 import qtawesome as qta
 
-from .form import StreamForm
-
 
 class StreamTree(QtWidgets.QTreeWidget):
 
     def __init__(self, flow_classes: list, parent=None):
-        super().__init__(parent, columnCount=3)
+        super().__init__(parent, columnCount=5)
 
         # Customize appearance and behaviour
         self.setHeaderHidden(True)
-        self.setColumnWidth(2, 60)
+        self.setColumnWidth(5, 40)
         self.setStyleSheet("QTreeWidget::item { height: 20px; }")
         self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
 
         # Customize header
         header = self.header()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
+
+        # Strong references to prevent GC of StreamForm instances
+        self._forms: dict[int, object] = {}
 
         # Add the flow classes as top-level items
         self._init_top_level_items(flow_classes)
@@ -45,6 +45,7 @@ class StreamTree(QtWidgets.QTreeWidget):
             item = QtWidgets.QTreeWidgetItem(self)
             item.setText(0, label)
             item.setIcon(0, image)
+            item.setData(0, QtCore.Qt.ItemDataRole.UserRole, _class)
 
             toolbar = ToolBar(
                 self,
@@ -54,7 +55,7 @@ class StreamTree(QtWidgets.QTreeWidget):
                 ],
             )
 
-            self.setItemWidget(item, 2, toolbar)
+            self.setItemWidget(item, self.columnCount() - 1, toolbar)
 
     @QtCore.Slot()
     def create_row(self, label: str):
@@ -67,30 +68,36 @@ class StreamTree(QtWidgets.QTreeWidget):
             root = root[0]
             item = QtWidgets.QTreeWidgetItem(root)
             item.setText(0, "New Stream")
-            item.setText(1, "Not configured")
             item.setIcon(0, qta.icon("ph.warning-fill", color="#ffcb00"))
 
-            # Find the flow class associated with this item
+            # Create a StreamForm for this item and configure it with the flow
+            from gui.graph.vertex.config.form import StreamForm
+
+            flow_class = root.data(0, QtCore.Qt.ItemDataRole.UserRole)
+            form = StreamForm()
+            form.set_item(item)
+            if flow_class:
+                form.configure_flow(flow_class())
+
+            item.setData(0, QtCore.Qt.ItemDataRole.UserRole, form)
+            self._forms[id(item)] = form
 
             toolbar = ToolBar(
                 self,
                 trailing=True,
-                iconSize=QtCore.QSize(14, 14),
                 actions=[
-                    (
-                        qta.icon("mdi.cog", color="gray", color_active="white"),
-                        "Configure",
-                        lambda: print(f"Configuring"),
-                    ),
                     (
                         qta.icon("mdi.delete", color="red"),
                         "Delete",
-                        lambda _, r=root, i=item: r.removeChild(i),
+                        lambda _, r=root, i=item: (
+                            self._forms.pop(id(i), None),
+                            r.removeChild(i),
+                        ),
                     ),
                 ],
             )
 
-            self.setItemWidget(item, 2, toolbar)
+            self.setItemWidget(item, self.columnCount() - 1, toolbar)
             root.setExpanded(True)
 
     @staticmethod

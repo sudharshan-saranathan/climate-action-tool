@@ -21,7 +21,31 @@ QWidget {
 
 QRadioButton {
     background                  : transparent;
-    border-radius               : 4px;
+    width                       : 16px;
+    color                       : #efefef;
+    spacing                     : 6px;
+    padding                     : 2px;
+}
+
+QRadioButton::indicator {
+    width                       : 6px;
+    height                      : 6px;
+    border-radius               : 3px;
+    background                  : transparent;
+}
+
+QRadioButton::indicator:hover {
+    background                  : white;
+}
+
+QRadioButton::indicator:checked {
+    border-color                : darkcyan;
+    background                  : darkcyan;
+}
+
+QRadioButton::indicator:checked:hover {
+    border-color                : darkcyan;
+    background                  : darkcyan;
 }
 
 QTitleBar {
@@ -33,15 +57,15 @@ QGroupBox {
     background                  : transparent;
     border-radius               : 4px;
     border                      : 1px solid #363e41;
-    margin                      : 8px 24px 4px 24px;
-    padding-top                 : 12px;
+    margin                      : 8px 4px 4px 4px;
+    padding-top                 : 4px;
 }
 
 QGroupBox::title {
     subcontrol-origin           : margin;
     subcontrol-position         : top center;
-    margin                      : 2px 4px;
-    padding                     : 0px 4px;
+    margin                      : 2px 0px;
+    padding                     : 0px 0px;
     color                       : gray;
 }
 

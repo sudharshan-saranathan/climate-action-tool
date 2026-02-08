@@ -1,6 +1,6 @@
 # Filename: __init__.py
 # Module name: config
-# Description: Vertex configuration window.
+# Description: Vertex configuration dialog.
 
 import weakref
 
@@ -9,14 +9,13 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from gui.widgets import ComboBox, HLayout
-from gui.widgets.dock import Dock
 from gui.graph.vertex.config.tree import StreamTree
 from gui.graph.vertex.config.form import StreamForm
 
 from core.flow import ResourceDictionary, ParameterDictionary
 
 
-class VertexConfig(QtWidgets.QMainWindow):
+class VertexConfig(QtWidgets.QDialog):
 
     def __init__(
         self,
@@ -35,20 +34,12 @@ class VertexConfig(QtWidgets.QMainWindow):
         self._overview = self._init_overview()
         self._dataview = self._init_dataview()
 
-        # Central widget: overview + dataview side by side
-        central = QtWidgets.QWidget(self)
         HLayout(
-            central,
+            self,
             spacing=4,
             margins=(4, 4, 4, 4),
             widgets=[self._overview, self._dataview],
         )
-        self.setCentralWidget(central)
-
-        # Right dock: StreamForm
-        self._form = StreamForm()
-        dock = Dock(QtWidgets.QLabel("Stream Configuration"), self._form, parent=self)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
     def _init_overview(self) -> QtWidgets.QFrame:
 
@@ -119,11 +110,17 @@ class VertexConfig(QtWidgets.QMainWindow):
 
     @QtCore.Slot(QtWidgets.QTreeWidgetItem)
     def _on_item_selected(self, item: QtWidgets.QTreeWidgetItem):
-        """Update the dock's StreamForm when a tree item is selected."""
-        if item and item.parent():
-            self._form.configure_item(item)
+        """Show the selected child item's StreamForm in the form stack."""
+        if not (item and item.parent()):
+            return
 
-    def _create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
+        form = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if isinstance(form, StreamForm):
+            if self._form_stack.indexOf(form) == -1:
+                self._form_stack.addWidget(form)
+            self._form_stack.setCurrentWidget(form)
+
+    def _create_tab_widget(self, label: str) -> QtWidgets.QSplitter:
 
         from qtawesome import icon
 
@@ -131,17 +128,25 @@ class VertexConfig(QtWidgets.QMainWindow):
         out_tree = StreamTree(list(ResourceDictionary.values()), self)
         par_tree = StreamTree(list(ParameterDictionary.values()), self)
 
-        # Connect tree selection to dock form
-        for tree in (inp_tree, out_tree, par_tree):
-            tree.itemClicked.connect(self._on_item_selected)
+        # Connect tree selection to form display
+        for _tree in (inp_tree, out_tree, par_tree):
+            _tree.itemClicked.connect(self._on_item_selected)
 
         tab = QtWidgets.QTabWidget(self)
-        tab.addTab(inp_tree, icon("mdi.arrow-down-bold", color="#efefef"), "Inputs")
-        tab.addTab(out_tree, icon("mdi.arrow-up-bold", color="#efefef"), "Outputs")
-        tab.addTab(par_tree, icon("mdi.alpha", color="pink"), "Parameters")
-        tab.addTab(QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Equations")
+        tab.addTab(inp_tree, icon("mdi.arrow-down-bold", color="gray"), "Inputs")
+        tab.addTab(out_tree, icon("mdi.arrow-up-bold", color="gray"), "Outputs")
+        tab.addTab(par_tree, icon("mdi.alpha", color="magenta"), "Parameters")
+        tab.addTab(
+            QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Constraints"
+        )
 
-        return tab
+        self._form_stack = QtWidgets.QStackedWidget(self)
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical, self)
+        splitter.addWidget(tab)
+        splitter.addWidget(self._form_stack)
+
+        return splitter
 
     def paintEvent(self, event, /):
 
@@ -163,8 +168,9 @@ class VertexConfig(QtWidgets.QMainWindow):
         return self._dataview
 
     @property
-    def form(self) -> StreamForm:
-        return self._form
+    def form(self) -> StreamForm | None:
+        widget = self._form_stack.currentWidget()
+        return widget if isinstance(widget, StreamForm) else None
 
     @QtCore.Slot(str)
     def set_label_text(self, text):
