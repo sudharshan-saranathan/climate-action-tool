@@ -62,19 +62,18 @@ from core.flow.combos import (
     Fluid,
 )
 
-
 # === Lookup Dictionaries ===
 
 ResourceDictionary: Dict[str, Type] = {
-    "mass_flow": MassFlow,
-    "volume_flow": VolumeFlow,
-    "energy_flow": EnergyFlow,
-    "currency_flow": CurrencyFlow,
-    "fuel": Fuel,
-    "material": Material,
-    "electricity": Electricity,
-    "product": Product,
-    "fluid": Fluid,
+    "Mass": MassFlow,
+    "Volume": VolumeFlow,
+    "Energy": EnergyFlow,
+    "Currency": CurrencyFlow,
+    "Fuel": Fuel,
+    "Material": Material,
+    "Electricity": Electricity,
+    "Product": Product,
+    "Fluid": Fluid,
 }
 
 ParameterDictionary: Dict[str, Type[Parameter]] = {
@@ -91,6 +90,7 @@ AllFlows = BasicFlows + ComboFlows
 
 
 # === Utility Functions ===
+
 
 def get_params(flow_instance) -> dict:
     """Return Parameter dictionary associated with a flow instance.

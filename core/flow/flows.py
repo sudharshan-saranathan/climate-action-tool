@@ -29,8 +29,8 @@ class MassFlow(FlowMixin, Mass):
 
     @dataclass(frozen=True)
     class Attrs(Mass.Attrs):
-        keyID: ClassVar[str] = "mass_flow"
-        label: ClassVar[str] = "Mass Flow"
+        keyID: ClassVar[str] = "mass"
+        label: ClassVar[str] = "Mass"
 
 
 class VolumeFlow(FlowMixin, Volume):
@@ -38,8 +38,8 @@ class VolumeFlow(FlowMixin, Volume):
 
     @dataclass(frozen=True)
     class Attrs(Volume.Attrs):
-        keyID: ClassVar[str] = "volume_flow"
-        label: ClassVar[str] = "Volume Flow"
+        keyID: ClassVar[str] = "volume"
+        label: ClassVar[str] = "Volume"
 
 
 class EnergyFlow(FlowMixin, Energy):
@@ -47,8 +47,8 @@ class EnergyFlow(FlowMixin, Energy):
 
     @dataclass(frozen=True)
     class Attrs(Energy.Attrs):
-        keyID: ClassVar[str] = "energy_flow"
-        label: ClassVar[str] = "Energy Flow"
+        keyID: ClassVar[str] = "energy"
+        label: ClassVar[str] = "Energy"
 
 
 class CurrencyFlow(FlowMixin, Currency):
@@ -56,7 +56,5 @@ class CurrencyFlow(FlowMixin, Currency):
 
     @dataclass(frozen=True)
     class Attrs(Currency.Attrs):
-        keyID: ClassVar[str] = "currency_flow"
-        label: ClassVar[str] = "Currency Flow"
-
-
+        keyID: ClassVar[str] = "currency"
+        label: ClassVar[str] = "Currency"

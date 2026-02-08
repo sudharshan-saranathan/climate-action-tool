@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from PySide6 import QtGui, QtCore, QtWidgets
-from gui.graph.vertex.config import VertexConfig
+from gui.graph.vertex.config import VertexConfigDialog
 from gui.graph.vector.vector import VectorItem
 from gui.graph.reusable.text import Label
 from gui.graph.enums import ItemState
@@ -74,7 +74,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         )
 
         # Configuration widget:
-        self._config = VertexConfig(self)
+        self._config = VertexConfigDialog(self)
 
         self._init_flags()
         self._init_attrs()
@@ -254,12 +254,6 @@ class VertexItem(QtWidgets.QGraphicsObject):
     def clone(self, offset: QtCore.QPointF = QtCore.QPointF(25, 25)) -> VertexItem:
         """
         Create a duplicate of this vertex.
-
-        Args:
-            offset: Position offset for the clone. Defaults to (25, 25).
-
-        Returns:
-            A new VertexItem with the same attributes.
         """
 
         clone = VertexItem(

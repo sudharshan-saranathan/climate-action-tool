@@ -29,7 +29,7 @@ class StreamForm(QtWidgets.QFrame):
         super().setStyleSheet("QFrame {border-radius: 4px; background: #40474d;}")
 
         # Customize appearance and behaviour:
-        self.setMinimumHeight(400)
+        self.setMinimumHeight(360)
 
         # Reference(s)
         self._item = None
@@ -94,14 +94,18 @@ class StreamForm(QtWidgets.QFrame):
             self._table.setCellWidget(row, COL_VALUE, value_edit)
 
             # Profile type combo and edit button: ONLY for variable parameters
-            is_variable = getattr(param, 'is_variable', True)  # Default to True for backwards compat
+            is_variable = getattr(
+                param, "is_variable", True
+            )  # Default to True for backwards compat
 
             if is_variable:
                 # Profile type combo: show profile type from parameter
                 profile_type = "Fixed"
                 try:
-                    if hasattr(param, 'profile_ref') and param.profile_ref:
-                        profile_class_name = param.profile_ref.profile.__class__.__name__
+                    if hasattr(param, "profile_ref") and param.profile_ref:
+                        profile_class_name = (
+                            param.profile_ref.profile.__class__.__name__
+                        )
                         if "Linear" in profile_class_name:
                             profile_type = "Linear"
                         elif "Stepped" in profile_class_name:
@@ -121,7 +125,9 @@ class StreamForm(QtWidgets.QFrame):
                         (
                             qta.icon("mdi.pencil", color="#4da6ff"),
                             "Edit",
-                            lambda _, r=row, p=param, k=key: self._on_edit_profile(k, p),
+                            lambda _, r=row, p=param, k=key: self._on_edit_profile(
+                                k, p
+                            ),
                         ),
                         (
                             qta.icon("mdi.delete", color="red"),
@@ -307,8 +313,12 @@ class ProfileEditorDialog(QtWidgets.QDialog):
         # Time points and values table
         self._table = QtWidgets.QTableWidget(0, 2)
         self._table.setHorizontalHeaderLabels(["Time", "Value"])
-        self._table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self._table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self._table.horizontalHeader().setSectionResizeMode(
+            0, QtWidgets.QHeaderView.ResizeMode.Stretch
+        )
+        self._table.horizontalHeader().setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeMode.Stretch
+        )
 
         # Populate from current profile
         self._populate_from_profile()
@@ -329,7 +339,8 @@ class ProfileEditorDialog(QtWidgets.QDialog):
 
         # OK/Cancel buttons
         dialog_buttons = QtWidgets.QDialogButtonBox(
-            QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            QtWidgets.QDialogButtonBox.StandardButton.Ok
+            | QtWidgets.QDialogButtonBox.StandardButton.Cancel
         )
         dialog_buttons.accepted.connect(self.accept)
         dialog_buttons.rejected.connect(self.reject)
@@ -339,7 +350,7 @@ class ProfileEditorDialog(QtWidgets.QDialog):
         """Populate table from current profile."""
         try:
             profile = self._profile_ref.profile
-            if hasattr(profile, 'time_points'):
+            if hasattr(profile, "time_points"):
                 self._table.setRowCount(len(profile.time_points))
                 for i, (t, v) in enumerate(zip(profile.time_points, profile.values)):
                     t_item = QtWidgets.QTableWidgetItem(str(t))
@@ -350,7 +361,9 @@ class ProfileEditorDialog(QtWidgets.QDialog):
                 # Fixed profile
                 self._table.setRowCount(1)
                 self._table.setItem(0, 0, QtWidgets.QTableWidgetItem("0"))
-                self._table.setItem(0, 1, QtWidgets.QTableWidgetItem(str(profile.value)))
+                self._table.setItem(
+                    0, 1, QtWidgets.QTableWidgetItem(str(profile.value))
+                )
         except Exception:
             # Default: one row with 0, 0
             self._table.setRowCount(1)
@@ -411,7 +424,9 @@ class ProfileEditorDialog(QtWidgets.QDialog):
             self._profile_ref.profile = profile
 
         except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Error", f"Failed to update profile: {e}")
+            QtWidgets.QMessageBox.critical(
+                self, "Error", f"Failed to update profile: {e}"
+            )
             return
 
         super().accept()
