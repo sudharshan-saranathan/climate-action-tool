@@ -20,6 +20,7 @@ from core.flow.dimensions import (
     Currency,
     Temperature,
     Pressure,
+    Power,
 )
 
 # Time and flow mixin
@@ -64,7 +65,7 @@ from core.flow.combos import (
 
 # === Lookup Dictionaries ===
 
-ResourceDictionary: Dict[str, Type[FlowMixin]] = {
+ResourceDictionary: Dict[str, Type] = {
     "mass_flow": MassFlow,
     "volume_flow": VolumeFlow,
     "energy_flow": EnergyFlow,
@@ -124,6 +125,8 @@ __all__ = [
     "LinearProfile",
     "SteppedProfile",
     "ProfileRef",
+    # Dimensions
+    "Power",
     # Basic flows
     "MassFlow",
     "VolumeFlow",

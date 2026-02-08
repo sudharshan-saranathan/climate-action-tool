@@ -22,7 +22,7 @@ from dataclasses import dataclass
 
 from core.flow.flows import MassFlow, EnergyFlow
 from core.flow.parameters import Ratio, TemperatureParam, PressureParam, Factor
-from core.flow.dimensions import Energy, Currency, Mass
+from core.flow.dimensions import Energy, Currency, Mass, Power
 from core.flow.profiles import ProfileRef, FixedProfile
 
 
@@ -97,30 +97,56 @@ class Product(MassFlow):
         super().__init__(value=value, units=units, props=props)
 
 
-class Electricity(EnergyFlow):
-    """Electricity/power flow with tariff, emissions, and grid characteristics."""
+class Electricity(Power):
+    """Electrical power delivery with tariff, emissions, and grid characteristics."""
 
     @dataclass(frozen=True)
-    class Attrs(EnergyFlow.Attrs):
+    class Attrs(Power.Attrs):
         keyID: ClassVar[str] = "electricity"
-        color: ClassVar[str] = "#8491a3"
         label: ClassVar[str] = "Electricity"
-        image: ClassVar[QtGui.QIcon] = icon("mdi.flash", color="#8491a3")
 
     def __init__(self, value: float = 0.0, units: str | None = None):
         """Initialize electricity with default properties.
 
         Args:
-            value: Electricity flow magnitude
+            value: Power magnitude
             units: Specific unit (e.g., "kW")
         """
+        self._value = value
+        self._units = units or "kW"
+
         props = {
-            "tariff": Ratio(Currency, Energy, label="tariff"),
-            "emissions_factor": Ratio(Mass, Energy, label="emissions_factor"),
+            "tariff": Ratio(Currency, Power, label="tariff"),
+            "emissions_factor": Ratio(Mass, Power, label="emissions_factor"),
             "variability": Factor("Variability", color="#daa520", icon_name="mdi.sine-wave"),
             "ramp_rate": Factor("Ramp Rate", color="#20b2aa", icon_name="mdi.speedometer"),
         }
-        super().__init__(value=value, units=units, props=props)
+        self._props = props
+
+    @property
+    def units(self) -> list[str]:
+        """Power units (not power/time)."""
+        return Power.Attrs.units
+
+    @property
+    def label(self) -> str:
+        """Display label."""
+        return self.Attrs.label
+
+    @property
+    def color(self) -> str:
+        """Color code."""
+        return self.Attrs.color
+
+    @property
+    def image(self) -> QtGui.QIcon:
+        """Icon."""
+        return self.Attrs.image
+
+    @property
+    def props(self) -> dict:
+        """Parameter dictionary."""
+        return self._props
 
 
 class Fluid(MassFlow):

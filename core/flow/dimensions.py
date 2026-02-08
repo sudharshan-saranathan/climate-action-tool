@@ -128,3 +128,15 @@ class Pressure(Dimension):
         label: ClassVar[str] = "Pressure"
         units: ClassVar[list[str]] = ["Pa", "kPa", "MPa", "bar", "atm"]
         image: ClassVar[QtGui.QIcon] = icon("mdi.gauge", color="#4682b4")
+
+
+class Power(Dimension):
+    """Power dimension - rate of energy delivery (fundamental, not derived)."""
+
+    @dataclass(frozen=True)
+    class Attrs(Dimension.Attrs):
+        keyID: ClassVar[str] = "power"
+        color: ClassVar[str] = "#8491a3"
+        label: ClassVar[str] = "Power"
+        units: ClassVar[list[str]] = ["W", "kW", "MW", "GW"]
+        image: ClassVar[QtGui.QIcon] = icon("mdi.flash", color="#8491a3")

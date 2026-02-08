@@ -20,7 +20,7 @@ from qtawesome import icon
 from typing import ClassVar
 from dataclasses import dataclass
 
-from core.flow.dimensions import Mass, Volume, Energy, Currency
+from core.flow.dimensions import Mass, Volume, Energy, Currency, Power
 from core.flow.time import FlowMixin
 
 
@@ -58,3 +58,5 @@ class CurrencyFlow(FlowMixin, Currency):
     class Attrs(Currency.Attrs):
         keyID: ClassVar[str] = "currency_flow"
         label: ClassVar[str] = "Currency Flow"
+
+
