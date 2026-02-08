@@ -37,6 +37,7 @@ class Parameter(ABC):
         label: ClassVar[str] = "Parameter"
         units: ClassVar[list[str]] = []
         image: ClassVar[QtGui.QIcon] = icon("mdi.pound", color="#8b0000")
+        is_variable: ClassVar[bool] = False  # Whether this parameter can vary with time
 
     def __init__(self, profile_ref: Optional[ProfileRef] = None):
         """Initialize with a profile reference.
@@ -51,6 +52,11 @@ class Parameter(ABC):
                 description=""
             )
         self.profile_ref = profile_ref
+
+    @property
+    def is_variable(self) -> bool:
+        """Whether this parameter can vary with time."""
+        return self.Attrs.is_variable
 
     @property
     def label(self) -> str:
@@ -84,7 +90,31 @@ class Parameter(ABC):
         return self.profile_ref.value_at(time)
 
 
-class TemperatureParam(Parameter):
+class FixedParameter(Parameter):
+    """Parameter that is fixed and cannot vary with time.
+
+    Examples: specific energy of a fuel, carbon content, physical properties.
+    The UI will not show profile editing options for these.
+    """
+
+    @dataclass(frozen=True)
+    class Attrs(Parameter.Attrs):
+        is_variable: ClassVar[bool] = False
+
+
+class VariableParameter(Parameter):
+    """Parameter that can vary over time with profiles.
+
+    Examples: cost, tariff, market prices, efficiency that changes seasonally.
+    The UI will show profile type selector and editing options for these.
+    """
+
+    @dataclass(frozen=True)
+    class Attrs(Parameter.Attrs):
+        is_variable: ClassVar[bool] = True
+
+
+class TemperatureParam(VariableParameter):
     """Temperature parameter with profile support."""
 
     @dataclass(frozen=True)
@@ -96,23 +126,24 @@ class TemperatureParam(Parameter):
         image: ClassVar[QtGui.QIcon] = icon("mdi.thermometer", color="#ff6347")
 
 
-class PressureParam(Parameter):
+class PressureParam(VariableParameter):
     """Pressure parameter with profile support."""
 
     @dataclass(frozen=True)
-    class Attrs(Parameter.Attrs):
+    class Attrs(VariableParameter.Attrs):
         keyID: ClassVar[str] = "pressure_param"
         color: ClassVar[str] = "#4682b4"
         label: ClassVar[str] = "Pressure"
         units: ClassVar[list[str]] = ["Pa", "kPa", "MPa", "bar", "atm"]
         image: ClassVar[QtGui.QIcon] = icon("mdi.gauge", color="#4682b4")
+        is_variable: ClassVar[bool] = True
 
 
-class Factor(Parameter):
+class Factor(VariableParameter):
     """Dimensionless factor parameter (typically 0-1 range).
 
     Used for efficiency, variability, ramp rates, and other
-    dimensionless properties.
+    dimensionless properties that can vary with time.
     """
 
     def __init__(self, label: str = "Factor", color: str = "#808080", icon_name: str = "mdi.percent", profile_ref: Optional[ProfileRef] = None):
@@ -150,13 +181,16 @@ class Ratio(Parameter):
     """Ratio parameter derived from two dimensions (numerator/denominator).
 
     Units are the cross-product of numerator and denominator units.
+    Can be either fixed (for physical properties) or variable (for market prices).
+
     Examples:
-        Ratio(Currency, Mass): USD/kg, INR/ton, etc.
-        Ratio(Energy, Mass): MJ/kg, kJ/g, etc.
-        Ratio(Mass, Mass): dimensionless (g/g, kg/ton, etc.)
+        Ratio(Currency, Mass, is_variable=True): Cost (can vary) - USD/kg
+        Ratio(Energy, Mass, is_variable=False): Specific energy (fixed) - MJ/kg
+        Ratio(Mass, Mass, is_variable=False): Emission factor (fixed) - dimensionless
     """
 
-    def __init__(self, numerator: type, denominator: type, label: Optional[str] = None, profile_ref: Optional[ProfileRef] = None):
+    def __init__(self, numerator: type, denominator: type, label: Optional[str] = None,
+                 profile_ref: Optional[ProfileRef] = None, is_variable: bool = True):
         """Initialize a ratio parameter.
 
         Args:
@@ -164,11 +198,18 @@ class Ratio(Parameter):
             denominator: Dimension class for denominator (e.g., Mass)
             label: Optional custom label. If None, auto-generated.
             profile_ref: ProfileRef for time-varying values
+            is_variable: Whether this ratio can vary with time (default: True for costs)
         """
         super().__init__(profile_ref)
         self._numerator = numerator
         self._denominator = denominator
         self._custom_label = label
+        self._is_variable = is_variable
+
+    @property
+    def is_variable(self) -> bool:
+        """Whether this parameter can vary with time."""
+        return self._is_variable
 
     @property
     def label(self) -> str:

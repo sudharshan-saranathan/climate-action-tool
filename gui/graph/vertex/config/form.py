@@ -93,39 +93,51 @@ class StreamForm(QtWidgets.QFrame):
                 value_edit.setText("0.0")
             self._table.setCellWidget(row, COL_VALUE, value_edit)
 
-            # Profile type combo: show profile type from parameter
-            profile_type = "Fixed"
-            try:
-                if hasattr(param, 'profile_ref') and param.profile_ref:
-                    profile_class_name = param.profile_ref.profile.__class__.__name__
-                    if "Linear" in profile_class_name:
-                        profile_type = "Linear"
-                    elif "Stepped" in profile_class_name:
-                        profile_type = "Stepped"
-            except:
-                pass
+            # Profile type combo and edit button: ONLY for variable parameters
+            is_variable = getattr(param, 'is_variable', True)  # Default to True for backwards compat
 
-            profile_combo = ComboBox(items=["Fixed", "Linear", "Stepped"])
-            profile_combo.setCurrentText(profile_type)
-            self._table.setCellWidget(row, COL_PROFILE, profile_combo)
+            if is_variable:
+                # Profile type combo: show profile type from parameter
+                profile_type = "Fixed"
+                try:
+                    if hasattr(param, 'profile_ref') and param.profile_ref:
+                        profile_class_name = param.profile_ref.profile.__class__.__name__
+                        if "Linear" in profile_class_name:
+                            profile_type = "Linear"
+                        elif "Stepped" in profile_class_name:
+                            profile_type = "Stepped"
+                except:
+                    pass
 
-            # Actions: Edit and Delete buttons
-            actions = ToolBar(
-                self,
-                trailing=True,
-                actions=[
-                    (
-                        qta.icon("mdi.pencil", color="#4da6ff"),
-                        "Edit",
-                        lambda _, r=row, p=param, k=key: self._on_edit_profile(k, p),
-                    ),
-                    (
-                        qta.icon("mdi.delete", color="red"),
-                        "Delete",
-                        lambda _, r=self._table, i=row: r.removeRow(i),
-                    ),
-                ],
-            )
+                profile_combo = ComboBox(items=["Fixed", "Linear", "Stepped"])
+                profile_combo.setCurrentText(profile_type)
+                self._table.setCellWidget(row, COL_PROFILE, profile_combo)
+
+                # Actions: Edit and Delete buttons (for variable params)
+                actions = ToolBar(
+                    self,
+                    trailing=True,
+                    actions=[
+                        (
+                            qta.icon("mdi.pencil", color="#4da6ff"),
+                            "Edit",
+                            lambda _, r=row, p=param, k=key: self._on_edit_profile(k, p),
+                        ),
+                        (
+                            qta.icon("mdi.delete", color="red"),
+                            "Delete",
+                            lambda _, r=self._table, i=row: r.removeRow(i),
+                        ),
+                    ],
+                )
+            else:
+                # Fixed parameter: show "Fixed" label, no editing
+                fixed_label = QtWidgets.QLabel("Fixed")
+                fixed_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                self._table.setCellWidget(row, COL_PROFILE, fixed_label)
+
+                # No actions for fixed parameters
+                actions = ToolBar(self, trailing=True, actions=[])
 
             self._table.setCellWidget(row, COL_ACTIONS, actions)
 

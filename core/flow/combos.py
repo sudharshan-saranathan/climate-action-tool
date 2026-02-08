@@ -44,9 +44,9 @@ class Fuel(MassFlow):
             units: Specific unit (e.g., "kg/hr")
         """
         props = {
-            "specific_energy": Ratio(Energy, Mass, label="specific_energy"),
-            "emission_factor": Ratio(Mass, Mass, label="emission_factor"),
-            "cost": Ratio(Currency, Mass, label="cost"),
+            "specific_energy": Ratio(Energy, Mass, label="specific_energy", is_variable=False),
+            "emission_factor": Ratio(Mass, Mass, label="emission_factor", is_variable=False),
+            "cost": Ratio(Currency, Mass, label="cost", is_variable=True),
         }
         super().__init__(value=value, units=units, props=props)
 
@@ -69,7 +69,7 @@ class Material(MassFlow):
             units: Specific unit (e.g., "kg/hr")
         """
         props = {
-            "cost": Ratio(Currency, Mass, label="cost"),
+            "cost": Ratio(Currency, Mass, label="cost", is_variable=True),
         }
         super().__init__(value=value, units=units, props=props)
 
@@ -92,7 +92,7 @@ class Product(MassFlow):
             units: Specific unit (e.g., "kg/hr")
         """
         props = {
-            "revenue": Ratio(Currency, Mass, label="revenue"),
+            "revenue": Ratio(Currency, Mass, label="revenue", is_variable=True),
         }
         super().__init__(value=value, units=units, props=props)
 
@@ -116,8 +116,8 @@ class Electricity(Power):
         self._units = units or "kW"
 
         props = {
-            "tariff": Ratio(Currency, Power, label="tariff"),
-            "emissions_factor": Ratio(Mass, Power, label="emissions_factor"),
+            "tariff": Ratio(Currency, Power, label="tariff", is_variable=True),
+            "emissions_factor": Ratio(Mass, Power, label="emissions_factor", is_variable=False),
             "variability": Factor("Variability", color="#daa520", icon_name="mdi.sine-wave"),
             "ramp_rate": Factor("Ramp Rate", color="#20b2aa", icon_name="mdi.speedometer"),
         }
