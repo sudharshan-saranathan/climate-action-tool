@@ -91,7 +91,7 @@ class StreamTree(QtWidgets.QTreeWidget):
     def add_resource_class(self, flow_class):
 
         item = QtWidgets.QTreeWidgetItem(self, [flow_class.Attrs.label])
-        item.setIcon(0, flow_class.Attrs.image)
+        # item.setIcon(0, flow_class.Attrs.image)
 
         toggle = QtGui.QAction(
             "Auto-balance",
