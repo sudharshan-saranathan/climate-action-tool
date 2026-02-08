@@ -6,19 +6,19 @@
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from gui.widgets.combobox import ComboBox
-from gui.widgets.layouts import GLayout
+from gui.widgets import ToolBar
+from gui.widgets import GLayout
+from gui.widgets import ComboBox
 
 import qtawesome as qta
 
 # Secondary table column indices
 COL_NAME = 0
 COL_UNIT = 1
-COL_CONSTANT = 2
-COL_SLOPE = 3
-COL_INTERCEPT = 4
-COL_VOLATILITY = 5
-SECONDARY_HEADERS = ["Name", "Unit", "Constant", "Slope", "Intercept", "Volatility"]
+COL_VALUE = 2
+COL_PROFILE = 3
+COL_ACTIONS = 4
+SECONDARY_HEADERS = ["Name", "Unit", "Value", "Profile", "Actions"]
 
 
 class StreamForm(QtWidgets.QFrame):
@@ -29,10 +29,7 @@ class StreamForm(QtWidgets.QFrame):
         super().setStyleSheet("QFrame {border-radius: 4px; background: #40474d;}")
 
         # Customize appearance and behaviour:
-        self.setMinimumWidth(420)
-        self.setSizePolicy(
-            QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum
-        )
+        self.setMinimumHeight(400)
 
         # Reference(s)
         self._item = None
@@ -47,6 +44,7 @@ class StreamForm(QtWidgets.QFrame):
         self._save_btn = QtWidgets.QPushButton(
             qta.icon("mdi.content-save", color="#efefef"), "Save"
         )
+        self._save_btn.setMaximumWidth(100)
         self._save_btn.clicked.connect(self._on_save)
 
         layout = GLayout(self, margins=(4, 4, 4, 4), spacing=4)
@@ -85,9 +83,65 @@ class StreamForm(QtWidgets.QFrame):
             unit_combo = ComboBox(items=param.units)
             self._table.setCellWidget(row, COL_UNIT, unit_combo)
 
-            # Coefficient columns (editable, default "0.0")
-            for col in (COL_CONSTANT, COL_SLOPE, COL_INTERCEPT, COL_VOLATILITY):
-                self._table.setItem(row, col, QtWidgets.QTableWidgetItem("0.0"))
+            # Value field: show value_at(0.0) from profile
+            value_edit = QtWidgets.QLineEdit()
+            value_edit.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            try:
+                current_value = param.value_at(0.0)
+                value_edit.setText(str(current_value))
+            except:
+                value_edit.setText("0.0")
+            self._table.setCellWidget(row, COL_VALUE, value_edit)
+
+            # Profile type combo: show profile type from parameter
+            profile_type = "Fixed"
+            try:
+                if hasattr(param, 'profile_ref') and param.profile_ref:
+                    profile_class_name = param.profile_ref.profile.__class__.__name__
+                    if "Linear" in profile_class_name:
+                        profile_type = "Linear"
+                    elif "Stepped" in profile_class_name:
+                        profile_type = "Stepped"
+            except:
+                pass
+
+            profile_combo = ComboBox(items=["Fixed", "Linear", "Stepped"])
+            profile_combo.setCurrentText(profile_type)
+            self._table.setCellWidget(row, COL_PROFILE, profile_combo)
+
+            # Actions: Edit and Delete buttons
+            actions = ToolBar(
+                self,
+                trailing=True,
+                actions=[
+                    (
+                        qta.icon("mdi.pencil", color="#4da6ff"),
+                        "Edit",
+                        lambda _, r=row, p=param, k=key: self._on_edit_profile(k, p),
+                    ),
+                    (
+                        qta.icon("mdi.delete", color="red"),
+                        "Delete",
+                        lambda _, r=self._table, i=row: r.removeRow(i),
+                    ),
+                ],
+            )
+
+            self._table.setCellWidget(row, COL_ACTIONS, actions)
+
+    @QtCore.Slot(str, object)
+    def _on_edit_profile(self, param_key: str, param):
+        """Open a dialog to edit the parameter's profile.
+
+        Args:
+            param_key: Key of the parameter in props
+            param: The Parameter instance to edit
+        """
+        # Create profile editor dialog
+        dialog = ProfileEditorDialog(param, parent=self)
+        if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            # Profile was updated in-place
+            pass
 
     @QtCore.Slot()
     def _on_save(self):
@@ -189,9 +243,163 @@ class StreamForm(QtWidgets.QFrame):
 
         self._table = QtWidgets.QTableWidget(0, len(SECONDARY_HEADERS))
         self._table.setHorizontalHeaderLabels(SECONDARY_HEADERS)
-        self._table.horizontalHeader().setStretchLastSection(True)
+
+        # Customize header
+        header = self._table.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+
+        self._table.horizontalHeader().setStretchLastSection(False)
         self._table.verticalHeader().setVisible(False)
-        self._table.setAlternatingRowColors(True)
+        self._table.setShowGrid(False)
 
         layout.addWidget(self._table)
         return group
+
+
+class ProfileEditorDialog(QtWidgets.QDialog):
+    """Dialog for editing parameter profile time points and values."""
+
+    def __init__(self, param, parent=None):
+        """Initialize profile editor dialog.
+
+        Args:
+            param: Parameter instance with profile_ref
+            parent: Parent widget
+        """
+        super().__init__(parent)
+        self.setWindowTitle(f"Edit {param.label} Profile")
+        self.setMinimumSize(500, 300)
+
+        self._param = param
+        self._profile_ref = param.profile_ref
+
+        # Main layout
+        layout = QtWidgets.QVBoxLayout(self)
+
+        # Profile type selector
+        type_layout = QtWidgets.QHBoxLayout()
+        type_layout.addWidget(QtWidgets.QLabel("Profile Type:"))
+        self._type_combo = ComboBox(items=["Fixed", "Linear", "Stepped"])
+        try:
+            profile_class_name = self._profile_ref.profile.__class__.__name__
+            if "Linear" in profile_class_name:
+                self._type_combo.setCurrentText("Linear")
+            elif "Stepped" in profile_class_name:
+                self._type_combo.setCurrentText("Stepped")
+        except:
+            pass
+        type_layout.addWidget(self._type_combo)
+        type_layout.addStretch()
+        layout.addLayout(type_layout)
+
+        # Time points and values table
+        self._table = QtWidgets.QTableWidget(0, 2)
+        self._table.setHorizontalHeaderLabels(["Time", "Value"])
+        self._table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self._table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
+
+        # Populate from current profile
+        self._populate_from_profile()
+
+        layout.addWidget(QtWidgets.QLabel("Time Points & Values:"))
+        layout.addWidget(self._table)
+
+        # Add/Remove row buttons
+        button_layout = QtWidgets.QHBoxLayout()
+        add_btn = QtWidgets.QPushButton("Add Row")
+        add_btn.clicked.connect(self._add_row)
+        remove_btn = QtWidgets.QPushButton("Remove Row")
+        remove_btn.clicked.connect(self._remove_row)
+        button_layout.addWidget(add_btn)
+        button_layout.addWidget(remove_btn)
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+
+        # OK/Cancel buttons
+        dialog_buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
+        )
+        dialog_buttons.accepted.connect(self.accept)
+        dialog_buttons.rejected.connect(self.reject)
+        layout.addWidget(dialog_buttons)
+
+    def _populate_from_profile(self):
+        """Populate table from current profile."""
+        try:
+            profile = self._profile_ref.profile
+            if hasattr(profile, 'time_points'):
+                self._table.setRowCount(len(profile.time_points))
+                for i, (t, v) in enumerate(zip(profile.time_points, profile.values)):
+                    t_item = QtWidgets.QTableWidgetItem(str(t))
+                    v_item = QtWidgets.QTableWidgetItem(str(v))
+                    self._table.setItem(i, 0, t_item)
+                    self._table.setItem(i, 1, v_item)
+            else:
+                # Fixed profile
+                self._table.setRowCount(1)
+                self._table.setItem(0, 0, QtWidgets.QTableWidgetItem("0"))
+                self._table.setItem(0, 1, QtWidgets.QTableWidgetItem(str(profile.value)))
+        except Exception:
+            # Default: one row with 0, 0
+            self._table.setRowCount(1)
+            self._table.setItem(0, 0, QtWidgets.QTableWidgetItem("0"))
+            self._table.setItem(0, 1, QtWidgets.QTableWidgetItem("0"))
+
+    def _add_row(self):
+        """Add a new row to the table."""
+        row = self._table.rowCount()
+        self._table.insertRow(row)
+        self._table.setItem(row, 0, QtWidgets.QTableWidgetItem(""))
+        self._table.setItem(row, 1, QtWidgets.QTableWidgetItem(""))
+
+    def _remove_row(self):
+        """Remove the selected row from the table."""
+        current_row = self._table.currentRow()
+        if current_row >= 0:
+            self._table.removeRow(current_row)
+
+    def accept(self):
+        """Update the parameter's profile and close dialog."""
+        try:
+            from core.flow.profiles import FixedProfile, LinearProfile, SteppedProfile
+
+            profile_type = self._type_combo.currentText()
+            time_points = []
+            values = []
+
+            for row in range(self._table.rowCount()):
+                t_item = self._table.item(row, 0)
+                v_item = self._table.item(row, 1)
+                if t_item and v_item and t_item.text() and v_item.text():
+                    try:
+                        time_points.append(float(t_item.text()))
+                        values.append(float(v_item.text()))
+                    except ValueError:
+                        continue
+
+            if profile_type == "Fixed":
+                if values:
+                    profile = FixedProfile(values[0])
+                else:
+                    profile = FixedProfile(0.0)
+            elif profile_type == "Linear":
+                if len(time_points) >= 2:
+                    profile = LinearProfile(time_points, values)
+                else:
+                    profile = FixedProfile(values[0] if values else 0.0)
+            elif profile_type == "Stepped":
+                if time_points:
+                    profile = SteppedProfile(time_points, values)
+                else:
+                    profile = FixedProfile(values[0] if values else 0.0)
+            else:
+                profile = FixedProfile(0.0)
+
+            # Update parameter's profile_ref
+            self._profile_ref.profile = profile
+
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Failed to update profile: {e}")
+            return
+
+        super().accept()
