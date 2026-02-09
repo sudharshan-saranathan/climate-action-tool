@@ -1,20 +1,16 @@
 # Filename: core/graph/node/__init__.py
 # Module Name: core/graph/node
-# Description: Graphical representation of a graph-node, based on QGraphicsObject
+# Description: QGraphicsObject-based graphical representation of a graph-node.
 
-
-# Standard
-import typing
-
-# PySide6 (Python/Qt)
-from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
 
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
 
+# PySide6 (Python/Qt)
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 
 # Climact
 from gui.graph.flags import ItemState
@@ -50,7 +46,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             background: The node's background style.
         """
 
-        border: dict[ItemState, QtGui.QBrush] = field(
+        border: dict[ItemState, QtGui.QPen] = field(
             default_factory=lambda: {
                 ItemState.State_Enabled: QtGui.QPen(QtGui.QColor(0x232A2E), 1.0),
                 ItemState.State_Selected: QtGui.QPen(QtGui.QColor(0xFFCB00), 1.0),
@@ -94,7 +90,8 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         incoming: dict[object, object] = field(default_factory=dict)
         outgoing: dict[object, object] = field(default_factory=dict)
 
-    def __init__(self, parent: QtWidgets.QGraphicsObject = None, **kwargs) -> None:
+    # Constructor
+    def __init__(self, parent: QtWidgets.QGraphicsObject | None = None, **kwargs) -> None:
 
         # Instantiate dataclasses before super().__init__()
         self._geometry = NodeRepr.Geometric()
@@ -113,6 +110,35 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         self._init_image()
         self._init_label()
 
+    def _init_image(self):
+
+        from gui.graph.reusable.icon import QtaItem
+
+        QtaItem(
+            self._attributes.image,
+            width=16,
+            color=self._attributes.color,
+            parent=self,
+        )
+
+    def _init_label(self):
+
+        # Import `Label` from gui.graph.reusable
+        from gui.graph.reusable.text import Label
+
+        # TODO: Find a better way to locate the situate the label w.r.t the node.
+        label = Label(
+            self._attributes.label,
+            parent=self,
+            width=120,
+            align=QtCore.Qt.AlignmentFlag.AlignCenter,
+            pos=QtCore.QPointF(-60, 18),
+        )
+
+        label.sig_text_changed.connect(self.setObjectName)
+        self.objectNameChanged.connect(lambda text: label.setPlainText(text))
+        self.objectNameChanged.connect(lambda text: print(f"Node name changed to {text}"))
+
     def boundingRect(self):
         return self._geometry.dimensions.adjusted(
             self._geometry.padding,
@@ -121,7 +147,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             self._geometry.padding,
         )
 
-    def paint(self, painter, option, /, widget=...):
+    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionGraphicsItem, /, widget: QtWidgets.QWidget | None = None) -> None:
 
         pen_dict = self._appearance.border
         brs_dict = self._appearance.background
@@ -144,19 +170,12 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             self._geometry.border_radius,
         )
 
-        pass
+    # Section: Public methods
+    # -----------------------
 
-    def _init_image(self):
-
-        from gui.graph.reusable.icon import QtaItem
-
-        icon = QtaItem(
-            self._attributes.image,
-            width=16,
-            color=self._attributes.color,
-            parent=self,
-        )
-
-    def _init_label(self):
-
-        pass
+    def signals(self) -> dict[str, QtCore.SignalInstance]:
+        return {
+            "item_clicked": self.item_clicked,
+            "item_shifted": self.item_shifted,
+            "item_focused": self.item_focused,
+        }

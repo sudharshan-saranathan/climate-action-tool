@@ -44,7 +44,7 @@ class Canvas(QtWidgets.QGraphicsScene):
     _register: dict = {}
 
     @dataclass
-    class Style:
+    class Appearance:
         brush: QtGui.QBrush = field(default_factory=QtGui.QBrush)
 
     @dataclass
@@ -54,14 +54,11 @@ class Canvas(QtWidgets.QGraphicsScene):
     def __init__(self, parent=None):
         """
         Initialize the graphics scene.
-
-        Args:
-            parent: Parent object (optional).
         """
 
         # Instantiate options before super-class:
         self._geometry = Canvas.Geometry(bounds=QtCore.QRectF(0, 0, 5000, 5000))
-        self._style = Canvas.Style(
+        self._style = Canvas.Appearance(
             brush=QtGui.QBrush(
                 QtGui.QColor("#ffffff"),
                 QtCore.Qt.BrushStyle.SolidPattern,
@@ -321,16 +318,37 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         items: list[QtWidgets.QGraphicsItem] = self.items()
         for item in items:
-            if hasattr(item, "objectName"):
-                if item.objectName() == name:
-                    return item
+
+            object_name = getattr(item, "objectName", None)
+            if callable(object_name) and object_name() == name:
+                return item
 
         return None
 
-    def register_signals(self, item: QtWidgets.QGraphicsObject):
+    def register_signals(self, item: NodeRepr):
         """Connects the given item's signals to appropriate slots."""
 
-        if hasattr(item, "signals"):
+
+        signals = getattr(item, "signals", None)
+
+        if callable(signals):
+
+            sig_list = typing.cast(dict, signals())
+
+            for sig_name, sig_instance in sig_list.items():
+                
+                method_name = f"_on_{sig_name}"
+                if hasattr(self, method_name):
+                    sig_instance.connect(
+                        getattr(self, method_name),
+                        QtCore.Qt.ConnectionType.QueuedConnection,
+                    )
+
+
+
+
+
+        if hasattr(item, "signals") and callable(getattr(item, "signals")):
             sig_list = item.signals()
 
             for name, signal in sig_list.items():
@@ -352,9 +370,10 @@ class Canvas(QtWidgets.QGraphicsScene):
     @QtCore.Slot(object)
     def _raise_delete_request(self, key: str) -> None:
 
-        app = QtWidgets.QApplication()
-        if hasattr(app, "graph_ctrl"):
-            app.graph_ctrl.delete_item.emit(key)
+        app = QtWidgets.QApplication.instance()
+        graph_ctrl = getattr(app, "graph_ctrl", None) if app else None
+        if graph_ctrl is not None:
+            graph_ctrl.delete_item.emit(key)
 
     @QtCore.Slot(QtWidgets.QGraphicsObject)
     def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):
@@ -401,13 +420,16 @@ class Canvas(QtWidgets.QGraphicsScene):
         # First pass: Clone and add items in the clipboard
         for item in Canvas.clipboard:
 
-            if hasattr(item, "clone"):
-                clone = item.clone()
+            clone_method = getattr(item, "clone", None)
+            if clone_method is not None and callable(clone_method):
+                
+                clone = typing.cast(QtWidgets.QGraphicsObject, clone_method())
                 clone.setSelected(True)
                 item.setSelected(False)
 
                 Canvas._register[item] = clone
-                self.register_signals(clone)
+                if isinstance(clone, NodeRepr):
+                    self.register_signals(clone)
                 self.addItem(clone)
                 batch.add_to_batch(CreateAction(self, clone))
 
