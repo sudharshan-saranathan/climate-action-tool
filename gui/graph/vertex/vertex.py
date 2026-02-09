@@ -29,7 +29,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         color: str = "#efefef"
 
     @dataclasses.dataclass(frozen=True)
-    class Style:
+    class Appearance:
         """Style attributes."""
 
         brush: dict[ItemState, QtGui.QBrush] = dataclasses.field(
@@ -97,7 +97,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
     def _init_attrs(self):
         """Instantiate the vertex's data classes."""
 
-        self._style = VertexItem.Style(
+        self._style = VertexItem.Appearance(
             brush={
                 ItemState.NORMAL: QtGui.QBrush(QtGui.QColor(0x232A2E)),
                 ItemState.SELECTED: QtGui.QBrush(QtGui.QColor(0xFFCB00)),

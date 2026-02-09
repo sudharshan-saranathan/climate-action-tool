@@ -24,11 +24,6 @@ from qtawesome import icon
 from typing import ClassVar
 from dataclasses import dataclass
 
-import pint
-
-ureg = pint.UnitRegistry()
-
-
 class Dimension(ABC):
     """Abstract base class for physical dimensions with metadata."""
 
@@ -71,11 +66,7 @@ class Mass(Dimension):
         keyID: ClassVar[str] = "mass"
         color: ClassVar[str] = "#78cad2"
         label: ClassVar[str] = "Mass"
-        units: ClassVar[list[str]] = [
-            ureg.gram,
-            ureg.kilogram,
-            ureg.metric_ton,
-        ]
+        units: ClassVar[list[str]] = ['g', 'kg', 'ton', 'MT']
         image: ClassVar[QtGui.QIcon] = icon("mdi.weight-gram", color="#78cad2")
 
 

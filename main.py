@@ -30,6 +30,13 @@ class ClimateActionTool(QtWidgets.QApplication):
     # Signals for global event dispatching
     show_as_tab = QtCore.Signal(object, str, object)  # widget, title, icon
 
+    # Graph signals (emitted by GraphManager)
+    sig_vertex_created = QtCore.Signal(object)  # node: Node
+    sig_vertex_deleted = QtCore.Signal(str)      # node_id: str
+    sig_vertex_moved = QtCore.Signal(object)     # node: Node
+    sig_edge_created = QtCore.Signal(object)     # edge: Edge
+    sig_edge_deleted = QtCore.Signal(str)        # edge_id: str
+
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.
     startup_file = None  # User-selected project file to load (if available).
