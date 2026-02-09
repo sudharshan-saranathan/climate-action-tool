@@ -88,8 +88,8 @@ class Canvas(QtWidgets.QGraphicsScene):
         self.addItem(self._preview.vector)
 
         # Managers & Controllers
+        # TODO: The graph controller shouldn't be initialized here, but managed by the QApplication
         self._graph_manager = GraphCtrl()  # The backend graph data-structure
-        self._stack_manager = StackManager()  # Undo/Redo stack manager
 
         # Connect to application signals
         self._init_controllers()
@@ -97,10 +97,8 @@ class Canvas(QtWidgets.QGraphicsScene):
     def _init_menu(self) -> QtWidgets.QMenu:
         """
         Initialize the context menu with graph editing actions.
-
-        Returns:
-            A configured QMenu ready for display on right-click.
         """
+
         cxt_menu = QtWidgets.QMenu()
         obj_menu = cxt_menu.addMenu(qta.icon("mdi.plus", color="cyan"), "Create")
 
@@ -212,7 +210,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         if scc is not None:
             scc.add_item.connect(self.addItem)
 
-        self._ctrl = grc
+        self._graph_controller = grc
 
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
@@ -299,14 +297,20 @@ class Canvas(QtWidgets.QGraphicsScene):
     @QtCore.Slot(str)
     def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
-        if self._ctrl is not None:
-            self._ctrl.create_item.emit(key, {"pos": self._rmb_coordinate})
+        if callable(method := getattr(self._graph_controller, "create_item", None)):
+            method.emit(key, {"pos": self._rmb_coordinate})
 
     @QtCore.Slot(str)
     def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
-        if self._ctrl is not None:
-            self._ctrl.delete_item.emit(key)
+        if callable(method := getattr(self._graph_controller, "delete_item", None)):
+            method.emit(key)
+
+    @QtCore.Slot()
+    def _raise_undo_request(self) -> None:
+
+        if callable(method := getattr(self._graph_controller, "undo_action", None)):
+            method.emit()
 
     @QtCore.Slot(QtWidgets.QGraphicsObject)
     def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):
