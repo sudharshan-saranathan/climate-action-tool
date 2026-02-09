@@ -9,9 +9,9 @@ from PySide6 import QtWidgets
 
 
 class GraphElementType(StrEnum):
-    NODE = "node"
-    EDGE = "edge"
-    FLOW = "flow"
+    NODE = "NodeRepr"
+    EDGE = "EdgeRepr"
+    FLOW = "FlowRepr"
 
 
 ItemState = QtWidgets.QStyle.StateFlag

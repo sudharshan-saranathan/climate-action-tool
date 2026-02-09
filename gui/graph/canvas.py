@@ -40,6 +40,11 @@ class Canvas(QtWidgets.QGraphicsScene):
     """
 
     # Class-level clipboard for cross-canvas copy-paste
+    representations: typing.ClassVar[dict[str, type]] = {
+        "NodeRepr": NodeRepr,
+        "EdgeRepr": VectorItem,
+    }
+
     clipboard: list[QtWidgets.QGraphicsItem] = []
     _register: dict = {}
 
@@ -175,7 +180,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+N"),
         )
-        node_action.triggered.connect(lambda: self._raise_create_request("node"))
+        node_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
         obj_menu.addAction(node_action)
 
         source_action = QtGui.QAction(
@@ -187,7 +192,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+I"),
         )
-        source_action.triggered.connect(lambda: self._raise_create_request("node"))
+        source_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
         obj_menu.addAction(source_action)
 
         sink_action = QtGui.QAction(
@@ -199,7 +204,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+O"),
         )
-        sink_action.triggered.connect(lambda: self._raise_create_request("node"))
+        sink_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
         obj_menu.addAction(sink_action)
 
         return cxt_menu
@@ -219,9 +224,7 @@ class Canvas(QtWidgets.QGraphicsScene):
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
         Display the context menu at the location of the right-click event.
-
-        Args:
-            event: The context menu event containing screen position.
+        :param event: The right-click event, forwarded by Qt.
         """
 
         super().contextMenuEvent(event)
@@ -280,7 +283,7 @@ class Canvas(QtWidgets.QGraphicsScene):
 
     def create_item(
         self,
-        name: typing.Literal["node", "edge"],
+        name: typing.Literal["NodeRepr", "EdgeRepr"],
         data: dict | None = None,
     ) -> QtWidgets.QGraphicsItem | None:
         """
@@ -290,18 +293,12 @@ class Canvas(QtWidgets.QGraphicsScene):
         :return: The newly created item, or None if an error occurred.
         """
 
-        # Map class-names to the respective class objects
-        item_classes = {
-            "node": NodeRepr,
-            "edge": VectorItem,
-        }
-
         # Parse keyword-arguments
         data = data or {}
         cpos = data.get("cpos", self._rmb_coordinate)
 
         # Get the item's class object from the class name
-        item_class = item_classes.get(name, None)
+        item_class = Canvas.representations.get(name, None)
 
         # If the class is valid, instantiate and add the item to the scene:
         if item_class:
@@ -326,49 +323,28 @@ class Canvas(QtWidgets.QGraphicsScene):
         return None
 
     def register_signals(self, item: NodeRepr):
-        """Connects the given item's signals to appropriate slots."""
+        """Connects the item's signals to appropriate slots."""
 
+        if callable(signals := getattr(item, "signals", None)):
 
-        signals = getattr(item, "signals", None)
+            sig_dictionary = typing.cast(dict, signals())
 
-        if callable(signals):
-
-            sig_list = typing.cast(dict, signals())
-
-            for sig_name, sig_instance in sig_list.items():
-                
-                method_name = f"_on_{sig_name}"
-                if hasattr(self, method_name):
-                    sig_instance.connect(
-                        getattr(self, method_name),
-                        QtCore.Qt.ConnectionType.QueuedConnection,
-                    )
-
-
-
-
-
-        if hasattr(item, "signals") and callable(getattr(item, "signals")):
-            sig_list = item.signals()
-
-            for name, signal in sig_list.items():
-                method = f"_on_{name}"
-                if hasattr(self, method):
-                    signal.connect(
-                        getattr(self, method), QtCore.Qt.ConnectionType.QueuedConnection
-                    )
+            [
+                instance.connect(getattr(self, f"_on_{name}", None))
+                for name, instance in sig_dictionary.items()
+            ]
 
         else:
             logging.warning(f"Item {item} has no signals defined.")
 
     @QtCore.Slot(object)
-    def _raise_create_request(self, key: typing.Literal["node", "edge"]) -> None:
+    def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
         if self._ctrl is not None:
             self._ctrl.create_item.emit(key, {"pos": self._rmb_coordinate})
 
     @QtCore.Slot(object)
-    def _raise_delete_request(self, key: str) -> None:
+    def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
         app = QtWidgets.QApplication.instance()
         graph_ctrl = getattr(app, "graph_ctrl", None) if app else None
@@ -422,7 +398,7 @@ class Canvas(QtWidgets.QGraphicsScene):
 
             clone_method = getattr(item, "clone", None)
             if clone_method is not None and callable(clone_method):
-                
+
                 clone = typing.cast(QtWidgets.QGraphicsObject, clone_method())
                 clone.setSelected(True)
                 item.setSelected(False)
