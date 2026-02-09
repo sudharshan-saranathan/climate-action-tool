@@ -322,6 +322,13 @@ class Canvas(QtWidgets.QGraphicsScene):
         if isinstance(method, QtCore.SignalInstance):
             method.emit()
 
+    @QtCore.QSlot()
+    def _raise_request(self, key: str) -> None:
+
+        method = getattr(self._graph_controller, key, None)
+        if isinstance(method, QtCore.SignalInstance):
+            method.emit()
+
     @QtCore.Slot(QtWidgets.QGraphicsObject)
     def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):
 
@@ -329,8 +336,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             return
 
         self._preview_on(item)
-
-    @QtCore.Slot()
 
     # Public methods
     def find_item_by_name(self, name: str) -> QtWidgets.QGraphicsItem | None:
