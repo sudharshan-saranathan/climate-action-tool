@@ -112,7 +112,10 @@ class StreamTree(QtWidgets.QTreeWidget):
 
     # Method to create a new entity under the specified parent
     def create_entity(self, flow_id: str):
-        """Create a new entity under the specified parent."""
+        """Create a new entity and display it under the specified flow class.
+
+        :param flow_id: The string ID of the entity's flow class (e.g., Mass, Energy, Currency)
+        """
 
         root = self._flow_to_item_map.get(flow_id, None)
         if not root:
