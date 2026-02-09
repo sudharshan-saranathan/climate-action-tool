@@ -7,32 +7,47 @@ A QGraphicsScene subclass for displaying and editing graphs.
 """
 
 from __future__ import annotations
-from PySide6 import QtGui, QtCore, QtWidgets
+
+# Standard
+import qtawesome as qta
+import logging
+import types
+
+# PySide6 (Python/Qt)
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+
+# Climact
 from gui.graph.vertex.vertex import VertexItem
 from gui.graph.vector.vector import VectorItem
 from core.actions import ActionsManager, CreateAction, DeleteAction, BatchActions
-import qtawesome as qta
-import dataclasses
-import logging
-import types
+
+
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
 
 
 class Canvas(QtWidgets.QGraphicsScene):
     """
     A QGraphicsScene subclass for displaying and editing graphs.
+
+    Key attributes:
+        - clipboard: A class-level cross-canvas clipboard for copy-paste operations.
     """
 
     # Class-level clipboard for cross-canvas copy-paste
     clipboard: list[QtWidgets.QGraphicsItem] = []
     _register: dict = {}
 
-    @dataclasses.dataclass
+    @dataclass
     class Style:
-        brush: QtGui.QBrush = dataclasses.field(default_factory=QtGui.QBrush)
+        brush: QtGui.QBrush = field(default_factory=QtGui.QBrush)
 
-    @dataclasses.dataclass
+    @dataclass
     class Geometry:
-        bounds: QtCore.QRectF = dataclasses.field(default_factory=QtCore.QRectF)
+        bounds: QtCore.QRectF = field(default_factory=QtCore.QRectF)
 
     def __init__(self, parent=None):
         """
@@ -78,59 +93,111 @@ class Canvas(QtWidgets.QGraphicsScene):
         Returns:
             A configured QMenu ready for display on right-click.
         """
-        context_menu = QtWidgets.QMenu()
-        objects_menu = context_menu.addMenu(qta.icon("mdi.plus", color="cyan"), "Create")
+        cxt_menu = QtWidgets.QMenu()
+        obj_menu = cxt_menu.addMenu(qta.icon("mdi.plus", color="cyan"), "Create")
 
         # Undo/Redo operations
-        context_menu.addAction(qta.icon("mdi.undo", color="#efefef"), "Undo", self.undo)
-        context_menu.addAction(qta.icon("mdi.redo", color="#efefef"), "Redo", self.redo)
-        context_menu.addSeparator()
-
-        # Copy/Paste operations
-        context_menu.addAction(qta.icon("mdi.content-copy", color="#efefef"), "Copy", self.clone_items)
-        context_menu.addAction(qta.icon("mdi.content-paste", color="#efefef"), "Paste", self.paste_items)
-        context_menu.addAction(qta.icon("mdi.delete", color="red"), "Delete", self.delete_items)
-        context_menu.addSeparator()
-
-        # Create menu actions
-        objects_menu.addAction(
-            qta.icon("ph.browser-fill", color="cyan"),
-            "Vertex",
-            lambda: self.create_item(
-                "VertexItem",
-                pos=self._rmb_coordinate,
-                image="mdi.function-variant",
-                color="#efefef",
-            ),
+        undo_action = QtGui.QAction(
+            "Undo",
+            parent=cxt_menu,
+            icon=qta.icon("mdi.undo", color="#efefef"),
+            toolTip="Undo the last action",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Undo),
         )
+        undo_action.triggered.connect(self.undo)
+        cxt_menu.addAction(undo_action)
 
-        objects_menu.addAction(
-            qta.icon("ph.flow-arrow", color="lightgreen"),
+        redo_action = QtGui.QAction(
+            "Redo",
+            parent=cxt_menu,
+            icon=qta.icon("mdi.redo", color="#efefef"),
+            toolTip="Redo the last undone action",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Redo),
+        )
+        redo_action.triggered.connect(self.redo)
+        cxt_menu.addAction(redo_action)
+        cxt_menu.addSeparator()
+
+        # Copy/Paste/Delete operations
+        copy_action = QtGui.QAction(
+            "Copy",
+            parent=cxt_menu,
+            icon=qta.icon("mdi.content-copy", color="#efefef"),
+            toolTip="Copy selected items",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Copy),
+        )
+        copy_action.triggered.connect(self.clone_items)
+        cxt_menu.addAction(copy_action)
+
+        paste_action = QtGui.QAction(
+            "Paste",
+            parent=cxt_menu,
+            icon=qta.icon("mdi.content-paste", color="#efefef"),
+            toolTip="Paste items from clipboard",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Paste),
+        )
+        paste_action.triggered.connect(self.paste_items)
+        cxt_menu.addAction(paste_action)
+
+        delete_action = QtGui.QAction(
+            "Delete",
+            parent=cxt_menu,
+            icon=qta.icon("mdi.delete", color="red"),
+            toolTip="Delete selected items",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Delete),
+        )
+        delete_action.triggered.connect(self.delete_items)
+        cxt_menu.addAction(delete_action)
+        cxt_menu.addSeparator()
+
+        # Create submenu actions
+        node_action = QtGui.QAction(
+            "Node",
+            parent=obj_menu,
+            icon=qta.icon("ph.browser-fill", color="darkcyan"),
+            toolTip="Create a new node",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence("Alt+N"),
+        )
+        node_action.triggered.connect(lambda: self.raise_create_request("VertexItem"))
+        obj_menu.addAction(node_action)
+
+        source_action = QtGui.QAction(
             "Source",
-            lambda: self.create_item(
-                "StreamItem",
-                pos=self._rmb_coordinate,
-                image="ph.arrow-circle-up-fill",
-                color="lightgreen",
-                draw_background=False,
-                incoming_enabled=False,
-            ),
+            parent=obj_menu,
+            icon=qta.icon("mdi.arrow-down-bold"),
+            toolTip="Create a new inlet port",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence("Alt+I"),
         )
+        source_action.triggered.connect(lambda: self.raise_create_request("StreamItem"))
+        obj_menu.addAction(source_action)
 
-        objects_menu.addAction(
-            qta.icon("ph.flow-arrow", color="darkred"),
+        sink_action = QtGui.QAction(
             "Sink",
-            lambda: self.create_item(
-                "StreamItem",
-                pos=self._rmb_coordinate,
-                image="ph.arrow-circle-down-fill",
-                color="darkred",
-                draw_background=False,
-                outgoing_enabled=False,
-            ),
+            parent=obj_menu,
+            icon=qta.icon("mdi.arrow-up-bold"),
+            toolTip="Create a new outlet port",
+            iconVisibleInMenu=True,
+            shortcutVisibleInContextMenu=True,
+            shortcut=QtGui.QKeySequence("Alt+O"),
         )
+        sink_action.triggered.connect(lambda: self.raise_create_request("StreamItem"))
+        obj_menu.addAction(sink_action)
 
-        return context_menu
+        return cxt_menu
 
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
@@ -245,10 +312,26 @@ class Canvas(QtWidgets.QGraphicsScene):
             for name, signal in sig_list.items():
                 method = f"_on_{name}"
                 if hasattr(self, method):
-                    signal.connect(getattr(self, method))
+                    signal.connect(
+                        getattr(self, method), QtCore.Qt.ConnectionType.QueuedConnection
+                    )
 
         else:
             logging.warning(f"Item {item} has no signals defined.")
+
+    @QtCore.Slot(object)
+    def raise_create_request(self, key: str) -> None:
+
+        app = QtWidgets.QApplication.instance()
+        if hasattr(app, "graph_ctrl"):
+            app.graph_ctrl.req_item_create.emit(key)
+
+    @QtCore.Slot(object)
+    def raise_delete_request(self, key: str) -> None:
+
+        app = QtWidgets.QApplication()
+        if hasattr(app, "graph_ctrl"):
+            app.graph_ctrl.req_item_delete.emit(key)
 
     @QtCore.Slot(QtWidgets.QGraphicsObject)
     def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):

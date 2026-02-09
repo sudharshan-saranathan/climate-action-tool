@@ -5,6 +5,7 @@
 # Python
 import argparse
 import logging
+import typing
 import sys
 
 # PySide6 (Python/Qt)
@@ -22,6 +23,17 @@ from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
 
+# Signals for graph management
+class GraphSignals(QtCore.QObject):
+    req_item_create = QtCore.Signal(object)
+    req_item_delete = QtCore.Signal(object)
+
+
+class SceneSignals(QtCore.QObject):
+    req_repr_create = QtCore.Signal(object)
+    req_repr_delete = QtCore.Signal(object)
+
+
 class ClimateActionTool(QtWidgets.QApplication):
     """
     Main application class to manage app lifecycle and UI components.
@@ -30,12 +42,8 @@ class ClimateActionTool(QtWidgets.QApplication):
     # Signals for global event dispatching
     show_as_tab = QtCore.Signal(object, str, object)  # widget, title, icon
 
-    # Graph signals (emitted by GraphManager)
-    sig_vertex_created = QtCore.Signal(object)  # node: Node
-    sig_vertex_deleted = QtCore.Signal(str)      # node_id: str
-    sig_vertex_moved = QtCore.Signal(object)     # node: Node
-    sig_edge_created = QtCore.Signal(object)     # edge: Edge
-    sig_edge_deleted = QtCore.Signal(str)        # edge_id: str
+    graph_ctrl: typing.ClassVar[GraphSignals] = GraphSignals()
+    scene_strl: typing.ClassVar[SceneSignals] = SceneSignals()
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.

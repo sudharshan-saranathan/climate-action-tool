@@ -20,7 +20,7 @@ from dataclasses import dataclass
 
 # Climact
 from qtawesome import icon as qta_icon
-from core.flow import ResourceDictionary
+from core.flows import ResourceDictionary
 
 
 class LowerPanel(QtWidgets.QListWidget):

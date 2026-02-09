@@ -386,7 +386,11 @@ class ProfileEditorDialog(QtWidgets.QDialog):
     def accept(self):
         """Update the parameter's profile and close dialog."""
         try:
-            from core.flow.profiles import FixedProfile, LinearProfile, SteppedProfile
+            from core.flows.profiles import (
+                FixedProfile,
+                LinearProfile,
+                SteppedProfile,
+            )
 
             profile_type = self._type_combo.currentText()
             time_points = []

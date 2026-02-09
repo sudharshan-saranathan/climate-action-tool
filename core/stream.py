@@ -10,7 +10,7 @@ New code should import from core.flow instead.
 """
 
 from typing import Dict, Type
-from core.flow import (
+from core.flows import (
     MassFlow,
     VolumeFlow,
     EnergyFlow,
@@ -24,9 +24,9 @@ from core.flow import (
     Electricity,
     Product,
     Fluid,
-    BasicFlows,
-    ComboFlows,
-    AllFlows,
+    VirginStreams,
+    DerivedFlows,
+    TotalFlows,
 )
 
 # Aliases for backwards compatibility
@@ -59,8 +59,8 @@ __all__ = [
     "Electricity",
     "Product",
     "Fluid",
-    "BasicFlows",
+    "VirginStreams",
     "Parameters",
-    "ComboFlows",
-    "AllFlows",
+    "DerivedFlows",
+    "TotalFlows",
 ]

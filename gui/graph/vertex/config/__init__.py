@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 # Climact
 from gui.widgets import GLayout
-from core.flow import ResourceDictionary, ParameterDictionary
+from core.flows import ResourceDictionary, ParameterDictionary
 from gui.graph.vertex.config.tree import StreamTree
 from qtawesome import icon as qta_icon
 
@@ -85,7 +85,7 @@ class VertexConfigDialog(QtWidgets.QDialog):
 
     def _init_form(self) -> QtWidgets.QFrame:
 
-        from core.flow import Time
+        from core.flows import Time
         from gui.widgets import ComboBox
 
         frame = QtWidgets.QFrame(self)
