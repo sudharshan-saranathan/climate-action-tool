@@ -328,11 +328,9 @@ class Canvas(QtWidgets.QGraphicsScene):
         if callable(signals := getattr(item, "signals", None)):
 
             sig_dictionary = typing.cast(dict, signals())
-
-            [
-                instance.connect(getattr(self, f"_on_{name}", None))
-                for name, instance in sig_dictionary.items()
-            ]
+            for name, instance in sig_dictionary.items():
+                if method := getattr(self, f"_on_{name}", None):
+                    instance.connect(method, QtCore.Qt.ConnectionType.QueuedConnection)
 
         else:
             logging.warning(f"Item {item} has no signals defined.")
@@ -346,10 +344,8 @@ class Canvas(QtWidgets.QGraphicsScene):
     @QtCore.Slot(object)
     def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
-        app = QtWidgets.QApplication.instance()
-        graph_ctrl = getattr(app, "graph_ctrl", None) if app else None
-        if graph_ctrl is not None:
-            graph_ctrl.delete_item.emit(key)
+        if self._ctrl is not None:
+            self._ctrl.delete_item.emit(key)
 
     @QtCore.Slot(QtWidgets.QGraphicsObject)
     def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):
@@ -396,8 +392,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         # First pass: Clone and add items in the clipboard
         for item in Canvas.clipboard:
 
-            clone_method = getattr(item, "clone", None)
-            if clone_method is not None and callable(clone_method):
+            if callable(clone_method := getattr(item, "clone", None)):
 
                 clone = typing.cast(QtWidgets.QGraphicsObject, clone_method())
                 clone.setSelected(True)
@@ -406,6 +401,7 @@ class Canvas(QtWidgets.QGraphicsScene):
                 Canvas._register[item] = clone
                 if isinstance(clone, NodeRepr):
                     self.register_signals(clone)
+
                 self.addItem(clone)
                 batch.add_to_batch(CreateAction(self, clone))
 
