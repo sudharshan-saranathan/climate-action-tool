@@ -22,7 +22,7 @@ from PySide6 import QtWidgets
 # Climact
 from gui.graph.node import NodeRepr
 from gui.graph.edge.vector import VectorItem
-from core.actions import ActionsManager, CreateAction, DeleteAction, BatchActions
+from core.actions import StackManager, CreateAction, DeleteAction, BatchActions
 from core.graph import GraphCtrl
 
 
@@ -77,21 +77,19 @@ class Canvas(QtWidgets.QGraphicsScene):
             backgroundBrush=self._style.brush,
         )
 
-        # Backend graph controller for this scene
-        self._graph = GraphCtrl()
-
-        # Member(s):
+        # Members
         self._rmb_coordinate = QtCore.QPoint()
         self._menu = self._init_menu()
-        self._prev = types.SimpleNamespace(
+        self._preview = types.SimpleNamespace(
             active=False,
             origin=None,
             vector=VectorItem(None),
         )
-        self.addItem(self._prev.vector)
+        self.addItem(self._preview.vector)
 
-        # Undo/redo manager
-        self._actions_manager = ActionsManager()
+        # Managers & Controllers
+        self._graph_manager = GraphCtrl()  # The backend graph data-structure
+        self._stack_manager = StackManager()  # Undo/Redo stack manager
 
         # Connect to application signals
         self._init_controllers()
@@ -116,7 +114,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Undo),
         )
-        undo_action.triggered.connect(self.undo)
         cxt_menu.addAction(undo_action)
 
         redo_action = QtGui.QAction(
@@ -128,7 +125,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Redo),
         )
-        redo_action.triggered.connect(self.redo)
         cxt_menu.addAction(redo_action)
         cxt_menu.addSeparator()
 
@@ -142,7 +138,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Copy),
         )
-        copy_action.triggered.connect(self.clone_items)
         cxt_menu.addAction(copy_action)
 
         paste_action = QtGui.QAction(
@@ -154,7 +149,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Paste),
         )
-        paste_action.triggered.connect(self.paste_items)
         cxt_menu.addAction(paste_action)
 
         delete_action = QtGui.QAction(
@@ -166,7 +160,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Delete),
         )
-        delete_action.triggered.connect(self.delete_items)
         cxt_menu.addAction(delete_action)
         cxt_menu.addSeparator()
 
@@ -217,7 +210,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         scc = getattr(app, "scene_ctrl", None)
 
         if scc is not None:
-            scc.create_repr.connect(self.create_item)
+            scc.add_item.connect(self.addItem)
 
         self._ctrl = grc
 
@@ -236,20 +229,20 @@ class Canvas(QtWidgets.QGraphicsScene):
 
     def mouseMoveEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
-        if self._prev.active:
+        if self._preview.active:
             # Use stored click position from origin vertex
 
-            origin = self._prev.origin.scenePos()
+            origin = self._preview.origin.scenePos()
             target = event.scenePos()
-            self._prev.vector.update_path(origin, target)
+            self._preview.vector.update_path(origin, target)
 
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
-        if self._prev.active:
+        if self._preview.active:
 
-            origin = self._prev.origin
+            origin = self._preview.origin
             target = self.itemAt(event.scenePos(), QtGui.QTransform())
 
             if (
@@ -261,68 +254,36 @@ class Canvas(QtWidgets.QGraphicsScene):
                 vector = origin.connect_to(target)
                 if vector is not None:
                     self.addItem(vector)
-                    self._actions_manager.do(CreateAction(self, vector))
 
-        self.prev_off()
+        self._preview_off()
         super().mouseReleaseEvent(event)
 
-    def prev_on(self, vertex: QtWidgets.QGraphicsObject):
+    def addItem(
+        self,
+        item: QtWidgets.QGraphicsItem,
+    ) -> None:
 
-        if self._prev.active:
+        if isinstance(item, (NodeRepr, VectorItem)):
+            self._register_item_signals(item)
+
+        super().addItem(item)
+
+    def _preview_on(self, vertex: QtWidgets.QGraphicsObject):
+
+        if self._preview.active:
             return  # Do nothing if the preview is already active.
 
-        self._prev.active = True
-        self._prev.origin = vertex
-        self._prev.vector.show()
+        self._preview.active = True
+        self._preview.origin = vertex
+        self._preview.vector.show()
 
-    def prev_off(self):
-        self._prev.active = False
-        self._prev.origin = None
-        self._prev.vector.clear()
-        self._prev.vector.hide()
+    def _preview_off(self):
+        self._preview.active = False
+        self._preview.origin = None
+        self._preview.vector.clear()
+        self._preview.vector.hide()
 
-    def create_item(
-        self,
-        name: typing.Literal["NodeRepr", "EdgeRepr"],
-        data: dict | None = None,
-    ) -> QtWidgets.QGraphicsItem | None:
-        """
-        Create and return a graph item of the specified class.
-        :param name: Item class name
-        :param data: Optional dict with keyword arguments like 'cpos'
-        :return: The newly created item, or None if an error occurred.
-        """
-
-        # Parse keyword-arguments
-        data = data or {}
-        cpos = data.get("cpos", self._rmb_coordinate)
-
-        # Get the item's class object from the class name
-        item_class = Canvas.representations.get(name, None)
-
-        # If the class is valid, instantiate and add the item to the scene:
-        if item_class:
-            item = item_class(pos=cpos)
-            self.register_signals(item)
-            self.addItem(item)
-            self._actions_manager.do(CreateAction(self, item))
-            return item
-
-        return None
-
-    def find_item(self, name: str) -> QtWidgets.QGraphicsItem | None:
-        """Find an item in the canvas by its object name."""
-
-        items: list[QtWidgets.QGraphicsItem] = self.items()
-        for item in items:
-
-            object_name = getattr(item, "objectName", None)
-            if callable(object_name) and object_name() == name:
-                return item
-
-        return None
-
-    def register_signals(self, item: NodeRepr):
+    def _register_item_signals(self, item: NodeRepr):
         """Connects the item's signals to appropriate slots."""
 
         if callable(signals := getattr(item, "signals", None)):
@@ -335,13 +296,13 @@ class Canvas(QtWidgets.QGraphicsScene):
         else:
             logging.warning(f"Item {item} has no signals defined.")
 
-    @QtCore.Slot(object)
+    @QtCore.Slot(str)
     def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
         if self._ctrl is not None:
             self._ctrl.create_item.emit(key, {"pos": self._rmb_coordinate})
 
-    @QtCore.Slot(object)
+    @QtCore.Slot(str)
     def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
         if self._ctrl is not None:
@@ -353,80 +314,24 @@ class Canvas(QtWidgets.QGraphicsScene):
         if not isinstance(item, NodeRepr):
             return
 
-        self.prev_on(item)
+        self._preview_on(item)
 
-    # -------------------------------------------------------------------------
-    # Undo/Redo
-    # -------------------------------------------------------------------------
+    @QtCore.Slot()
 
-    def undo(self) -> None:
-        """Undo the most recent action."""
-        self._actions_manager.undo()
+    # Public methods
+    def find_item_by_name(self, name: str) -> QtWidgets.QGraphicsItem | None:
+        """Find an item in the canvas by its object name."""
 
-    def redo(self) -> None:
-        """Redo the most recently undone action."""
-        self._actions_manager.redo()
+        items: list[QtWidgets.QGraphicsItem] = self.items()
+        for item in items:
 
-    # -------------------------------------------------------------------------
-    # Copy/Paste
-    # -------------------------------------------------------------------------
+            object_name = getattr(item, "objectName", None)
+            if callable(object_name) and object_name() == name:
+                return item
 
-    def clone_items(self) -> None:
-        """Clone selected items, preserving connections between them."""
+        return None
 
-        Canvas.clipboard = [
-            item
-            for item in self.selectedItems()
-            if getattr(item, "_allow_cloning", False)
-        ]
+    def find_item_by_uid(self, item_uid: int) -> QtWidgets.QGraphicsItem | None:
+        """Find an item in the canvas by its unique identifier."""
 
-    def paste_items(self) -> None:
-        """Paste items from the clipboard into the scene."""
-
-        if not Canvas.clipboard:
-            return
-
-        Canvas._register.clear()
-        batch = BatchActions()
-
-        # First pass: Clone and add items in the clipboard
-        for item in Canvas.clipboard:
-
-            if callable(clone_method := getattr(item, "clone", None)):
-
-                clone = typing.cast(QtWidgets.QGraphicsObject, clone_method())
-                clone.setSelected(True)
-                item.setSelected(False)
-
-                Canvas._register[item] = clone
-                if isinstance(clone, NodeRepr):
-                    self.register_signals(clone)
-
-                self.addItem(clone)
-                batch.add_to_batch(CreateAction(self, clone))
-
-        # Second pass: Recreate connections between cloned items
-        for vertex, clone in Canvas._register.items():
-            for conjugate in vertex.importers():
-
-                target = Canvas._register.get(conjugate, None)
-                vector = clone.connect_to(target)
-                if vector is not None:
-                    self.addItem(vector)
-                    batch.add_to_batch(CreateAction(self, vector))
-
-        self._actions_manager.do(batch)
-
-    def delete_items(self) -> None:
-        """Delete selected items from the scene."""
-
-        selected = self.selectedItems()
-        if not selected:
-            return
-
-        batch = BatchActions()
-        for item in selected:
-            if isinstance(item, NodeRepr):
-                batch.add_to_batch(DeleteAction(self, item))
-
-        self._actions_manager.do(batch)
+        return next((item for item in self.items() if id(item) == item_uid), None)

@@ -10,7 +10,7 @@ from __future__ import annotations
 from core.actions.actions import AbstractAction
 
 
-class ActionsManager:
+class StackManager:
     """Manages application-wide undo/redo stacks."""
 
     MAX_UNDO = 50  # Maximum number of undo actions to keep

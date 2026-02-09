@@ -12,6 +12,14 @@ from PySide6 import QtWidgets
 # core.graph
 from core.graph.node import Node
 from core.graph.edge import Edge
+from core.actions.manager import StackManager
+
+# PySide6
+from PySide6 import QtCore
+
+# GUI
+from gui.graph.node import NodeRepr
+from gui.graph.edge.vector import VectorItem
 
 
 class GraphCtrl:
@@ -29,18 +37,38 @@ class GraphCtrl:
         self.nodes: Dict[str, Node] = {}
         self.edges: Dict[str, Edge] = {}
 
+        # Undo/Redo stack manager (backend owns action history)
+        self._stack_manager = StackManager()
+
         # Store application-reference
         self._app = QtWidgets.QApplication.instance()
         if hasattr(self._app, "graph_ctrl"):
             self._app.graph_ctrl.create_item.connect(self.create_item)
             self._app.graph_ctrl.delete_item.connect(self.delete_item)
+            self._app.graph_ctrl.undo_action.connect(self.undo)
+            self._app.graph_ctrl.redo_action.connect(self.redo)
 
     def create_item(self, key: Literal["node", "edge"], data: Dict):
 
+        if key == "NodeRepr":
+            item = NodeRepr(pos=data.get("pos"))
+        elif key == "EdgeRepr":
+            item = VectorItem(None)
+        else:
+            return
+
         if hasattr(self._app, "scene_ctrl"):
-            self._app.scene_ctrl.create_repr.emit(key, data)
+            self._app.scene_ctrl.add_item.emit(item)
 
     def delete_item(self, key: Literal["node", "edge"], data: Dict):
 
         if hasattr(self._app, "scene_ctrl"):
             self._app.scene_ctrl.create_repr.emit(key, data)
+
+    def undo(self) -> None:
+        """Undo the most recent action."""
+        self._stack_manager.undo()
+
+    def redo(self) -> None:
+        """Redo the most recently undone action."""
+        self._stack_manager.redo()

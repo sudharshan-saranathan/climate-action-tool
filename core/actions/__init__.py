@@ -6,12 +6,12 @@ from core.actions.actions import (
     CreateAction,
     DeleteAction,
 )
-from core.actions.manager import ActionsManager
+from core.actions.manager import StackManager
 
 __all__ = [
     "AbstractAction",
     "BatchActions",
     "CreateAction",
     "DeleteAction",
-    "ActionsManager",
+    "StackManager",
 ]

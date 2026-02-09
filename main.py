@@ -27,12 +27,16 @@ from gui.main_ui.window import MainWindow
 class GraphInstructions(QtCore.QObject):
     create_item = QtCore.Signal(str, dict)
     delete_item = QtCore.Signal(str, dict)
+    undo_action = QtCore.Signal()
+    redo_action = QtCore.Signal()
 
 
 # Signals for scene management
 class SceneInstructions(QtCore.QObject):
-    create_repr = QtCore.Signal(str, dict)
-    delete_repr = QtCore.Signal(str, dict)
+    add_item = QtCore.Signal(object)  # Item to add to scene
+    remove_item = QtCore.Signal(object)  # Item to remove from scene
+    undo_action = QtCore.Signal()
+    redo_action = QtCore.Signal()
 
 
 class ClimateActionTool(QtWidgets.QApplication):
