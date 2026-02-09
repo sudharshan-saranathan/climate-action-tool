@@ -297,19 +297,29 @@ class Canvas(QtWidgets.QGraphicsScene):
     @QtCore.Slot(str)
     def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
-        if callable(method := getattr(self._graph_controller, "create_item", None)):
+        method = getattr(self._graph_controller, "create_item", None)
+        if isinstance(method, QtCore.SignalInstance):
             method.emit(key, {"pos": self._rmb_coordinate})
 
     @QtCore.Slot(str)
     def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
-        if callable(method := getattr(self._graph_controller, "delete_item", None)):
+        method = getattr(self._graph_controller, "delete_item", None)
+        if isinstance(method, QtCore.SignalInstance):
             method.emit(key)
 
     @QtCore.Slot()
     def _raise_undo_request(self) -> None:
 
-        if callable(method := getattr(self._graph_controller, "undo_action", None)):
+        method = getattr(self._graph_controller, "undo_action", None)
+        if isinstance(method, QtCore.SignalInstance):
+            method.emit()
+
+    @QtCore.Slot()
+    def _raise_redo_request(self) -> None:
+
+        method = getattr(self._graph_controller, "redo_action", None)
+        if isinstance(method, QtCore.SignalInstance):
             method.emit()
 
     @QtCore.Slot(QtWidgets.QGraphicsObject)
