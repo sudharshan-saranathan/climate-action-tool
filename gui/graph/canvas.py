@@ -212,8 +212,8 @@ class Canvas(QtWidgets.QGraphicsScene):
         """Connect to application-level scene signals."""
         app = QtWidgets.QApplication.instance()
         if app and hasattr(app, "scene_ctrl"):
-            app.scene_ctrl.req_repr_create.connect(self.create_item)
-            app.scene_ctrl.req_repr_delete.connect(self.delete_items)
+            app.scene_ctrl.create_repr.connect(self.create_item)
+            app.scene_ctrl.delete_repr.connect(self.delete_items)
 
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
@@ -347,14 +347,14 @@ class Canvas(QtWidgets.QGraphicsScene):
         app = QtWidgets.QApplication.instance()
         if hasattr(app, "graph_ctrl"):
             data = {"key": key, "pos": self._rmb_coordinate}
-            app.graph_ctrl.req_item_create.emit(data)
+            app.graph_ctrl.create_item.emit(data)
 
     @QtCore.Slot(object)
     def _raise_delete_request(self, key: str) -> None:
 
         app = QtWidgets.QApplication()
         if hasattr(app, "graph_ctrl"):
-            app.graph_ctrl.req_item_delete.emit(key)
+            app.graph_ctrl.delete_item.emit(key)
 
     @QtCore.Slot(QtWidgets.QGraphicsObject)
     def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):

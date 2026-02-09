@@ -24,14 +24,15 @@ from gui.main_ui.window import MainWindow
 
 
 # Signals for graph management
-class GraphSignals(QtCore.QObject):
-    req_item_create = QtCore.Signal(object)
-    req_item_delete = QtCore.Signal(object)
+class GraphInstructions(QtCore.QObject):
+    create_item = QtCore.Signal(object)
+    delete_item = QtCore.Signal(object)
 
 
-class SceneSignals(QtCore.QObject):
-    req_repr_create = QtCore.Signal(object)
-    req_repr_delete = QtCore.Signal(object)
+# Signals for scene management
+class SceneInstructions(QtCore.QObject):
+    create_repr = QtCore.Signal(object)
+    delete_repr = QtCore.Signal(object)
 
 
 class ClimateActionTool(QtWidgets.QApplication):
@@ -42,8 +43,8 @@ class ClimateActionTool(QtWidgets.QApplication):
     # Signals for global event dispatching
     show_as_tab = QtCore.Signal(object, str, object)  # widget, title, icon
 
-    graph_ctrl: typing.ClassVar[GraphSignals] = GraphSignals()
-    scene_ctrl: typing.ClassVar[SceneSignals] = SceneSignals()
+    graph_ctrl: typing.ClassVar[GraphInstructions] = GraphInstructions()
+    scene_ctrl: typing.ClassVar[SceneInstructions] = SceneInstructions()
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.

@@ -30,15 +30,15 @@ class GraphCtrl:
         # Connect to the application's graph-backend instructions
         app = QtWidgets.QApplication.instance()
         if app and hasattr(app, "graph_ctrl"):
-            app.graph_ctrl.req_item_create.connect(self.create_node)
-            app.graph_ctrl.req_item_delete.connect(self.delete_node)
+            app.graph_ctrl.create_item.connect(self.create_node)
+            app.graph_ctrl.delete_item.connect(self.delete_node)
 
     def _connect_signals(self) -> None:
         """Connect to application-level signals."""
         app = QtWidgets.QApplication.instance()
         if app and hasattr(app, "graph_ctrl"):
-            app.graph_ctrl.req_item_create.connect(self.create_node)
-            app.graph_ctrl.req_item_delete.connect(self.delete_node)
+            app.graph_ctrl.create_item.connect(self.create_node)
+            app.graph_ctrl.delete_item.connect(self.delete_node)
 
     @QtCore.Slot(object)
     def create_node(self, data: object) -> Node:
@@ -68,7 +68,7 @@ class GraphCtrl:
         # Create the node's UI representation
         app = QtWidgets.QApplication.instance()
         if app and hasattr(app, "scene_ctrl"):
-            app.scene_ctrl.req_repr_create.emit((key, x, y))
+            app.scene_ctrl.create_repr.emit((key, x, y))
 
         return node
 
