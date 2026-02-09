@@ -25,14 +25,14 @@ from gui.main_ui.window import MainWindow
 
 # Signals for graph management
 class GraphInstructions(QtCore.QObject):
-    create_item = QtCore.Signal(object)
-    delete_item = QtCore.Signal(object)
+    create_item = QtCore.Signal(str, dict)
+    delete_item = QtCore.Signal(str, dict)
 
 
 # Signals for scene management
 class SceneInstructions(QtCore.QObject):
-    create_repr = QtCore.Signal(object)
-    delete_repr = QtCore.Signal(object)
+    create_repr = QtCore.Signal(str, dict)
+    delete_repr = QtCore.Signal(str, dict)
 
 
 class ClimateActionTool(QtWidgets.QApplication):

@@ -17,7 +17,7 @@ from dataclasses import dataclass
 # Climact
 from gui.widgets import GLayout
 from core.flows import ResourceDictionary, ParameterDictionary
-from gui.graph.vertex.config.tree import StreamTree
+from gui.graph.node.config.tree import StreamTree
 from qtawesome import icon as qta_icon
 
 

@@ -9,7 +9,7 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from gui.widgets import ComboBox, HLayout
-from gui.graph.vertex.config.tree import StreamTree
+from gui.graph.node.config.tree import StreamTree
 
 from core.flows import ResourceDictionary, ParameterDictionary
 
@@ -91,7 +91,7 @@ class VertexConfig(QtWidgets.QDialog):
 
     @QtCore.Slot()
     def _on_label_edited(self):
-        from gui.graph.vertex.vertex import VertexItem
+        from gui.graph.node.vertex import VertexItem
 
         string = self._label.text()
         vertex = self._vertex_ref()

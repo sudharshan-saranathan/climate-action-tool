@@ -72,7 +72,7 @@ class StreamTree(QtWidgets.QTreeWidget):
             item.setIcon(0, qta.icon("ph.warning-fill", color="#ffcb00"))
 
             # Create a StreamForm for this item and configure it with the flow
-            from gui.graph.vertex.config.form import StreamForm
+            from gui.graph.node.config.form import StreamForm
 
             flow_class = root.data(0, QtCore.Qt.ItemDataRole.UserRole)
             form = StreamForm()

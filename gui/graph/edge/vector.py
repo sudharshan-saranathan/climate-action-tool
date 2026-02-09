@@ -6,7 +6,7 @@
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from gui.graph.reusable.image import Image
-from gui.graph.enums import ItemState
+from gui.graph.flags import ItemState
 import dataclasses
 import weakref
 
@@ -35,8 +35,8 @@ class VectorItem(QtWidgets.QGraphicsObject):
         self._arrow = Image(":/svg/arrow.svg", parent=self)
         self._style = VectorItem.Style(
             pen={
-                ItemState.NORMAL: QtGui.QPen(QtGui.QColor(0xBEBEBE)),
-                ItemState.SELECTED: QtGui.QPen(QtGui.QColor(0xFFCB00)),
+                ItemState.State_None: QtGui.QPen(QtGui.QColor(0xBEBEBE)),
+                ItemState.State_Selected: QtGui.QPen(QtGui.QColor(0xFFCB00)),
             }
         )
 
@@ -96,7 +96,7 @@ class VectorItem(QtWidgets.QGraphicsObject):
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
         # First pass: Use a thicker stroke for the border
-        pen_border = QtGui.QPen(self._style.pen[ItemState.NORMAL])
+        pen_border = QtGui.QPen(self._style.pen[ItemState.State_None])
         pen_border.setColor(QtGui.QColor(0x232A2E))
         pen_border.setWidthF(self.property("linewidth") or self._style.width + 1.0)
         painter.setPen(pen_border)
@@ -105,7 +105,7 @@ class VectorItem(QtWidgets.QGraphicsObject):
         # Second pass: Draw the main stroke on top
         pen = QtGui.QPen(
             self._style.pen[
-                ItemState.SELECTED if self.isSelected() else ItemState.NORMAL
+                ItemState.State_Selected if self.isSelected() else ItemState.State_None
             ]
         )
         pen.setWidthF(self.property("linewidth") or self._style.width)

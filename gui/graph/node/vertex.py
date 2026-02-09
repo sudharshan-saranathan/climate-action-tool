@@ -5,10 +5,10 @@
 from __future__ import annotations
 
 from PySide6 import QtGui, QtCore, QtWidgets
-from gui.graph.vertex.config import VertexConfigDialog
-from gui.graph.vector.vector import VectorItem
+from gui.graph.node.config import VertexConfigDialog
+from gui.graph.edge.vector import VectorItem
 from gui.graph.reusable.text import Label
-from gui.graph.enums import ItemState
+from gui.graph.flags import ItemState
 import dataclasses
 import qtawesome as qta
 
@@ -34,8 +34,8 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
         brush: dict[ItemState, QtGui.QBrush] = dataclasses.field(
             default_factory=lambda: {
-                ItemState.NORMAL: QtGui.QBrush(QtGui.QColor(0x232A2E)),
-                ItemState.SELECTED: QtGui.QBrush(QtGui.QColor(0xFFCB00)),
+                ItemState.State_None: QtGui.QBrush(QtGui.QColor(0x232A2E)),
+                ItemState.State_Selected: QtGui.QBrush(QtGui.QColor(0xFFCB00)),
             }
         )
 
@@ -99,8 +99,8 @@ class VertexItem(QtWidgets.QGraphicsObject):
 
         self._style = VertexItem.Appearance(
             brush={
-                ItemState.NORMAL: QtGui.QBrush(QtGui.QColor(0x232A2E)),
-                ItemState.SELECTED: QtGui.QBrush(QtGui.QColor(0xFFCB00)),
+                ItemState.State_None: QtGui.QBrush(QtGui.QColor(0x232A2E)),
+                ItemState.State_Selected: QtGui.QBrush(QtGui.QColor(0xFFCB00)),
             },
         )
         self._geometry = VertexItem.Geometry(rect=QtCore.QRectF(-16, -16, 32, 32))
@@ -130,7 +130,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
         """Paint the vertex."""
 
         brush = self._style.brush[
-            ItemState.SELECTED if self.isSelected() else ItemState.NORMAL
+            ItemState.State_Selected if self.isSelected() else ItemState.State_None
         ]
 
         painter.setPen(QtCore.Qt.PenStyle.NoPen)
