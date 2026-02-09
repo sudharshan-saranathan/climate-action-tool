@@ -43,7 +43,7 @@ class ClimateActionTool(QtWidgets.QApplication):
     show_as_tab = QtCore.Signal(object, str, object)  # widget, title, icon
 
     graph_ctrl: typing.ClassVar[GraphSignals] = GraphSignals()
-    scene_strl: typing.ClassVar[SceneSignals] = SceneSignals()
+    scene_ctrl: typing.ClassVar[SceneSignals] = SceneSignals()
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.

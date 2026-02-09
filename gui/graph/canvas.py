@@ -22,6 +22,7 @@ from PySide6 import QtWidgets
 from gui.graph.vertex.vertex import VertexItem
 from gui.graph.vector.vector import VectorItem
 from core.actions import ActionsManager, CreateAction, DeleteAction, BatchActions
+from core.graph import GraphCtrl
 
 
 # Dataclass
@@ -73,6 +74,9 @@ class Canvas(QtWidgets.QGraphicsScene):
             backgroundBrush=self._style.brush,
         )
 
+        # Backend graph controller for this scene
+        self._graph_ctrl = GraphCtrl()
+
         # Member(s):
         self._rmb_coordinate = QtCore.QPoint()
         self._menu = self._init_menu()
@@ -85,6 +89,9 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         # Undo/redo manager
         self._actions_manager = ActionsManager()
+
+        # Connect to application signals
+        self._connect_signals()
 
     def _init_menu(self) -> QtWidgets.QMenu:
         """
@@ -170,7 +177,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+N"),
         )
-        node_action.triggered.connect(lambda: self.raise_create_request("VertexItem"))
+        node_action.triggered.connect(lambda: self._raise_create_request("VertexItem"))
         obj_menu.addAction(node_action)
 
         source_action = QtGui.QAction(
@@ -182,7 +189,9 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+I"),
         )
-        source_action.triggered.connect(lambda: self.raise_create_request("StreamItem"))
+        source_action.triggered.connect(
+            lambda: self._raise_create_request("StreamItem")
+        )
         obj_menu.addAction(source_action)
 
         sink_action = QtGui.QAction(
@@ -194,10 +203,17 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+O"),
         )
-        sink_action.triggered.connect(lambda: self.raise_create_request("StreamItem"))
+        sink_action.triggered.connect(lambda: self._raise_create_request("StreamItem"))
         obj_menu.addAction(sink_action)
 
         return cxt_menu
+
+    def _connect_signals(self) -> None:
+        """Connect to application-level scene signals."""
+        app = QtWidgets.QApplication.instance()
+        if app and hasattr(app, "scene_ctrl"):
+            app.scene_ctrl.req_repr_create.connect(self.create_item)
+            app.scene_ctrl.req_repr_delete.connect(self.delete_items)
 
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
@@ -261,12 +277,21 @@ class Canvas(QtWidgets.QGraphicsScene):
         self._prev.vector.clear()
         self._prev.vector.hide()
 
-    def create_item(self, class_name: str, **kwargs) -> QtWidgets.QGraphicsItem | None:
+    def create_item(self, data: object, **kwargs) -> QtWidgets.QGraphicsItem | None:
         """
         Create and return a graph item of the specified class.
-        :param class_name: The name of the item class to instantiate.
+        Can be called with either a tuple (key, x, y) or with kwargs.
         :return: The newly created item, or None if an error occurred.
         """
+        # Parse data from signal or direct call
+        if isinstance(data, tuple) and len(data) == 3:
+            class_name, x, y = data
+            pos = QtCore.QPointF(x, y)
+        elif isinstance(data, str):
+            class_name = data
+            pos = kwargs.get("pos", self._rmb_coordinate)
+        else:
+            return None
 
         # Required:
         from gui.graph.vertex.vertex import VertexItem
@@ -282,15 +307,13 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         # If the class is valid, instantiate and add the item to the scene:
         if item_class:
-            item = item_class(**kwargs)
+            item = item_class(pos=pos)
             self.register_signals(item)
             self.addItem(item)
             self._actions_manager.do(CreateAction(self, item))
             return item
 
-        else:
-            print(f"Error: Invalid item class '{class_name}'")
-            return None
+        return None
 
     def find_item(self, name: str) -> QtWidgets.QGraphicsItem | None:
         """Find an item in the canvas by its object name."""
@@ -320,14 +343,14 @@ class Canvas(QtWidgets.QGraphicsScene):
             logging.warning(f"Item {item} has no signals defined.")
 
     @QtCore.Slot(object)
-    def raise_create_request(self, key: str) -> None:
-
+    def _raise_create_request(self, key: str) -> None:
         app = QtWidgets.QApplication.instance()
         if hasattr(app, "graph_ctrl"):
-            app.graph_ctrl.req_item_create.emit(key)
+            data = {"key": key, "pos": self._rmb_coordinate}
+            app.graph_ctrl.req_item_create.emit(data)
 
     @QtCore.Slot(object)
-    def raise_delete_request(self, key: str) -> None:
+    def _raise_delete_request(self, key: str) -> None:
 
         app = QtWidgets.QApplication()
         if hasattr(app, "graph_ctrl"):

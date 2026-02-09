@@ -22,40 +22,53 @@ class GraphCtrl:
     """
 
     def __init__(self):
+
+        # Dictionary to map node- and edge-references
         self.nodes: Dict[str, Node] = {}
         self.edges: Dict[str, Edge] = {}
-        self._connect_signals()
 
-    @QtCore.Slot(str)
-    def create_node(
-        self,
-        name: str,
-        x: float = 0.0,
-        y: float = 0.0,
-        properties: Optional[Dict[str, str]] = None,
-    ) -> Node:
+        # Connect to the application's graph-backend instructions
+        app = QtWidgets.QApplication.instance()
+        if app and hasattr(app, "graph_ctrl"):
+            app.graph_ctrl.req_item_create.connect(self.create_node)
+            app.graph_ctrl.req_item_delete.connect(self.delete_node)
+
+    def _connect_signals(self) -> None:
+        """Connect to application-level signals."""
+        app = QtWidgets.QApplication.instance()
+        if app and hasattr(app, "graph_ctrl"):
+            app.graph_ctrl.req_item_create.connect(self.create_node)
+            app.graph_ctrl.req_item_delete.connect(self.delete_node)
+
+    @QtCore.Slot(object)
+    def create_node(self, data: object) -> Node:
         """
         Create and add a new node to the graph.
 
         Args:
-            name: The node's name/label
-            x: X coordinate
-            y: Y coordinate
-            properties: Optional metadata dictionary
+            data: Dictionary with 'key' (node type) and 'pos' (QPointF position)
 
         Returns:
             The created Node object
         """
+        # Extract data from signal
+        if isinstance(data, dict):
+            key = data.get("key", "Node")
+            pos = data.get("pos", QtCore.QPointF())
+            x = pos.x() if hasattr(pos, "x") else 0.0
+            y = pos.y() if hasattr(pos, "y") else 0.0
+        else:
+            key = str(data)
+            x, y = 0.0, 0.0
+
         uid = str(uuid.uuid4())
-        node = Node(uid=uid, name=name, x=x, y=y, properties=properties or {})
+        node = Node(uid=uid, name=key, x=x, y=y, properties={"key": key})
         self.nodes[uid] = node
 
         # Create the node's UI representation
         app = QtWidgets.QApplication.instance()
         if app and hasattr(app, "scene_ctrl"):
-            app.scene_ctrl.req_repr_create.emit(
-                name, pos=properties.get("pos", QtCore.QPointF())
-            )
+            app.scene_ctrl.req_repr_create.emit((key, x, y))
 
         return node
 
@@ -157,10 +170,3 @@ class GraphCtrl:
         """Clear all nodes and edges from the graph."""
         self.nodes.clear()
         self.edges.clear()
-
-    def _connect_signals(self) -> None:
-        """Connect to application-level signals."""
-        app = QtWidgets.QApplication.instance()
-        if app and hasattr(app, "graph_ctrl"):
-            app.graph_ctrl.req_item_create.connect(self.create_node)
-            app.graph_ctrl.req_item_delete.connect(self.delete_node)
