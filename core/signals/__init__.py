@@ -25,7 +25,9 @@ class SignalInstance:
 
             try:
                 listener(*args, **kwargs)
+
             except Exception as e:
+
                 import traceback
 
                 print(f"Error in signal listener: {e}")
