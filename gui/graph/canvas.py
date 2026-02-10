@@ -239,12 +239,8 @@ class Canvas(QtWidgets.QGraphicsScene):
             origin = self._preview.origin
             target = self.itemAt(event.scenePos(), QtGui.QTransform())
 
-            if (
-                isinstance(target, NodeRepr)
-                and hasattr(origin, "connect_to")
-                and target is not origin
-            ):
-                origin.connect_to(target)
+            if isinstance(target, NodeRepr) and origin is not target:
+                self._raise_create_edge_request(origin.uid, target.uid)
 
         self._preview_off()
         super().mouseReleaseEvent(event)
@@ -348,28 +344,51 @@ class Canvas(QtWidgets.QGraphicsScene):
         data = data or {}
         cpos = QtCore.QPointF(data.get("x", 0), data.get("y", 0))
 
-        node = NodeRepr(nuid=nuid, pos=cpos)
+        node = NodeRepr(nuid, pos=cpos)
         self.addItem(node)
         return node
 
-    def delete_node_repr(self, cid: int, nuid: str) -> None:
+    def create_edge_repr(
+        self, cuid: str, euid: str, data: dict = None
+    ) -> EdgeRepr | None:
+        """Create a new edge representation."""
+
+        if self._uid != cuid:
+            return None
+
+        data = data or {}
+        source_uid = data.get("source_uid")
+        target_uid = data.get("target_uid")
+
+        source = self.find_item_by_uid(source_uid)
+        target = self.find_item_by_uid(target_uid)
+
+        if not (source and target):
+            return None
+
+        edge = EdgeRepr(euid, origin=source, target=target)
+        self.addItem(edge)
+        return edge
+
+    def delete_node_repr(self, cuid: str, nuid: str) -> None:
         """Delete a node representation."""
+
+        if self._uid != cuid:
+            return
 
         item = self.find_item_by_uid(nuid)
         if item:
             self.removeItem(item)
 
-    def find_item_by_name(self, name: str) -> QtWidgets.QGraphicsItem | None:
-        """Find an item in the canvas by its object name."""
+    def delete_edge_repr(self, cuid: str, euid: str) -> None:
+        """Delete an edge representation."""
 
-        items: list[QtWidgets.QGraphicsItem] = self.items()
-        for item in items:
+        if self._uid != cuid:
+            return
 
-            object_name = getattr(item, "objectName", None)
-            if callable(object_name) and object_name() == name:
-                return item
-
-        return None
+        item = self.find_item_by_uid(euid)
+        if item:
+            self.removeItem(item)
 
     def find_item_by_uid(self, uid: str) -> QtWidgets.QGraphicsItem | None:
         """Find an item in the canvas by its unique identifier."""
@@ -378,8 +397,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             (
                 item
                 for item in self.items()
-                if isinstance(item, QtWidgets.QGraphicsObject)
-                and item.objectName() == uid
+                if isinstance(item, (NodeRepr, EdgeRepr)) and item.uid == uid
             ),
             None,
         )

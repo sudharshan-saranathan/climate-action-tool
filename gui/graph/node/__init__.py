@@ -95,11 +95,13 @@ class NodeRepr(QtWidgets.QGraphicsObject):
     # Constructor
     def __init__(
         self,
+        nuid: str,
         parent: QtWidgets.QGraphicsObject | None = None,
         **kwargs,
     ) -> None:
 
         # Instantiate dataclasses before super().__init__()
+        self._uid = nuid
         self._geometry = NodeRepr.Geometric()
         self._attributes = NodeRepr.Attrs()
         self._appearance = NodeRepr.Appearance()
@@ -216,7 +218,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             and mod == QtCore.Qt.KeyboardModifier.AltModifier
         ):
             self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
-            self.create_edge.emit(self)
+            self.activate_preview.emit(self)
             return
 
         super().mousePressEvent(event)
@@ -249,18 +251,9 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             "item_focused": self.item_focused,
         }
 
-    def connect_to(self, target: "NodeRepr"):
+    # Properties
+    # ----------
 
-        if not isinstance(target, NodeRepr):
-            return
-
-        app = QtWidgets.QApplication.instance()
-        if hasattr(app, "graph_ctrl"):
-
-            app.graph_ctrl.create_item.emit(
-                "EdgeRepr",
-                {
-                    "origin": self,
-                    "target": target,
-                },
-            )
+    @property
+    def uid(self) -> str:
+        return self._uid

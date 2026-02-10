@@ -30,9 +30,11 @@ class EdgeRepr(QtWidgets.QGraphicsObject):
         slack: float = 0.4
         pen: dict[ItemState, QtGui.QPen] = dataclasses.field(default_factory=dict)
 
-    def __init__(self, parent=None, origin=None, target=None):
-        super().__init__(parent)
-        # Class member(s):
+    def __init__(self, euid: str, origin=None, target=None):
+        super().__init__(None)
+
+        # Class members:
+        self._uid = euid
         self._path = QtGui.QPainterPath()
         self._arrow = Image(":/svg/arrow.svg", parent=self)
         self._style = EdgeRepr.Appearance(
@@ -206,3 +208,7 @@ class EdgeRepr(QtWidgets.QGraphicsObject):
         self.setProperty("linewidth", value)
         self.prepareGeometryChange()
         self.update()
+
+    @property
+    def uid(self) -> str:
+        return self._uid
