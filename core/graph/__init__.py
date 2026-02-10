@@ -3,9 +3,8 @@
 # Description: Graph data structure managing nodes and edges
 
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, Tuple
 import logging
-import weakref
 import uuid
 
 # Dataclass
@@ -29,6 +28,7 @@ class GraphManager:
     class Graph:
         nodes: Dict[str, Node] = field(default_factory=dict)
         edges: Dict[str, Edge] = field(default_factory=dict)
+        conns: Dict[Tuple[str, str], bool] = field(default_factory=dict)
 
     def __new__(cls):
         if cls._instance is None:
@@ -76,9 +76,6 @@ class GraphManager:
             properties=data,
         )
 
-        logging.info(f"Created node with UID {_nuid}")
-        logging.info(f"Node properties: {_node.properties}")
-
         # Store node reference and emit signal
         self.graph_db[guid].nodes[_nuid] = _node
 
@@ -86,23 +83,43 @@ class GraphManager:
         manager = SignalBus()
         manager.ui.create_node_repr.emit(guid, _nuid, data)
 
+        # Log after emitting signal
+        logging.info(f"Created node with UID {_nuid}")
+
     def create_edge(self, guid: str, name: str, data: Dict[str, str]) -> None:
 
         if guid not in self.graph_db:
             return
 
-        print(f"Creating edge with data: {data}")
+        # Check if keys exist and are connected
+        source_uid = data["source_uid"]
+        target_uid = data["target_uid"]
+
+        if source_uid == target_uid:
+            logging.warning(f"Source and target UIDs are the same: {source_uid}")
+            return
+
+        if (source_uid, target_uid) in self.graph_db[guid].conns:
+            logging.warning(f"Connection already exists!")
+            return
+
         _euid = uuid.uuid4().hex
         _edge = Edge(
             uid=_euid,
-            source_uid=data.get("source_uid", ""),
-            target_uid=data.get("target_uid", ""),
+            source_uid=source_uid,
+            target_uid=target_uid,
             properties=data.get("properties", {}),
         )
 
         # Store edge reference and emit signal
         self.graph_db[guid].edges[_euid] = _edge
+        self.graph_db[guid].conns[(source_uid, target_uid)] = True
+
+        # Emit signal
         self.signal_bus.ui.create_edge_repr.emit(guid, _euid, data)
+
+        # Log after emitting signal
+        logging.info(f"Created edge with UID {_euid}")
 
 
 # Instantiate the singleton when this module is imported

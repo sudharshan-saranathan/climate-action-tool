@@ -134,18 +134,12 @@ class EdgeRepr(QtWidgets.QGraphicsObject):
         path = QtGui.QPainterPath()
         path.moveTo(origin)
 
-        # Calculate control points for cubic Bezier curve
-        slack = self._style.slack
+        # Calculate control points for a quadratic curve
+        ctrl_ptx = origin.x() + (target.x() - origin.x()) * 0.5
+        ctrl_pty = origin.y() + (target.y() - origin.y()) * 0.5
+        ctrl_pty -= 20 if target.x() > origin.x() else -20
+        path.quadTo(ctrl_ptx, ctrl_pty, target.x(), target.y())
 
-        ctrl_one_x = origin.x() + (target.x() - origin.x()) * slack
-        ctrl_one_y = origin.y() + (target.y() - origin.y()) * 0.25
-        ctrl_two_x = origin.x() + (target.x() - origin.x()) * (1 - slack)
-        ctrl_two_y = target.y() - (target.y() - origin.y()) * 0.25
-
-        ctrl_one = QtCore.QPointF(ctrl_one_x, ctrl_one_y)
-        ctrl_two = QtCore.QPointF(ctrl_two_x, ctrl_two_y)
-
-        path.cubicTo(ctrl_one, ctrl_two, target)
         return path
 
     def update_path(self, origin: QtCore.QPointF, target: QtCore.QPointF):

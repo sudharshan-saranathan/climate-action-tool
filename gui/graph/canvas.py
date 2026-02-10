@@ -84,7 +84,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         self._preview = types.SimpleNamespace(
             active=False,
             origin=None,
-            vector=EdgeRepr(None),
+            vector=EdgeRepr(uuid.uuid4().hex),
         )
         self.addItem(self._preview.vector)
 
