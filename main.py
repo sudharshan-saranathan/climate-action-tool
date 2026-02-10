@@ -39,6 +39,11 @@ class SceneInstructions(QtCore.QObject):
     redo_action = QtCore.Signal()
 
 
+# Signals for the viewer
+class ViewerInstructions(QtCore.QObject):
+    focus_item = QtCore.Signal(QtWidgets.QGraphicsObject)
+
+
 class ClimateActionTool(QtWidgets.QApplication):
     """
     Main application class to manage app lifecycle and UI components.
@@ -49,6 +54,7 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     graph_ctrl: typing.ClassVar[GraphInstructions] = GraphInstructions()
     scene_ctrl: typing.ClassVar[SceneInstructions] = SceneInstructions()
+    view_ctrl: typing.ClassVar[ViewerInstructions] = ViewerInstructions()
 
     backend_flag = True  # Flag to enable/disable the backend optimization module.
     startup_flag = True  # Flag to enable/disable the startup dialog.

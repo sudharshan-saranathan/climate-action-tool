@@ -3,6 +3,8 @@
 # Description: QGraphicsObject-based graphical representation of a graph-node.
 
 
+from __future__ import annotations
+
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
@@ -229,6 +231,14 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         if event.isAccepted():
             return
 
+    def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
+
+        app = QtWidgets.QApplication.instance()
+        if hasattr(app, "view_ctrl"):
+            app.view_ctrl.focus_item.emit(self)
+
+        # Display the node's configuration widget
+
     # Section: Public methods
     # -----------------------
 
@@ -239,13 +249,14 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             "item_focused": self.item_focused,
         }
 
-    def connect_to(self, target: NodeRepr):
+    def connect_to(self, target: "NodeRepr"):
 
         if not isinstance(target, NodeRepr):
             return
 
         app = QtWidgets.QApplication.instance()
         if hasattr(app, "graph_ctrl"):
+
             app.graph_ctrl.create_item.emit(
                 "EdgeRepr",
                 {

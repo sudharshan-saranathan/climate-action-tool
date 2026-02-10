@@ -109,7 +109,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("mdi.undo", color="#efefef"),
             toolTip="Undo the last action",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Undo),
         )
         cxt_menu.addAction(undo_action)
@@ -120,7 +119,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("mdi.redo", color="#efefef"),
             toolTip="Redo the last undone action",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Redo),
         )
         cxt_menu.addAction(redo_action)
@@ -133,7 +131,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("mdi.content-copy", color="#efefef"),
             toolTip="Copy selected items",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Copy),
         )
         cxt_menu.addAction(copy_action)
@@ -144,7 +141,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("mdi.content-paste", color="#efefef"),
             toolTip="Paste items from clipboard",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Paste),
         )
         cxt_menu.addAction(paste_action)
@@ -155,7 +151,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("mdi.delete", color="red"),
             toolTip="Delete selected items",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Delete),
         )
         cxt_menu.addAction(delete_action)
@@ -168,7 +163,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("ph.browser-fill", color="darkcyan"),
             toolTip="Create a new node",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+N"),
         )
         node_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
@@ -180,7 +174,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("mdi.arrow-down-bold"),
             toolTip="Create a new inlet port",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+I"),
         )
         source_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
@@ -192,7 +185,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             icon=qta.icon("mdi.arrow-up-bold"),
             toolTip="Create a new outlet port",
             iconVisibleInMenu=True,
-            shortcutVisibleInContextMenu=True,
             shortcut=QtGui.QKeySequence("Alt+O"),
         )
         sink_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))

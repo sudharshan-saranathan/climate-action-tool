@@ -11,6 +11,7 @@ for hardware acceleration, and keyboard/mouse event handling for navigation and 
 
 from __future__ import annotations
 import dataclasses
+import sys
 
 from PySide6 import QtGui
 from PySide6 import QtCore
@@ -110,11 +111,10 @@ class Viewer(QtWidgets.QGraphicsView):
             QtGui.QKeySequence.StandardKey.Delete, self, self._shortcut_handler
         )
 
-        # Listen for scene item focus signals to auto-pan
-        from core.bus import EventsBus
-
-        bus = EventsBus.instance()
-        bus.sig_item_focused.connect(self._on_item_focused)
+        # Connect to the application's viewer instructions signal group
+        app = QtWidgets.QApplication.instance()
+        if hasattr(app, "view_ctrl"):
+            app.view_ctrl.focus_item.connect(self._on_item_focused)
 
     @QtCore.Slot()
     def _setup_opengl_viewport(self) -> None:
@@ -149,11 +149,6 @@ class Viewer(QtWidgets.QGraphicsView):
     def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
         """
         Handle keyboard release events.
-
-        Resets drag mode to the rubber-band and unsets cursor.
-
-        Args:
-            event: The keyboard release event.
         """
 
         self.unsetCursor()
@@ -163,11 +158,6 @@ class Viewer(QtWidgets.QGraphicsView):
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         """
         Handle mouse wheel events for zooming.
-
-        Scroll up zooms in, scroll down zooms out using exponential zoom factor.
-
-        Args:
-            event: The wheel event containing scroll delta.
         """
         delta = event.angleDelta().y()
         delta = self._opts.zoom_exp ** (delta / 100.0)
@@ -180,9 +170,6 @@ class Viewer(QtWidgets.QGraphicsView):
     def _shortcut_handler(self) -> None:
         """
         Route standard shortcuts to the scene.
-
-        Handles Undo, Redo, Copy, and Paste shortcuts by delegating to the scene
-        if it implements the corresponding methods (undo, redo, clone_items, paste_items).
         """
         sender = self.sender()
         if not isinstance(sender, QtGui.QShortcut):
@@ -245,6 +232,7 @@ class Viewer(QtWidgets.QGraphicsView):
             factor: Zoom multiplication factor to apply.
             animate: Whether to animate the zoom transition (default: True).
         """
+
         # Cancel any ongoing zoom animation to prevent conflicts
         if self._zoom_anim.state() == QtCore.QPropertyAnimation.State.Running:
             self._zoom_anim.stop()
@@ -269,21 +257,15 @@ class Viewer(QtWidgets.QGraphicsView):
     def center(self, value: QtCore.QPointF) -> None:
         """
         Set the center point of the view.
-
-        Args:
-            value: Target center point in scene coordinates.
         """
+
         self.centerOn(value)
 
     def _on_item_focused(self, item: QtWidgets.QGraphicsObject) -> None:
         """
         Handle item focus signal by animating the view to center on the item.
-
-        Animates the view to pan and focus on the given graphics item.
-
-        Args:
-            item: The graphics item to focus on.
         """
+
         item_pos = item.mapToScene(item.boundingRect().center())
         view_pos = self.mapToScene(self.viewport().rect().center())
 
