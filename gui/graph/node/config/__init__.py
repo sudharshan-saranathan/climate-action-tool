@@ -2,6 +2,8 @@
 # Module Name: VertexConfig
 # Description: Configuration dialog for VertexItem.
 
+from __future__ import annotations
+
 # Standard Library
 import weakref
 

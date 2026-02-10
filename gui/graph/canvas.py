@@ -8,6 +8,8 @@ A QGraphicsScene subclass for displaying and editing graphs.
 
 from __future__ import annotations
 
+from idlelib.run import manage_socket
+
 # Standard
 import qtawesome as qta
 import logging
@@ -22,8 +24,7 @@ from PySide6 import QtWidgets
 # Climact
 from gui.graph.node import NodeRepr
 from gui.graph.edge.__init__ import EdgeRepr
-from core.actions import StackManager, CreateAction, DeleteAction, BatchActions
-from core.graph import GraphCtrl
+from core.session import SignalBus
 
 
 # Dataclass
@@ -87,12 +88,8 @@ class Canvas(QtWidgets.QGraphicsScene):
         )
         self.addItem(self._preview.vector)
 
-        # Managers & Controllers
-        # TODO: The graph controller shouldn't be initialized here, but managed by the QApplication
-        self._graph_manager = GraphCtrl()  # The backend graph data-structure
-
         # Connect to application signals
-        self._init_controllers()
+        self._connect_to_controllers()
 
     def _init_menu(self) -> QtWidgets.QMenu:
         """
@@ -192,17 +189,20 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         return cxt_menu
 
-    def _init_controllers(self) -> None:
-        """Connect to application-level scene signals."""
+    def _connect_to_controllers(self) -> None:
+        """Connect to application-level controller signals."""
 
-        app = QtWidgets.QApplication.instance()
-        grc = getattr(app, "graph_ctrl", None)
-        scc = getattr(app, "scene_ctrl", None)
+        # Connect to the session-manager's signals
+        manager = SignalBus()  # Get the singleton instance
+        manager.scene_commands.create_node_repr.connect(
+            lambda guid, uid, data: print(f"Create node repr: {uid}")
+        )
+        manager.scene_commands.delete_node_repr.connect(
+            lambda guid, uid: print(f"Delete node repr: {uid}")
+        )
 
-        if scc is not None:
-            scc.add_item.connect(self.addItem)
-
-        self._graph_controller = grc
+        # Create a graph instance for this canvas
+        manager.graph_commands.create_new_graph.emit(id(self))
 
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
@@ -287,33 +287,17 @@ class Canvas(QtWidgets.QGraphicsScene):
     @QtCore.Slot(str)
     def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
-        method = getattr(self._graph_controller, "create_item", None)
-        if isinstance(method, QtCore.SignalInstance):
-            method.emit(key, {"pos": self._rmb_coordinate})
+        manager = SignalBus()  # Get the singleton instance
+        manager.graph_commands.create_node_item.emit(key, {"pos": self._rmb_coordinate})
 
     @QtCore.Slot(str)
     def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
-        method = getattr(self._graph_controller, "delete_item", None)
-        if isinstance(method, QtCore.SignalInstance):
-            method.emit(key)
-
-    @QtCore.Slot()
-    def _raise_undo_request(self) -> None:
-
-        method = getattr(self._graph_controller, "undo_action", None)
-        if isinstance(method, QtCore.SignalInstance):
-            method.emit()
-
-    @QtCore.Slot()
-    def _raise_redo_request(self) -> None:
-
-        method = getattr(self._graph_controller, "redo_action", None)
-        if isinstance(method, QtCore.SignalInstance):
-            method.emit()
+        manager = SignalBus()  # Get the singleton instance
+        manager.graph_commands.delete_node_item.emit(key)
 
     @QtCore.Slot(NodeRepr)
-    def _on_create_edge(self, item: NodeRepr):
+    def _on_activate_preview(self, item: NodeRepr):
 
         if not isinstance(item, NodeRepr):
             return

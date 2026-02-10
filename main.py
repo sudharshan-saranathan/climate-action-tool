@@ -21,12 +21,19 @@ from dataclasses import dataclass
 import rsrc
 from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
+import core.graph  # Import to ensure GraphManager singleton is initialized
 
 
 class ClimateActionTool(QtWidgets.QApplication):
     """
     Main application class to manage app lifecycle and UI components.
     """
+
+    # Flags
+    backend_flag: bool = True
+    startup_flag: bool = True
+    startup_code: int = 1
+    startup_file: str = ""
 
     @dataclass(frozen=True)
     class Resources:
@@ -79,6 +86,12 @@ class ClimateActionTool(QtWidgets.QApplication):
         self._init_fonts(fonts)
         self.setWindowIcon(QtGui.QIcon(image))
 
+        # Configure logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        )
+
         # Display the startup dialog, if enabled
         if self.startup_flag:
             self.startup_code = self._show_startup()
@@ -86,7 +99,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         # Create and show the main window
         if self.startup_code:
 
-            self._win = MainWindow(project=self.startup_file)
+            self._win = MainWindow()
             self._win.setWindowTitle("Climate Action Tool")
             self._win.setGeometry(padded)
             self._win.show()

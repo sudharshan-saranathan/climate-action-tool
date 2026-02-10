@@ -6,9 +6,11 @@
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from gui.graph.reusable.image import Image
-from gui.graph.flags import ItemState
 import dataclasses
 import weakref
+
+
+ItemState = QtWidgets.QStyle.StateFlag
 
 
 class EdgeRepr(QtWidgets.QGraphicsObject):

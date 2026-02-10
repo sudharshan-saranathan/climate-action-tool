@@ -14,14 +14,14 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-# Climact
-from gui.graph.flags import ItemState
+
+ItemState = QtWidgets.QStyle.StateFlag
 
 
 class NodeRepr(QtWidgets.QGraphicsObject):
 
     # Signals:
-    create_edge = QtCore.Signal(QtWidgets.QGraphicsObject)
+    activate_preview = QtCore.Signal(QtWidgets.QGraphicsObject)
     item_shifted = QtCore.Signal(QtWidgets.QGraphicsObject)
     item_focused = QtCore.Signal(QtWidgets.QGraphicsObject)
 
@@ -132,7 +132,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
     def _init_label(self):
 
         # Import `Label` from gui.graph.reusable
-        from gui.graph.reusable.text import Label
+        from gui.graph.reusable.label import Label
 
         # TODO: Find a better way to locate the situate the label w.r.t the node.
         label = Label(

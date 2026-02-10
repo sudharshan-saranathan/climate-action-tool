@@ -26,10 +26,15 @@ class Signal:
             try:
                 listener(*args, **kwargs)
             except Exception as e:
-                print(f"Error: {e}")
+                import traceback
+
+                print(f"Error in signal listener: {e}")
+                print(f"Listener: {listener}")
+                print(f"Args: {args}")
+                traceback.print_exc()
 
 
-class Manager:
+class SignalBus:
     """Session management for the application (Singleton)."""
 
     _instance = None
@@ -40,6 +45,7 @@ class Manager:
         def _sig(*types):
             return field(default_factory=lambda: Signal(*types))
 
+        create_new_graph: Signal = _sig(int)
         create_node_item: Signal = _sig(int, str, Dict[str, object])
         create_edge_item: Signal = _sig(int, str, Dict[str, object])
         delete_node_item: Signal = _sig(int, str)
@@ -57,9 +63,11 @@ class Manager:
         delete_edge_repr: Signal = _sig(int, str)
 
     def __new__(cls):
+
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
+
         return cls._instance
 
     def __init__(self):
