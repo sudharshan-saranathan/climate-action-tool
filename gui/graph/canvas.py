@@ -168,7 +168,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=False,
             shortcut=QtGui.QKeySequence("Alt+N"),
         )
-        node_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
+        node_action.triggered.connect(self._raise_create_node_request)
         obj_menu.addAction(node_action)
 
         source_action = QtGui.QAction(
@@ -180,7 +180,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=False,
             shortcut=QtGui.QKeySequence("Alt+I"),
         )
-        source_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
+        source_action.triggered.connect(self._raise_create_node_request)
         obj_menu.addAction(source_action)
 
         sink_action = QtGui.QAction(
@@ -192,7 +192,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             shortcutVisibleInContextMenu=False,
             shortcut=QtGui.QKeySequence("Alt+O"),
         )
-        sink_action.triggered.connect(lambda: self._raise_create_request("NodeRepr"))
+        sink_action.triggered.connect(self._raise_create_node_request)
         obj_menu.addAction(sink_action)
 
         return cxt_menu
@@ -287,11 +287,11 @@ class Canvas(QtWidgets.QGraphicsScene):
         else:
             logging.warning(f"Item {item} has no signals defined.")
 
-    @QtCore.Slot(str)
-    def _raise_create_request(self, key: str) -> None:
+    @QtCore.Slot()
+    def _raise_create_node_request(self) -> None:
 
         # Initialize data for the request
-        name = "Node" if key == "NodeRepr" else "Edge"
+        name = "Node"
         data = {
             "x": self._rmb_coordinate.x(),
             "y": self._rmb_coordinate.y(),
@@ -301,10 +301,28 @@ class Canvas(QtWidgets.QGraphicsScene):
         manager.data.create_node_item.emit(self._uid, name, data)
 
     @QtCore.Slot(str)
-    def _raise_delete_request(self, key: str) -> None:
+    def _raise_delete_node_request(self, nuid: str) -> None:
 
         manager = SignalBus()  # Get the singleton instance
-        manager.data.delete_node_item.emit(key)
+        manager.data.delete_node_item.emit(self._uid, nuid)
+
+    @QtCore.Slot()
+    def _raise_create_edge_request(self, suid: str, tuid: str) -> None:
+
+        # Initialize data for the request
+        data = {
+            "source_uid": suid,
+            "target_uid": tuid,
+        }
+
+        manager = SignalBus()  # Get the singleton instance
+        manager.data.create_edge_item.emit(self._uid, "Edge", data)
+
+    @QtCore.Slot(str, str)
+    def _raise_delete_edge_request(self, euid: str) -> None:
+
+        manager = SignalBus()  # Get the singleton instance
+        manager.data.delete_edge_item.emit(self._uid, euid)
 
     @QtCore.Slot(NodeRepr)
     def _on_activate_preview(self, item: NodeRepr):

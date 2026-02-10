@@ -59,9 +59,6 @@ class SignalBus:
     @dataclass
     class Frontend:
 
-        def _sig(*types):
-            return field(default_factory=lambda: Signal(*types))
-
         create_node_repr: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
         create_edge_repr: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
         delete_node_repr: Signal = Signal.factory(str, str)

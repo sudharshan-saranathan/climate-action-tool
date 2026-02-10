@@ -42,7 +42,7 @@ class GraphManager:
             return
 
         # Global graph database
-        self.graph_db: Dict[int, GraphManager.Graph] = {}
+        self.graph_db: Dict[str, GraphManager.Graph] = {}
         self.signal_bus = SignalBus()
 
         self._connect_to_session_manager()
@@ -54,7 +54,7 @@ class GraphManager:
         self.signal_bus.data.create_node_item.connect(self.create_node)
         self.signal_bus.data.create_edge_item.connect(self.create_edge)
 
-    def create_graph(self, guid: int) -> None:
+    def create_graph(self, guid: str) -> None:
 
         if guid not in self.graph_db:
             logging.info(f"Creating new graph with GUID {guid}")
@@ -63,7 +63,7 @@ class GraphManager:
         else:
             logging.warning(f"Graph with GUID {guid} already exists.")
 
-    def create_node(self, guid: int, name: str, data: Dict[str, object]) -> None:
+    def create_node(self, guid: str, name: str, data: Dict[str, object]) -> None:
 
         if guid not in self.graph_db:
             logging.warning(f"Graph with GUID {guid} does not exist. Creating it.")
@@ -86,7 +86,7 @@ class GraphManager:
         manager = SignalBus()
         manager.ui.create_node_repr.emit(guid, _nuid, data)
 
-    def create_edge(self, guid: int, name: str, data: Dict[str, object]) -> None:
+    def create_edge(self, guid: str, name: str, data: Dict[str, object]) -> None:
 
         if guid not in self.graph_db:
             return
