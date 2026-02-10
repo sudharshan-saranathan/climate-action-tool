@@ -21,7 +21,7 @@ from PySide6 import QtWidgets
 
 # Climact
 from gui.graph.node import NodeRepr
-from gui.graph.edge.vector import VectorItem
+from gui.graph.edge.__init__ import EdgeRepr
 from core.actions import StackManager, CreateAction, DeleteAction, BatchActions
 from core.graph import GraphCtrl
 
@@ -42,7 +42,7 @@ class Canvas(QtWidgets.QGraphicsScene):
     # Class-level clipboard for cross-canvas copy-paste
     representations: typing.ClassVar[dict[str, type]] = {
         "NodeRepr": NodeRepr,
-        "EdgeRepr": VectorItem,
+        "EdgeRepr": EdgeRepr,
     }
 
     clipboard: list[QtWidgets.QGraphicsItem] = []
@@ -83,7 +83,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         self._preview = types.SimpleNamespace(
             active=False,
             origin=None,
-            vector=VectorItem(None),
+            vector=EdgeRepr(None),
         )
         self.addItem(self._preview.vector)
 
@@ -248,10 +248,7 @@ class Canvas(QtWidgets.QGraphicsScene):
                 and hasattr(origin, "connect_to")
                 and target is not origin
             ):
-
-                vector = origin.connect_to(target)
-                if vector is not None:
-                    self.addItem(vector)
+                origin.connect_to(target)
 
         self._preview_off()
         super().mouseReleaseEvent(event)
@@ -261,7 +258,8 @@ class Canvas(QtWidgets.QGraphicsScene):
         item: QtWidgets.QGraphicsItem,
     ) -> None:
 
-        if isinstance(item, (NodeRepr, VectorItem)):
+        print(f"[Canvas] Adding to scene: {item}")
+        if isinstance(item, NodeRepr):
             self._register_item_signals(item)
 
         super().addItem(item)
@@ -281,7 +279,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         self._preview.vector.clear()
         self._preview.vector.hide()
 
-    def _register_item_signals(self, item: NodeRepr):
+    def _register_item_signals(self, item: QtWidgets.QGraphicsObject):
         """Connects the item's signals to appropriate slots."""
 
         if callable(signals := getattr(item, "signals", None)):
@@ -322,15 +320,8 @@ class Canvas(QtWidgets.QGraphicsScene):
         if isinstance(method, QtCore.SignalInstance):
             method.emit()
 
-    @QtCore.QSlot()
-    def _raise_request(self, key: str) -> None:
-
-        method = getattr(self._graph_controller, key, None)
-        if isinstance(method, QtCore.SignalInstance):
-            method.emit()
-
-    @QtCore.Slot(QtWidgets.QGraphicsObject)
-    def _on_item_clicked(self, item: QtWidgets.QGraphicsObject):
+    @QtCore.Slot(NodeRepr)
+    def _on_create_edge(self, item: NodeRepr):
 
         if not isinstance(item, NodeRepr):
             return

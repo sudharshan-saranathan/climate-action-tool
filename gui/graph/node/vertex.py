@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from PySide6 import QtGui, QtCore, QtWidgets
 from gui.graph.node.config import VertexConfigDialog
-from gui.graph.edge.vector import VectorItem
+from gui.graph.edge.__init__ import EdgeRepr
 from gui.graph.reusable.text import Label
 from gui.graph.flags import ItemState
 import dataclasses
@@ -51,10 +51,10 @@ class VertexItem(QtWidgets.QGraphicsObject):
     class Connections:
         """Database for incoming and outgoing connections."""
 
-        incoming: dict[QtWidgets.QGraphicsObject, VectorItem] = dataclasses.field(
+        incoming: dict[QtWidgets.QGraphicsObject, EdgeRepr] = dataclasses.field(
             default_factory=dict
         )
-        outgoing: dict[QtWidgets.QGraphicsObject, VectorItem] = dataclasses.field(
+        outgoing: dict[QtWidgets.QGraphicsObject, EdgeRepr] = dataclasses.field(
             default_factory=dict
         )
 
@@ -211,7 +211,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             "item_shifted": self.item_shifted,
         }
 
-    def connect_to(self, node: VertexItem) -> VectorItem | None:
+    def connect_to(self, node: VertexItem) -> EdgeRepr | None:
         """
         Connect this vertex to another.
 
@@ -234,7 +234,7 @@ class VertexItem(QtWidgets.QGraphicsObject):
             return -8 if xo < xt else 8
 
         # Instantiate the connection
-        vector = VectorItem(
+        vector = EdgeRepr(
             None,
             origin=self,
             target=node,

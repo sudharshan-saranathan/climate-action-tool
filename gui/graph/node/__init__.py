@@ -19,7 +19,7 @@ from gui.graph.flags import ItemState
 class NodeRepr(QtWidgets.QGraphicsObject):
 
     # Signals:
-    item_clicked = QtCore.Signal(QtWidgets.QGraphicsObject)
+    create_edge = QtCore.Signal(QtWidgets.QGraphicsObject)
     item_shifted = QtCore.Signal(QtWidgets.QGraphicsObject)
     item_focused = QtCore.Signal(QtWidgets.QGraphicsObject)
 
@@ -91,7 +91,11 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         outgoing: dict[object, object] = field(default_factory=dict)
 
     # Constructor
-    def __init__(self, parent: QtWidgets.QGraphicsObject | None = None, **kwargs) -> None:
+    def __init__(
+        self,
+        parent: QtWidgets.QGraphicsObject | None = None,
+        **kwargs,
+    ) -> None:
 
         # Instantiate dataclasses before super().__init__()
         self._geometry = NodeRepr.Geometric()
@@ -102,9 +106,11 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         # Initialize super-class with appropriate data
         super().__init__(parent, pos=kwargs.pop("pos", QtCore.QPointF()), z=0)
 
-        # Toggle interactivity
-        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
-        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        # Toggle flags
+        graphics_item_flag = QtWidgets.QGraphicsItem.GraphicsItemFlag
+        self.setFlag(graphics_item_flag.ItemIsMovable)
+        self.setFlag(graphics_item_flag.ItemIsSelectable)
+        self.setFlag(graphics_item_flag.ItemSendsScenePositionChanges)
 
         # UI child elements
         self._init_image()
@@ -112,13 +118,13 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def _init_image(self):
 
-        from gui.graph.reusable.icon import QtaItem
+        # QtAwesome Icon
+        from qtawesome import icon as qta_icon
 
-        QtaItem(
+        self._node_icon = qta_icon(
             self._attributes.image,
-            width=16,
             color=self._attributes.color,
-            parent=self,
+            color_active="black",
         )
 
     def _init_label(self):
@@ -137,17 +143,28 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
         label.sig_text_changed.connect(self.setObjectName)
         self.objectNameChanged.connect(lambda text: label.setPlainText(text))
-        self.objectNameChanged.connect(lambda text: print(f"Node name changed to {text}"))
+        self.objectNameChanged.connect(
+            lambda text: print(f"Node name changed to {text}")
+        )
+
+    # Section: Reimplementation
+    # -------------------------
 
     def boundingRect(self):
         return self._geometry.dimensions.adjusted(
-            self._geometry.padding,
-            self._geometry.padding,
+            -self._geometry.padding,
+            -self._geometry.padding,
             self._geometry.padding,
             self._geometry.padding,
         )
 
-    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionGraphicsItem, /, widget: QtWidgets.QWidget | None = None) -> None:
+    def paint(
+        self,
+        painter: QtGui.QPainter,
+        option: QtWidgets.QStyleOptionGraphicsItem,
+        /,
+        widget: QtWidgets.QWidget | None = None,
+    ) -> None:
 
         pen_dict = self._appearance.border
         brs_dict = self._appearance.background
@@ -170,12 +187,69 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             self._geometry.border_radius,
         )
 
+        # If an icon is available, paint it on top
+        from qtawesome import icon as qta_icon
+
+        color = "black" if self.isSelected() else self._attributes.color
+        qta_icon(self._attributes.image, color=color).paint(
+            painter,
+            self.boundingRect().adjusted(8, 8, -8, -8).toRect(),
+        )
+
+    def itemChange(self, change: QtWidgets.QGraphicsItem.GraphicsItemChange, value):
+
+        graphics_item_change = QtWidgets.QGraphicsItem.GraphicsItemChange
+        if change == graphics_item_change.ItemScenePositionHasChanged:
+            self.item_shifted.emit(self)
+
+        return super().itemChange(change, value)
+
+    def mousePressEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
+
+        mbt = event.button()
+        mod = event.modifiers()
+
+        if (
+            mbt == QtCore.Qt.MouseButton.LeftButton
+            and mod == QtCore.Qt.KeyboardModifier.AltModifier
+        ):
+            self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
+            self.create_edge.emit(self)
+            return
+
+        super().mousePressEvent(event)
+        if event.isAccepted():
+            return
+
+    def mouseReleaseEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
+
+        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
+
+        super().mouseReleaseEvent(event)
+        if event.isAccepted():
+            return
+
     # Section: Public methods
     # -----------------------
 
     def signals(self) -> dict[str, QtCore.SignalInstance]:
         return {
-            "item_clicked": self.item_clicked,
+            "create_edge": self.create_edge,
             "item_shifted": self.item_shifted,
             "item_focused": self.item_focused,
         }
+
+    def connect_to(self, target: NodeRepr):
+
+        if not isinstance(target, NodeRepr):
+            return
+
+        app = QtWidgets.QApplication.instance()
+        if hasattr(app, "graph_ctrl"):
+            app.graph_ctrl.create_item.emit(
+                "EdgeRepr",
+                {
+                    "origin": self,
+                    "target": target,
+                },
+            )

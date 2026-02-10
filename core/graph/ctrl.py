@@ -19,7 +19,7 @@ from PySide6 import QtCore
 
 # GUI
 from gui.graph.node import NodeRepr
-from gui.graph.edge.vector import VectorItem
+from gui.graph.edge.__init__ import EdgeRepr
 
 
 class GraphCtrl:
@@ -37,6 +37,10 @@ class GraphCtrl:
         self.nodes: Dict[str, Node] = {}
         self.edges: Dict[str, Edge] = {}
 
+        # Reference maps
+        self._item_to_repr: Dict[Node | Edge, NodeRepr | EdgeRepr] = {}
+        self._repr_to_item: Dict[NodeRepr | EdgeRepr, Node | Edge] = {}
+
         # Undo/Redo stack manager (backend owns action history)
         self._stack_manager = StackManager()
 
@@ -48,12 +52,24 @@ class GraphCtrl:
             self._app.graph_ctrl.undo_action.connect(self.undo)
             self._app.graph_ctrl.redo_action.connect(self.redo)
 
-    def create_item(self, key: Literal["node", "edge"], data: Dict):
+    def create_item(self, key: Literal["NodeRepr", "EdgeRepr"], data: Dict):
 
         if key == "NodeRepr":
-            item = NodeRepr(pos=data.get("pos"))
+            node = Node(uid="#43s3da", name="", x=0, y=0, properties={})
+            item = NodeRepr(pos=data.get("pos", QtCore.QPointF()))
+            self._item_to_repr[node] = item
+            self._repr_to_item[item] = node
+
         elif key == "EdgeRepr":
-            item = VectorItem(None)
+            edge = Edge.from_dict(data)
+            origin = data.get("origin", None)
+            target = data.get("target", None)
+
+            print(f"[GraphCtrl] Creating EdgeRepr: {origin} -> {target}")
+            item = EdgeRepr(None, origin=origin, target=target)
+            self._item_to_repr[edge] = item
+            self._repr_to_item[item] = edge
+
         else:
             return
 

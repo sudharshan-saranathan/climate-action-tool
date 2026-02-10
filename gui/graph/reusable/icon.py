@@ -31,6 +31,9 @@ class QtaItem(QtWidgets.QGraphicsSimpleTextItem):
 
         self.render_icon(label)
         self.setTransformOriginPoint(self.boundingRect().center())
+        self.setAcceptedMouseButtons(
+            kwargs.get("acceptedMouseButtons", QtCore.Qt.MouseButton.NoButton)
+        )
 
     # Method to render the icon
     def render_icon(self, label: str, color: str | None = None) -> None:

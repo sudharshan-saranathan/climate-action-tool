@@ -19,6 +19,14 @@ class Node:
     y: float
     properties: Dict[str, str]
 
+    def __hash__(self) -> int:
+        return hash(self.uid)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Node):
+            return False
+        return self.uid == other.uid
+
     @classmethod
     def from_node(cls, node: Node) -> Node:
         return cls(
@@ -31,4 +39,10 @@ class Node:
 
     @classmethod
     def from_dict(cls: Type[Node], data: dict) -> Node:
-        return cls(data["uid"], data["name"], data["x"], data["y"], data["properties"])
+        return cls(
+            data.get("uid", ""),
+            data.get("name", ""),
+            data.get("x", 0.0),
+            data.get("y", 0.0),
+            data.get("properties", {}),
+        )

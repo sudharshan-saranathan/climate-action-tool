@@ -1,4 +1,4 @@
-# Filename: core/graph/edge.py
+# Filename: core/graph/__init__.py
 # Module name: core.graph
 # Description: Edge dataclass for graph connections
 
@@ -17,6 +17,20 @@ class Edge:
     target_uid: str
     properties: Dict[str, str]
 
+    def __hash__(self) -> int:
+        return hash(self.uid)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Edge):
+            return False
+
+        return self.uid == other.uid
+
     @classmethod
     def from_dict(cls: Type[Edge], data: dict) -> Edge:
-        return cls(data["uid"], data["source_uid"], data["target_uid"], data["properties"])
+        return cls(
+            data.get("uid", ""),
+            data.get("source_uid", ""),
+            data.get("target_uid", ""),
+            data.get("properties", {}),
+        )

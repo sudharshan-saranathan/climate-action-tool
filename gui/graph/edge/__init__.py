@@ -1,4 +1,4 @@
-# Filename: vector.py
+# Filename: __init__.py
 # Module name: graph
 # Description: Edge item for displaying graph connections.
 
@@ -11,11 +11,11 @@ import dataclasses
 import weakref
 
 
-class VectorItem(QtWidgets.QGraphicsObject):
+class EdgeRepr(QtWidgets.QGraphicsObject):
     """Edge item for displaying graph connections."""
 
     @dataclasses.dataclass
-    class Style:
+    class Appearance:
         """Edge styling options.
 
         Attributes:
@@ -33,9 +33,9 @@ class VectorItem(QtWidgets.QGraphicsObject):
         # Class member(s):
         self._path = QtGui.QPainterPath()
         self._arrow = Image(":/svg/arrow.svg", parent=self)
-        self._style = VectorItem.Style(
+        self._style = EdgeRepr.Appearance(
             pen={
-                ItemState.State_None: QtGui.QPen(QtGui.QColor(0xBEBEBE)),
+                ItemState.State_Enabled: QtGui.QPen(QtGui.QColor(0xBEBEBE)),
                 ItemState.State_Selected: QtGui.QPen(QtGui.QColor(0xFFCB00)),
             }
         )
@@ -43,6 +43,10 @@ class VectorItem(QtWidgets.QGraphicsObject):
         self._init_attr()
         self._init_anim()
         self._init_endpoints(origin, target)
+
+        # Toggle flags
+        graphics_item_flag = QtWidgets.QGraphicsItem.GraphicsItemFlag
+        self.setFlag(graphics_item_flag.ItemIsSelectable)
 
     def _init_attr(self):
 
@@ -94,23 +98,12 @@ class VectorItem(QtWidgets.QGraphicsObject):
     ) -> None:
 
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform)
 
-        # First pass: Use a thicker stroke for the border
-        pen_border = QtGui.QPen(self._style.pen[ItemState.State_None])
-        pen_border.setColor(QtGui.QColor(0x232A2E))
-        pen_border.setWidthF(self.property("linewidth") or self._style.width + 1.0)
-        painter.setPen(pen_border)
-        painter.drawPath(self._path)
-
-        # Second pass: Draw the main stroke on top
-        pen = QtGui.QPen(
-            self._style.pen[
-                ItemState.State_Selected if self.isSelected() else ItemState.State_None
-            ]
-        )
+        pen = self._style.pen[
+            ItemState.State_Selected if self.isSelected() else ItemState.State_Enabled
+        ]
         pen.setWidthF(self.property("linewidth") or self._style.width)
-        pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
-        pen.setJoinStyle(QtCore.Qt.PenJoinStyle.RoundJoin)
         painter.setPen(pen)
         painter.drawPath(self._path)
 
@@ -118,13 +111,13 @@ class VectorItem(QtWidgets.QGraphicsObject):
         self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         self._anim.stop()
         self._anim.setStartValue(self._style.width)
-        self._anim.setEndValue(self._style.width + 2.0)
+        self._anim.setEndValue(self._style.width + 1.0)
         self._anim.start()
 
     def hoverLeaveEvent(self, event, /):
         self.unsetCursor()
         self._anim.stop()
-        self._anim.setStartValue(self._style.width + 2.0)
+        self._anim.setStartValue(self._style.width + 1.0)
         self._anim.setEndValue(self._style.width)
         self._anim.start()
 
