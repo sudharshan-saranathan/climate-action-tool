@@ -3,8 +3,9 @@
 # Description: Graph data structure managing nodes and edges
 
 from __future__ import annotations
-from typing import Dict, cast
+from typing import Dict
 import logging
+import weakref
 import uuid
 
 # Dataclass
@@ -42,15 +43,16 @@ class GraphManager:
 
         # Global graph database
         self.graph_db: Dict[int, GraphManager.Graph] = {}
+        self.signal_bus = SignalBus()
+
         self._connect_to_session_manager()
         self._initialized = True
 
     def _connect_to_session_manager(self) -> None:
 
-        manager = SignalBus()
-        manager.data.create_graph.connect(self.create_graph)
-        manager.data.create_node_item.connect(self.create_node)
-        manager.data.create_edge_item.connect(self.create_edge)
+        self.signal_bus.data.create_graph.connect(self.create_graph)
+        self.signal_bus.data.create_node_item.connect(self.create_node)
+        self.signal_bus.data.create_edge_item.connect(self.create_edge)
 
     def create_graph(self, guid: int) -> None:
 
@@ -97,12 +99,9 @@ class GraphManager:
             properties=data.get("properties", {}),
         )
 
-        # Store edge reference
+        # Store edge reference and emit signal
         self.graph_db[guid].edges[_euid] = _edge
-
-        # Emit signal
-        manager = SignalBus()
-        manager.ui.create_edge_repr.emit(guid, _euid, data)
+        self.signal_bus.ui.create_edge_repr.emit(guid, _euid, data)
 
 
 # Instantiate the singleton when this module is imported

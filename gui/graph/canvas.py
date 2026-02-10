@@ -8,13 +8,12 @@ A QGraphicsScene subclass for displaying and editing graphs.
 
 from __future__ import annotations
 
-from idlelib.run import manage_socket
-
 # Standard
 import qtawesome as qta
 import logging
 import typing
 import types
+import uuid
 
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
@@ -63,6 +62,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         """
 
         # Instantiate options before super-class:
+        self._uid = uuid.uuid4().hex
         self._geometry = Canvas.Geometry(bounds=QtCore.QRectF(0, 0, 5000, 5000))
         self._style = Canvas.Appearance(
             brush=QtGui.QBrush(
@@ -206,7 +206,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         bus.ui.delete_node_repr.connect(self.delete_node_repr)
 
         # Create a graph instance for this canvas
-        bus.data.create_graph.emit(id(self))
+        bus.data.create_graph.emit(self._uid)
 
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
@@ -298,7 +298,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         }
 
         manager = SignalBus()  # Get the singleton instance
-        manager.data.create_node_item.emit(id(self), name, data)
+        manager.data.create_node_item.emit(self._uid, name, data)
 
     @QtCore.Slot(str)
     def _raise_delete_request(self, key: str) -> None:
@@ -318,12 +318,12 @@ class Canvas(QtWidgets.QGraphicsScene):
     # --------------
 
     def create_node_repr(
-        self, cid: int, nuid: str, data: dict = None
+        self, cuid: int, nuid: str, data: dict = None
     ) -> NodeRepr | None:
         """Create a new node representation."""
 
         # Check if the canvas ID matches
-        if id(self) != cid:
+        if self._uid != cuid:
             return None
 
         # Prepare data for item instantiation

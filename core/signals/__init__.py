@@ -10,7 +10,7 @@ from dataclasses import field
 from dataclasses import dataclass
 
 
-class SignalInstance:
+class Signal:
     """A pure Python implementation of a Signal."""
 
     def __init__(self, *types):
@@ -35,6 +35,10 @@ class SignalInstance:
                 print(f"Args: {args}")
                 traceback.print_exc()
 
+    @staticmethod
+    def factory(*types) -> Signal:
+        return field(default_factory=lambda: Signal(*types))
+
 
 class SignalBus:
     """Session management for the application (Singleton)."""
@@ -44,27 +48,24 @@ class SignalBus:
     @dataclass
     class Backend:
 
-        def _sig(*types):
-            return field(default_factory=lambda: SignalInstance(*types))
+        create_graph: Signal = Signal.factory(str)
+        delete_graph: Signal = Signal.factory(str)
 
-        create_graph: SignalInstance = _sig(int)
-        delete_graph: SignalInstance = _sig(int)
-
-        create_node_item: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
-        create_edge_item: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
-        delete_node_item: SignalInstance = _sig(int, str)
-        delete_edge_item: SignalInstance = _sig(int, str)
+        create_node_item: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
+        create_edge_item: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
+        delete_node_item: Signal = Signal.factory(str, str)
+        delete_edge_item: Signal = Signal.factory(str, str)
 
     @dataclass
     class Frontend:
 
         def _sig(*types):
-            return field(default_factory=lambda: SignalInstance(*types))
+            return field(default_factory=lambda: Signal(*types))
 
-        create_node_repr: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
-        create_edge_repr: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
-        delete_node_repr: SignalInstance = _sig(int, str)
-        delete_edge_repr: SignalInstance = _sig(int, str)
+        create_node_repr: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
+        create_edge_repr: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
+        delete_node_repr: Signal = Signal.factory(str, str)
+        delete_edge_repr: Signal = Signal.factory(str, str)
 
     def __new__(cls):
 
