@@ -86,11 +86,12 @@ class GraphManager:
         manager = SignalBus()
         manager.ui.create_node_repr.emit(guid, _nuid, data)
 
-    def create_edge(self, guid: str, name: str, data: Dict[str, object]) -> None:
+    def create_edge(self, guid: str, name: str, data: Dict[str, str]) -> None:
 
         if guid not in self.graph_db:
             return
 
+        print(f"Creating edge with data: {data}")
         _euid = uuid.uuid4().hex
         _edge = Edge(
             uid=_euid,

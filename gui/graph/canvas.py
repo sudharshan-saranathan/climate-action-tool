@@ -204,6 +204,8 @@ class Canvas(QtWidgets.QGraphicsScene):
         bus = SignalBus()  # Get the singleton instance
         bus.ui.create_node_repr.connect(self.create_node_repr)
         bus.ui.delete_node_repr.connect(self.delete_node_repr)
+        bus.ui.create_edge_repr.connect(self.create_edge_repr)
+        bus.ui.delete_edge_repr.connect(self.delete_edge_repr)
 
         # Create a graph instance for this canvas
         bus.data.create_graph.emit(self._uid)
