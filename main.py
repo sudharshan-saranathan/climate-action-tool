@@ -23,42 +23,10 @@ from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
 
-# Signals for graph management
-class GraphInstructions(QtCore.QObject):
-    create_item = QtCore.Signal(str, dict)
-    delete_item = QtCore.Signal(str, dict)
-    undo_action = QtCore.Signal()
-    redo_action = QtCore.Signal()
-
-
-# Signals for scene management
-class SceneInstructions(QtCore.QObject):
-    add_item = QtCore.Signal(object)  # Item to add to scene
-    remove_item = QtCore.Signal(object)  # Item to remove from scene
-    undo_action = QtCore.Signal()
-    redo_action = QtCore.Signal()
-
-
-# Signals for the viewer
-class ViewerInstructions(QtCore.QObject):
-    focus_item = QtCore.Signal(QtWidgets.QGraphicsObject)
-
-
 class ClimateActionTool(QtWidgets.QApplication):
     """
     Main application class to manage app lifecycle and UI components.
     """
-
-    # Signals for global event dispatching
-    show_as_tab = QtCore.Signal(object, str, object)  # widget, title, icon
-
-    graph_ctrl: typing.ClassVar[GraphInstructions] = GraphInstructions()
-    scene_ctrl: typing.ClassVar[SceneInstructions] = SceneInstructions()
-    view_ctrl: typing.ClassVar[ViewerInstructions] = ViewerInstructions()
-
-    backend_flag = True  # Flag to enable/disable the backend optimization module.
-    startup_flag = True  # Flag to enable/disable the startup dialog.
-    startup_file = None  # User-selected project file to load (if available).
 
     @dataclass(frozen=True)
     class Resources:

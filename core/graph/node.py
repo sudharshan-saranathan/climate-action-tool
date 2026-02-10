@@ -6,7 +6,7 @@ from __future__ import annotations
 
 # Dataclass
 from dataclasses import dataclass
-from typing import Literal, Dict, Optional, Type
+from typing import Dict, Type
 
 
 # Dataclass
@@ -23,19 +23,11 @@ class Node:
         return hash(self.uid)
 
     def __eq__(self, other) -> bool:
+
         if not isinstance(other, Node):
             return False
-        return self.uid == other.uid
 
-    @classmethod
-    def from_node(cls, node: Node) -> Node:
-        return cls(
-            node.uid,
-            node.name,
-            node.x,
-            node.y,
-            node.properties,
-        )
+        return self.uid == other.uid
 
     @classmethod
     def from_dict(cls: Type[Node], data: dict) -> Node:

@@ -30,14 +30,15 @@ class Signal:
 
 
 class Manager:
-    """Session management for the application."""
+    """Session management for the application (Singleton)."""
+
+    _instance = None
 
     @dataclass
     class GraphCommands:
 
-        @staticmethod
         def _sig(*types):
-            return field(default_factory=Signal(*types))
+            return field(default_factory=lambda: Signal(*types))
 
         create_node_item: Signal = _sig(int, str, Dict[str, object])
         create_edge_item: Signal = _sig(int, str, Dict[str, object])
@@ -47,15 +48,27 @@ class Manager:
     @dataclass
     class SceneCommands:
 
-        @staticmethod
         def _sig(*types):
-            return field(default_factory=Signal(*types))
+            return field(default_factory=lambda: Signal(*types))
 
         create_node_repr: Signal = _sig(int, str, Dict[str, object])
         create_edge_repr: Signal = _sig(int, str, Dict[str, object])
         delete_node_repr: Signal = _sig(int, str)
         delete_edge_repr: Signal = _sig(int, str)
 
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
     def __init__(self):
+
+        # Only initialize once
+        if self._initialized:
+            return
+
         self.graph_commands = self.GraphCommands()
         self.scene_commands = self.SceneCommands()
+
+        self._initialized = True

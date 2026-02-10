@@ -4,22 +4,13 @@
 
 from __future__ import annotations
 from typing import Dict
-from typing import Literal
+import uuid
 
-# PySide6 (Python/Qt)
-from PySide6 import QtWidgets
 
-# core.graph
+# Core module(s)
+from core.session import Manager
 from core.graph.node import Node
 from core.graph.edge import Edge
-from core.actions.manager import StackManager
-
-# PySide6
-from PySide6 import QtCore
-
-# GUI
-from gui.graph.node import NodeRepr
-from gui.graph.edge import EdgeRepr
 
 
 class GraphCtrl:
@@ -37,54 +28,39 @@ class GraphCtrl:
         self.nodes: Dict[str, Node] = {}
         self.edges: Dict[str, Edge] = {}
 
-        # Reference maps
-        self._item_to_repr: Dict[Node | Edge, NodeRepr | EdgeRepr] = {}
-        self._repr_to_item: Dict[NodeRepr | EdgeRepr, Node | Edge] = {}
+        # Connect to the session-manager's signals
+        self._connect_to_session_manager()
 
-        # Undo/Redo stack manager (backend owns action history)
-        self._stack_manager = StackManager()
+    def _connect_to_session_manager(self) -> None:
 
-        # Store application-reference
-        self._app = QtWidgets.QApplication.instance()
-        if hasattr(self._app, "graph_ctrl"):
-            self._app.graph_ctrl.create_item.connect(self.create_item)
-            self._app.graph_ctrl.delete_item.connect(self.delete_item)
-            self._app.graph_ctrl.undo_action.connect(self.undo)
-            self._app.graph_ctrl.redo_action.connect(self.redo)
+        self.manager = Manager()
+        self.manager.graph_commands.create_node_item.connect(self.create_node)
+        self.manager.graph_commands.create_edge_item.connect(self.create_edge)
 
-    def create_item(self, key: Literal["NodeRepr", "EdgeRepr"], data: Dict):
+    def create_node(self, guid: int, name: str, data: Dict[str, object]) -> None:
 
-        if key == "NodeRepr":
-            node = Node(uid="#43s3da", name="", x=0, y=0, properties={})
-            item = NodeRepr(pos=data.get("pos", QtCore.QPointF()))
-            self._item_to_repr[node] = item
-            self._repr_to_item[item] = node
-
-        elif key == "EdgeRepr":
-            edge = Edge.from_dict(data)
-            origin = data.get("origin", None)
-            target = data.get("target", None)
-
-            print(f"[GraphCtrl] Creating EdgeRepr: {origin} -> {target}")
-            item = EdgeRepr(None, origin=origin, target=target)
-            self._item_to_repr[edge] = item
-            self._repr_to_item[item] = edge
-
-        else:
+        if guid != id(self):
             return
 
-        if hasattr(self._app, "scene_ctrl"):
-            self._app.scene_ctrl.add_item.emit(item)
+        nuid = uuid.uuid4().hex
+        node = Node(nuid, name, **data)
 
-    def delete_item(self, key: Literal["node", "edge"], data: Dict):
+        # Store node reference
+        self.nodes[nuid] = node
 
-        if hasattr(self._app, "scene_ctrl"):
-            self._app.scene_ctrl.create_repr.emit(key, data)
+        # Emit signal
+        self.manager.scene_commands.create_node_repr.emit(id(self), nuid, data)
 
-    def undo(self) -> None:
-        """Undo the most recent action."""
-        self._stack_manager.undo()
+    def create_edge(self, guid: int, name: str, data: Dict[str, object]) -> None:
 
-    def redo(self) -> None:
-        """Redo the most recently undone action."""
-        self._stack_manager.redo()
+        if guid != id(self):
+            return
+
+        euid = uuid.uuid4().hex
+        edge = Edge(euid, name, **data)
+
+        # Store edge reference
+        self.edges[euid] = edge
+
+        # Emit signal
+        self.manager.scene_commands.create_edge_repr.emit(id(self), euid, data)
