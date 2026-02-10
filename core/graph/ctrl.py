@@ -19,7 +19,7 @@ from PySide6 import QtCore
 
 # GUI
 from gui.graph.node import NodeRepr
-from gui.graph.edge.__init__ import EdgeRepr
+from gui.graph.edge import EdgeRepr
 
 
 class GraphCtrl:
