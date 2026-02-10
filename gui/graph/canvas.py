@@ -89,7 +89,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         self.addItem(self._preview.vector)
 
         # Connect to application signals
-        self._connect_to_controllers()
+        self._connect_to_signal_bus()
 
     def _init_menu(self) -> QtWidgets.QMenu:
         """
@@ -189,17 +189,13 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         return cxt_menu
 
-    def _connect_to_controllers(self) -> None:
+    def _connect_to_signal_bus(self) -> None:
         """Connect to application-level controller signals."""
 
         # Connect to the session-manager's signals
         bus = SignalBus()  # Get the singleton instance
-        bus.ui.create_node_repr.connect(
-            lambda guid, uid, data: print(f"Create node repr: {uid}")
-        )
-        bus.ui.delete_node_repr.connect(
-            lambda guid, uid: print(f"Delete node repr: {uid}")
-        )
+        bus.ui.create_node_repr.connect(self.create_node_repr)
+        bus.ui.delete_node_repr.connect(self.delete_node_repr)
 
         # Create a graph instance for this canvas
         bus.data.create_graph.emit(id(self))
@@ -250,7 +246,6 @@ class Canvas(QtWidgets.QGraphicsScene):
         item: QtWidgets.QGraphicsItem,
     ) -> None:
 
-        print(f"[Canvas] Adding to scene: {item}")
         if isinstance(item, NodeRepr):
             self._register_item_signals(item)
 
@@ -285,13 +280,20 @@ class Canvas(QtWidgets.QGraphicsScene):
             logging.warning(f"Item {item} has no signals defined.")
 
     @QtCore.Slot(str)
-    def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
+    def _raise_create_request(self, key: str) -> None:
+
+        # Initialize data for the request
+        name = "Node" if key == "NodeRepr" else "Edge"
+        data = {
+            "x": self._rmb_coordinate.x(),
+            "y": self._rmb_coordinate.y(),
+        }
 
         manager = SignalBus()  # Get the singleton instance
-        manager.data.create_node_item.emit(id(self), key, {"pos": self._rmb_coordinate})
+        manager.data.create_node_item.emit(id(self), name, data)
 
     @QtCore.Slot(str)
-    def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
+    def _raise_delete_request(self, key: str) -> None:
 
         manager = SignalBus()  # Get the singleton instance
         manager.data.delete_node_item.emit(key)
@@ -305,6 +307,26 @@ class Canvas(QtWidgets.QGraphicsScene):
         self._preview_on(item)
 
     # Public methods
+    # --------------
+
+    def create_node_repr(self, uid: str, data: dict = None) -> NodeRepr | None:
+        """Create a new node representation."""
+
+        # Prepare data for item instantiation
+        data = data or {}
+        cpos = QtCore.QPointF(data.get("x", 0), data.get("y", 0))
+
+        node = NodeRepr(uid=uid, pos=cpos)
+        self.addItem(node)
+        return node
+
+    def delete_node_repr(self, uid: str, data: dict = None) -> None:
+        """Delete a node representation."""
+
+        item = self.find_item_by_uid(uid)
+        if item:
+            self.removeItem(item)
+
     def find_item_by_name(self, name: str) -> QtWidgets.QGraphicsItem | None:
         """Find an item in the canvas by its object name."""
 
@@ -317,7 +339,15 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         return None
 
-    def find_item_by_uid(self, item_uid: int) -> QtWidgets.QGraphicsItem | None:
+    def find_item_by_uid(self, uid: str) -> QtWidgets.QGraphicsItem | None:
         """Find an item in the canvas by its unique identifier."""
 
-        return next((item for item in self.items() if id(item) == item_uid), None)
+        return next(
+            (
+                item
+                for item in self.items()
+                if isinstance(item, QtWidgets.QGraphicsObject)
+                and item.objectName() == uid
+            ),
+            None,
+        )

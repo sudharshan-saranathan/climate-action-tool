@@ -3,7 +3,7 @@
 # Description: Graph data structure managing nodes and edges
 
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, cast
 import logging
 import uuid
 
@@ -71,39 +71,38 @@ class GraphManager:
         _node = Node(
             uid=_nuid,
             name=name,
-            x=0.0,
-            y=0.0,
-            properties={},
+            properties=data,
         )
 
         logging.info(f"Created node with UID {_nuid}")
+        logging.info(f"Node properties: {_node.properties}")
 
         # Store node reference and emit signal
         self.graph_db[guid].nodes[_nuid] = _node
 
         # Emit signal
         manager = SignalBus()
-        manager.ui.create_node_repr.emit(guid, _nuid, data)
+        manager.ui.create_node_repr.emit(_nuid, data)
 
     def create_edge(self, guid: int, name: str, data: Dict[str, object]) -> None:
 
         if guid not in self.graph_db:
-            logging.warning(f"Graph with GUID {guid} does not exist. Creating it.")
-            self.create_graph(guid)
+            return
 
-        euid = uuid.uuid4().hex
-        edge = Edge(
-            uid=euid,
+        _euid = uuid.uuid4().hex
+        _edge = Edge(
+            uid=_euid,
             source_uid=data.get("source_uid", ""),
             target_uid=data.get("target_uid", ""),
             properties=data.get("properties", {}),
         )
 
         # Store edge reference
-        self.graph_db[guid].edges[euid] = edge
+        self.graph_db[guid].edges[_euid] = _edge
 
         # Emit signal
-        self.manager.ui.create_edge_repr.emit(guid, euid, data)
+        manager = SignalBus()
+        manager.ui.create_edge_repr.emit(guid, _euid, data)
 
 
 # Instantiate the singleton when this module is imported

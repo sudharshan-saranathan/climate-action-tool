@@ -1,6 +1,6 @@
-#  Filename: core/session/__init__.py
-#  Module name: core.session
-#  Description: Session management for the application.
+#  Filename: core/signals/__init__.py
+#  Module name: core.signals
+#  Description: Signal management for the application.
 
 from __future__ import annotations
 from typing import Callable, Any, Dict
@@ -59,10 +59,10 @@ class SignalBus:
         def _sig(*types):
             return field(default_factory=lambda: SignalInstance(*types))
 
-        create_node_repr: SignalInstance = _sig(int, str, Dict[str, object])
-        create_edge_repr: SignalInstance = _sig(int, str, Dict[str, object])
-        delete_node_repr: SignalInstance = _sig(int, str)
-        delete_edge_repr: SignalInstance = _sig(int, str)
+        create_node_repr: SignalInstance = _sig(str, Dict[str, object])
+        create_edge_repr: SignalInstance = _sig(str, Dict[str, object])
+        delete_node_repr: SignalInstance = _sig(str, Dict[str, object])
+        delete_edge_repr: SignalInstance = _sig(str, Dict[str, object])
 
     def __new__(cls):
 

@@ -15,9 +15,7 @@ class Node:
 
     uid: str
     name: str
-    x: float
-    y: float
-    properties: Dict[str, str]
+    properties: Dict[str, object]
 
     def __hash__(self) -> int:
         return hash(self.uid)
@@ -34,7 +32,5 @@ class Node:
         return cls(
             data.get("uid", ""),
             data.get("name", ""),
-            data.get("x", 0.0),
-            data.get("y", 0.0),
             data.get("properties", {}),
         )

@@ -244,7 +244,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def signals(self) -> dict[str, QtCore.SignalInstance]:
         return {
-            "create_edge": self.create_edge,
+            "activate_preview": self.activate_preview,
             "item_shifted": self.item_shifted,
             "item_focused": self.item_focused,
         }
