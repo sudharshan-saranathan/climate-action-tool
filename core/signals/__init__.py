@@ -3,7 +3,7 @@
 #  Description: Signal management for the application.
 
 from __future__ import annotations
-from typing import Callable, Any, Dict
+from typing import Dict, Optional
 
 # Dataclass
 from dataclasses import field
@@ -50,8 +50,8 @@ class SignalBus:
         create_graph: SignalInstance = _sig(int)
         delete_graph: SignalInstance = _sig(int)
 
-        create_node_item: SignalInstance = _sig(int, str, Dict[str, object])
-        create_edge_item: SignalInstance = _sig(int, str, Dict[str, object])
+        create_node_item: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
+        create_edge_item: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
         delete_node_item: SignalInstance = _sig(int, str)
         delete_edge_item: SignalInstance = _sig(int, str)
 
@@ -61,10 +61,10 @@ class SignalBus:
         def _sig(*types):
             return field(default_factory=lambda: SignalInstance(*types))
 
-        create_node_repr: SignalInstance = _sig(str, Dict[str, object])
-        create_edge_repr: SignalInstance = _sig(str, Dict[str, object])
-        delete_node_repr: SignalInstance = _sig(str, Dict[str, object])
-        delete_edge_repr: SignalInstance = _sig(str, Dict[str, object])
+        create_node_repr: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
+        create_edge_repr: SignalInstance = _sig(int, str, Optional[Dict[str, object]])
+        delete_node_repr: SignalInstance = _sig(int, str)
+        delete_edge_repr: SignalInstance = _sig(int, str)
 
     def __new__(cls):
 

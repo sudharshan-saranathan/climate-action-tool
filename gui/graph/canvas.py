@@ -309,21 +309,27 @@ class Canvas(QtWidgets.QGraphicsScene):
     # Public methods
     # --------------
 
-    def create_node_repr(self, uid: str, data: dict = None) -> NodeRepr | None:
+    def create_node_repr(
+        self, cid: int, nuid: str, data: dict = None
+    ) -> NodeRepr | None:
         """Create a new node representation."""
+
+        # Check if the canvas ID matches
+        if id(self) != cid:
+            return None
 
         # Prepare data for item instantiation
         data = data or {}
         cpos = QtCore.QPointF(data.get("x", 0), data.get("y", 0))
 
-        node = NodeRepr(uid=uid, pos=cpos)
+        node = NodeRepr(nuid=nuid, pos=cpos)
         self.addItem(node)
         return node
 
-    def delete_node_repr(self, uid: str, data: dict = None) -> None:
+    def delete_node_repr(self, cid: int, nuid: str) -> None:
         """Delete a node representation."""
 
-        item = self.find_item_by_uid(uid)
+        item = self.find_item_by_uid(nuid)
         if item:
             self.removeItem(item)
 

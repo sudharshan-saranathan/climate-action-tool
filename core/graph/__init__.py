@@ -82,7 +82,7 @@ class GraphManager:
 
         # Emit signal
         manager = SignalBus()
-        manager.ui.create_node_repr.emit(_nuid, data)
+        manager.ui.create_node_repr.emit(guid, _nuid, data)
 
     def create_edge(self, guid: int, name: str, data: Dict[str, object]) -> None:
 
