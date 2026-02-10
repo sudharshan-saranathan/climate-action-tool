@@ -193,16 +193,16 @@ class Canvas(QtWidgets.QGraphicsScene):
         """Connect to application-level controller signals."""
 
         # Connect to the session-manager's signals
-        manager = SignalBus()  # Get the singleton instance
-        manager.scene_commands.create_node_repr.connect(
+        bus = SignalBus()  # Get the singleton instance
+        bus.ui.create_node_repr.connect(
             lambda guid, uid, data: print(f"Create node repr: {uid}")
         )
-        manager.scene_commands.delete_node_repr.connect(
+        bus.ui.delete_node_repr.connect(
             lambda guid, uid: print(f"Delete node repr: {uid}")
         )
 
         # Create a graph instance for this canvas
-        manager.graph_commands.create_new_graph.emit(id(self))
+        bus.data.create_graph.emit(id(self))
 
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
@@ -288,15 +288,13 @@ class Canvas(QtWidgets.QGraphicsScene):
     def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
         manager = SignalBus()  # Get the singleton instance
-        manager.graph_commands.create_node_item.emit(
-            id(self), key, {"pos": self._rmb_coordinate}
-        )
+        manager.data.create_node_item.emit(id(self), key, {"pos": self._rmb_coordinate})
 
     @QtCore.Slot(str)
     def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
         manager = SignalBus()  # Get the singleton instance
-        manager.graph_commands.delete_node_item.emit(key)
+        manager.data.delete_node_item.emit(key)
 
     @QtCore.Slot(NodeRepr)
     def _on_activate_preview(self, item: NodeRepr):

@@ -47,10 +47,10 @@ class GraphManager:
 
     def _connect_to_session_manager(self) -> None:
 
-        self.manager = SignalBus()
-        self.manager.graph_commands.create_new_graph.connect(self.create_graph)
-        self.manager.graph_commands.create_node_item.connect(self.create_node)
-        self.manager.graph_commands.create_edge_item.connect(self.create_edge)
+        manager = SignalBus()
+        manager.data.create_graph.connect(self.create_graph)
+        manager.data.create_node_item.connect(self.create_node)
+        manager.data.create_edge_item.connect(self.create_edge)
 
     def create_graph(self, guid: int) -> None:
 
@@ -67,20 +67,23 @@ class GraphManager:
             logging.warning(f"Graph with GUID {guid} does not exist. Creating it.")
             self.create_graph(guid)
 
-        nuid = uuid.uuid4().hex
-        node = Node(
-            uid=nuid,
+        _nuid = uuid.uuid4().hex
+        _node = Node(
+            uid=_nuid,
             name=name,
             x=0.0,
             y=0.0,
             properties={},
         )
 
-        # Store node reference
-        self.graph_db[guid].nodes[nuid] = node
+        logging.info(f"Created node with UID {_nuid}")
+
+        # Store node reference and emit signal
+        self.graph_db[guid].nodes[_nuid] = _node
 
         # Emit signal
-        self.manager.scene_commands.create_node_repr.emit(guid, nuid, data)
+        manager = SignalBus()
+        manager.ui.create_node_repr.emit(guid, _nuid, data)
 
     def create_edge(self, guid: int, name: str, data: Dict[str, object]) -> None:
 
@@ -100,7 +103,7 @@ class GraphManager:
         self.graph_db[guid].edges[euid] = edge
 
         # Emit signal
-        self.manager.scene_commands.create_edge_repr.emit(guid, euid, data)
+        self.manager.ui.create_edge_repr.emit(guid, euid, data)
 
 
 # Instantiate the singleton when this module is imported

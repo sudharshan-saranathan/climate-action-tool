@@ -40,19 +40,21 @@ class SignalBus:
     _instance = None
 
     @dataclass
-    class GraphCommands:
+    class Backend:
 
         def _sig(*types):
             return field(default_factory=lambda: SignalInstance(*types))
 
-        create_new_graph: SignalInstance = _sig(int)
+        create_graph: SignalInstance = _sig(int)
+        delete_graph: SignalInstance = _sig(int)
+
         create_node_item: SignalInstance = _sig(int, str, Dict[str, object])
         create_edge_item: SignalInstance = _sig(int, str, Dict[str, object])
         delete_node_item: SignalInstance = _sig(int, str)
         delete_edge_item: SignalInstance = _sig(int, str)
 
     @dataclass
-    class SceneCommands:
+    class Frontend:
 
         def _sig(*types):
             return field(default_factory=lambda: SignalInstance(*types))
@@ -76,7 +78,7 @@ class SignalBus:
         if self._initialized:
             return
 
-        self.graph_commands = self.GraphCommands()
-        self.scene_commands = self.SceneCommands()
+        self.data = self.Backend()
+        self.ui = self.Frontend()
 
         self._initialized = True
