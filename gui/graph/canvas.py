@@ -23,8 +23,8 @@ from PySide6 import QtWidgets
 
 # Climact
 from gui.graph.node import NodeRepr
-from gui.graph.edge.__init__ import EdgeRepr
-from core.session import SignalBus
+from gui.graph.edge import EdgeRepr
+from core.signals import SignalBus
 
 
 # Dataclass
@@ -288,7 +288,9 @@ class Canvas(QtWidgets.QGraphicsScene):
     def _raise_create_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:
 
         manager = SignalBus()  # Get the singleton instance
-        manager.graph_commands.create_node_item.emit(key, {"pos": self._rmb_coordinate})
+        manager.graph_commands.create_node_item.emit(
+            id(self), key, {"pos": self._rmb_coordinate}
+        )
 
     @QtCore.Slot(str)
     def _raise_delete_request(self, key: typing.Literal["NodeRepr", "edge"]) -> None:

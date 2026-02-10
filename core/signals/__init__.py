@@ -10,7 +10,7 @@ from dataclasses import field
 from dataclasses import dataclass
 
 
-class Signal:
+class SignalInstance:
     """A pure Python implementation of a Signal."""
 
     def __init__(self, *types):
@@ -43,24 +43,24 @@ class SignalBus:
     class GraphCommands:
 
         def _sig(*types):
-            return field(default_factory=lambda: Signal(*types))
+            return field(default_factory=lambda: SignalInstance(*types))
 
-        create_new_graph: Signal = _sig(int)
-        create_node_item: Signal = _sig(int, str, Dict[str, object])
-        create_edge_item: Signal = _sig(int, str, Dict[str, object])
-        delete_node_item: Signal = _sig(int, str)
-        delete_edge_item: Signal = _sig(int, str)
+        create_new_graph: SignalInstance = _sig(int)
+        create_node_item: SignalInstance = _sig(int, str, Dict[str, object])
+        create_edge_item: SignalInstance = _sig(int, str, Dict[str, object])
+        delete_node_item: SignalInstance = _sig(int, str)
+        delete_edge_item: SignalInstance = _sig(int, str)
 
     @dataclass
     class SceneCommands:
 
         def _sig(*types):
-            return field(default_factory=lambda: Signal(*types))
+            return field(default_factory=lambda: SignalInstance(*types))
 
-        create_node_repr: Signal = _sig(int, str, Dict[str, object])
-        create_edge_repr: Signal = _sig(int, str, Dict[str, object])
-        delete_node_repr: Signal = _sig(int, str)
-        delete_edge_repr: Signal = _sig(int, str)
+        create_node_repr: SignalInstance = _sig(int, str, Dict[str, object])
+        create_edge_repr: SignalInstance = _sig(int, str, Dict[str, object])
+        delete_node_repr: SignalInstance = _sig(int, str)
+        delete_edge_repr: SignalInstance = _sig(int, str)
 
     def __new__(cls):
 

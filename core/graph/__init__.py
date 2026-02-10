@@ -12,7 +12,7 @@ from dataclasses import field
 from dataclasses import dataclass
 
 # Core module(s)
-from core.session import SignalBus
+from core.signals import SignalBus
 from core.graph.node import Node
 from core.graph.edge import Edge
 
