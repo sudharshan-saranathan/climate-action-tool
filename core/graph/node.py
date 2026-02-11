@@ -11,13 +11,13 @@ from dataclasses import field
 from dataclasses import dataclass
 
 # core.streams
-from core.streams.fundamental import Fundamental
+from core.streams.quantity import ResourceStream
 
 
 @dataclass(frozen=True)
 class Technology:
-    consumed: dict[str, Fundamental] = field(default_factory=dict)
-    produced: dict[str, Fundamental] = field(default_factory=dict)
+    consumed: dict[str, ResourceStream] = field(default_factory=dict)
+    produced: dict[str, ResourceStream] = field(default_factory=dict)
     expenses: SimpleNamespace = field(
         default_factory=lambda: SimpleNamespace(
             capital=0,

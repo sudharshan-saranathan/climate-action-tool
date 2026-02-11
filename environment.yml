@@ -12,3 +12,5 @@ dependencies:
       - qtawesome>=1.4.1
 
   - igraph
+  - pint
+  - numpy
