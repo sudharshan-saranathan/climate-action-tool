@@ -43,8 +43,7 @@ class Node:
     uid: str
     name: str
     meta: Dict[str, object]
-    technology: dict[str, Any] = field(default_factory=dict)
-    conjugates: set[str] = field(default_factory=set)
+    tech: dict[str, Any] = field(default_factory=dict)
 
     def __hash__(self) -> int:
         return hash(self.uid)
@@ -69,12 +68,5 @@ class Node:
             "uid": self.uid,
             "label": self.name,
             "attrs": self.meta,
-            "technology": self.technology,
-            "conjugates": list(self.conjugates),
+            "technology": self.tech,
         }
-
-    def is_connected_to(self, other: Node) -> bool:
-        return other.uid in self.conjugates
-
-    def get_attributes(self) -> str:
-        return ", ".join(f"{key}: {value}" for key, value in self.meta.items())
