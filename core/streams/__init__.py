@@ -10,8 +10,3 @@ import uuid
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
-
-
-class StreamManager:
-    def __init__(self):
-        self.streams = {}
