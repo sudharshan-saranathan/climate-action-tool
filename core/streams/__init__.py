@@ -8,7 +8,7 @@ from __future__ import annotations
 from core.streams.quantity import ResourceStream, ureg
 
 # SI base units
-from core.streams.fundamental import (
+from core.streams.physical import (
     Mass,
     Length,
     Time,
@@ -16,11 +16,6 @@ from core.streams.fundamental import (
     ElectricCurrent,
     LuminousIntensity,
     AmountOfSubstance,
-)
-
-# Derived units
-from core.streams.derived import (
-    # Mechanical
     Area,
     Volume,
     Velocity,

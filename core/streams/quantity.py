@@ -1,6 +1,6 @@
 #  Filename: core/streams/quantity.py
 #  Module name: core.streams.quantity
-#  Description: Base ResourceStream class with registry pattern
+#  Description: Base ResourceStream class with the registry pattern
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ __all__ = ["ResourceStream", "ureg"]
 
 # Unit registry
 ureg = pint.UnitRegistry()
+ureg.define("INR = [currency]")
 
 
 class ResourceStream:

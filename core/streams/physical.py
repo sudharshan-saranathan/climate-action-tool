@@ -1,18 +1,19 @@
-#  Filename: core/streams/derived.py
-#  Module name: core.streams.derived
-#  Description: SI derived units (quantities derived from base units)
-#
-#  NOTE ON REGISTRY COLLISIONS:
-#  The dimensionality registry maps one dimensionality → one class.
-#  Physically distinct quantities that share dimensionality (e.g.,
-#  Energy and Torque, both kg·m²/s²) collide: the last-defined class
-#  wins auto-dispatch from arithmetic. Direct construction always works.
+#  Filename: core/streams/physical.py
+#  Module name: core.streams.fundamental
+#  Description: SI base units (7 fundamental physical quantities)
 
 from __future__ import annotations
-from core.streams.quantity import ResourceStream, ureg
+from core.streams.quantity import ResourceStream
 
 
 __all__ = [
+    "Mass",
+    "Length",
+    "Time",
+    "Temperature",
+    "ElectricCurrent",
+    "LuminousIntensity",
+    "AmountOfSubstance",
     # Mechanical
     "Area",
     "Volume",
@@ -74,6 +75,46 @@ __all__ = [
     "CostPerPower",
     "CostPerVolume",
 ]
+
+
+# ============================================================================
+# SI Base Units
+# ============================================================================
+
+
+class Mass(ResourceStream):
+    _canonical = "kilogram"
+    _label = "Mass"
+
+
+class Length(ResourceStream):
+    _canonical = "meter"
+    _label = "Length"
+
+
+class Time(ResourceStream):
+    _canonical = "second"
+    _label = "Time"
+
+
+class Temperature(ResourceStream):
+    _canonical = "kelvin"
+    _label = "Temperature"
+
+
+class ElectricCurrent(ResourceStream):
+    _canonical = "ampere"
+    _label = "Electric Current"
+
+
+class LuminousIntensity(ResourceStream):
+    _canonical = "candela"
+    _label = "Luminous Intensity"
+
+
+class AmountOfSubstance(ResourceStream):
+    _canonical = "mole"
+    _label = "Amount of Substance"
 
 
 # ============================================================================
@@ -349,8 +390,6 @@ class CarbonIntensity(ResourceStream):
 # ============================================================================
 # Economic Quantities
 # ============================================================================
-
-ureg.define("INR = [currency]")
 
 
 class Currency(ResourceStream):
