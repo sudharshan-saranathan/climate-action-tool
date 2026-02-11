@@ -59,14 +59,14 @@ class Node:
     def from_dict(cls: Type[Node], data: dict) -> Node:
         return cls(
             data.get("uid", ""),
-            data.get("label", ""),
-            data.get("attrs", {}),
+            data.get("name", ""),
+            data.get("meta", {}),
         )
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "uid": self.uid,
-            "label": self.name,
-            "attrs": self.meta,
-            "technology": self.tech,
+            "name": self.name,
+            "meta": self.meta,
+            "tech": self.tech,
         }

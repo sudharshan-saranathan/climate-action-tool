@@ -4,141 +4,106 @@
 - Solo developer, ~4-5 productive hours/day
 - Weekends: lighter work (2-3 hrs) or rest
 - Buffer days built in for debugging and unexpected issues
-- Goal: Complete Phase 1 (Maps) + begin Phase 2 (Schematic)
+- **Updated Feb 11:** Focusing on backend (core.graph, core.streams) for next 2 weeks before returning to maps
 
 ---
 
-## Week 1: Data & Foundations (Feb 9-15)
+## Week 1: Backend - core.graph (Feb 9-15)
+**Focus: Graph data structure and operations**
 
 ### Mon Feb 9 — REST DAY
 - No coding
-- Read MVP_ROADMAP.md with fresh eyes
-- Sketch the data flow on paper: Excel → Plant objects → Map pins
+- Review existing core.graph implementation
+- Sketch graph architecture on paper: Node/Edge relationships, signal flow
 
-### Tue Feb 10 — Data Schema Design
-- [ ] Define Plant data model (`core/models/plant.py`)
-  ```python
-  @dataclass
-  class Plant:
-      id: str
-      name: str
-      state: str
-      lat: float
-      lon: float
-      capacity_mtpa: float  # million tons per annum
-      pathway: str           # "BF-BOF", "DRI-EAF", "Hybrid"
-      year_commissioned: int
-      parameters: dict       # links to core.flow parameters
-  ```
-- [ ] Define expected Excel/SQL column schema
-- [ ] Write a data loader: `core/data/loader.py`
-  - Read Excel with pandas/openpyxl
-  - Return list of Plant objects
-- [ ] Create sample data: 20 fake plants with realistic lat/lon across India
+### Tue Feb 10 — Core Graph Structure
+- [x] Review existing GraphCtrl implementation
+- [x] Node and Edge data structures
+- [x] Basic graph operations (add/remove nodes/edges)
 
-### Wed Feb 11 — Data Loader + Tests
-- [ ] Finish data loader for Excel
-- [ ] Add SQLite reader option (sqlalchemy or sqlite3)
-- [ ] Write 3-4 pytest tests for data loading
-  - Test: loads correct number of plants
-  - Test: lat/lon are valid (within India bounds)
-  - Test: pathway is one of known types
-  - Test: handles missing data gracefully
-- [ ] Create `tests/core/test_data_loader.py`
+### Wed Feb 11 — Graph Controller Refinement
+- [ ] Review and refactor GraphCtrl signal architecture
+- [ ] Ensure clean separation: GraphInstructions (backend) vs SceneInstructions (frontend)
+- [ ] Document signal flow in core/graph/
+- [ ] Write unit tests for graph operations
 
-### Thu Feb 12 — GeoJSON + Map Foundation
-- [ ] Find/download India state boundaries geojson
-  - Source: Natural Earth or DataMeet India
-- [ ] Create `gui/maps/` module
-- [ ] Implement `gui/maps/map_scene.py`:
-  - QGraphicsScene that loads geojson
-  - Parse geojson polygons → QGraphicsPolygonItem
-  - Basic rendering: state outlines in grey
-- [ ] Test: India map renders in a standalone window
+### Thu Feb 12 — Action System
+- [ ] Review Action base class and derived actions
+- [ ] Refine undo/redo mechanism in StackManager
+- [ ] Test: create node → undo → redo cycle works correctly
+- [ ] Ensure actions handle both backend state AND frontend repr references
 
-### Fri Feb 13 — Map View + Pan/Zoom
-- [ ] Implement `gui/maps/map_view.py`:
-  - QGraphicsView with pan (drag) and zoom (scroll wheel)
-  - Coordinate system: lat/lon → scene coordinates
-  - Fit India within view on startup
-- [ ] Style: state boundaries, water color, basic aesthetics
-- [ ] Test: can pan across India, zoom in/out smoothly
+### Fri Feb 13 — Graph Validation & Constraints
+- [ ] Add graph validation logic (prevent cycles if needed, enforce rules)
+- [ ] Add connection constraints (which nodes can connect to which)
+- [ ] Edge validation (source/target compatibility)
+- [ ] Write tests for validation logic
 
 ### Sat Feb 14 — Buffer / Light Work
 - [ ] Fix any issues from the week
-- [ ] Polish map rendering if needed
+- [ ] Polish graph API
 - [ ] Or: rest
 
 ### Sun Feb 15 — Rest or Light Planning
-- [ ] Plan Week 2 tasks
-- [ ] Review: "Can I load data and see a map?"
+- [ ] Plan Week 2 tasks (core.streams)
+- [ ] Review: "Is core.graph stable and well-tested?"
 
-**Week 1 Deliverable:** Data loader works. India map renders with pan/zoom.
+**Week 1 Deliverable:** core.graph is stable, well-tested, with clean signal architecture.
 
 ---
 
-## Week 2: Map Pins + Interaction (Feb 16-22)
+## Week 2: Backend - core.streams (Feb 16-22)
+**Focus: Stream/flow system for edges**
 
-### Mon Feb 16 — Plant Pins on Map
-- [ ] Create `gui/maps/pin.py`:
-  - QGraphicsEllipseItem (or custom QGraphicsItem)
-  - Color by pathway: BF-BOF=red, DRI-EAF=blue, Hybrid=green
-  - Size by capacity (optional, or fixed size)
-- [ ] Load 20 sample plants → plot as pins on map
-- [ ] Verify: pins appear at correct geographic locations
+### Mon Feb 16 — Stream Architecture Review
+- [ ] Review existing core.flow/ module
+- [ ] Understand Item, Mass, Energy, Credit base classes
+- [ ] Review Fuel, Material, Electricity, Product combo classes
+- [ ] Document current architecture in core/flow/
 
-### Tue Feb 17 — Scale to 5000 Plants
-- [ ] Generate 5000 fake plants (or use real dataset if available)
-  - Distribute across Indian states with realistic density
-  - Mix of pathways: ~80% BF-BOF, ~15% DRI-EAF, ~5% Hybrid
-- [ ] Performance test: does rendering 5000 pins cause lag?
-  - If yes: implement Level-of-Detail (cluster pins when zoomed out)
-  - If no: proceed
-- [ ] Add state labels on map
+### Tue Feb 17 — Stream Data Model
+- [ ] Define Stream class (data flowing through edges)
+- [ ] Link Stream to Edge objects
+- [ ] Implement ResourceDictionary usage
+- [ ] Implement ParameterDictionary usage
+- [ ] Write basic tests for stream creation
 
-### Wed Feb 18 — Pin Interaction
-- [ ] Single-click pin → show tooltip/popup with plant summary:
-  - Name, State, Capacity, Pathway
-- [ ] Hover: highlight pin (glow or size increase)
-- [ ] Double-click: placeholder for "open schematic" (Phase 2)
-  - For now: print to console or show message box
-- [ ] Right-click: context menu (View Details, Open Schematic, Export)
+### Wed Feb 18 — Stream Calculations
+- [ ] Implement flow calculations (input → output)
+- [ ] Add unit conversion utilities
+- [ ] Add validation for stream data (no negative mass/energy)
+- [ ] Test: create stream, modify values, verify calculations
 
-### Thu Feb 19 — Sidebar / Filter Panel
-- [ ] Add filter panel to map view:
-  - Filter by pathway (checkboxes: BF-BOF, DRI-EAF, Hybrid)
-  - Filter by state (dropdown)
-  - Filter by capacity range (slider)
-- [ ] Filtered pins update in real-time
-- [ ] Show count: "Showing 4200 of 5000 plants"
+### Thu Feb 19 — Stream Persistence
+- [ ] Implement stream serialization (to dict/JSON)
+- [ ] Implement stream deserialization (from dict/JSON)
+- [ ] Add versioning for backward compatibility
+- [ ] Test: save → load → verify identical stream data
 
-### Fri Feb 20 — Legend + Map Polish
-- [ ] Add map legend:
-  - Color key for pathways
-  - Size key for capacity (if using variable sizes)
-- [ ] Add scale bar (approximate)
-- [ ] Add summary statistics panel:
-  - Total plants: 5000
-  - By pathway: BF-BOF: 4000, DRI: 750, Hybrid: 250
-  - Total capacity: X MT/yr
-- [ ] Polish aesthetics: fonts, colors, spacing
+### Fri Feb 20 — Stream-Graph Integration
+- [ ] Connect streams to graph edges
+- [ ] When edge created → attach empty stream
+- [ ] When edge deleted → clean up stream
+- [ ] Propagate stream changes through connected nodes
+- [ ] Test: graph with nodes and streams, verify data flow
 
-### Sat Feb 21 — Integration with Main App
-- [ ] Connect map module to main_ui
-  - Map should be the default view when app opens
-  - Or: accessible via tab/button from main window
-- [ ] Ensure map loads on app startup
-- [ ] Test end-to-end: launch app → see India map → see pins
+### Sat Feb 21 — Testing & Documentation
+- [ ] Write comprehensive tests for core.streams
+- [ ] Document stream API in docstrings
+- [ ] Create examples/test_stream.py demo
+- [ ] Or: rest
 
 ### Sun Feb 22 — Buffer / Rest
-- [ ] Fix accumulated bugs
-- [ ] Or: rest and plan Week 3
+- [ ] Fix accumulated bugs from Week 2
+- [ ] Review both core.graph and core.streams
+- [ ] Plan transition back to frontend work (Week 3+)
 
-**Week 2 Deliverable:** 5000 plants on India map. Click for details. Filter by pathway/state.
+**Week 2 Deliverable:** core.streams is complete with calculation, persistence, and graph integration.
 
 ---
 
-## Week 3: Save/Load + Schematic Foundation (Feb 23 - Mar 1)
+## Week 3: Data & Map Foundations (Feb 23 - Mar 1)
+**Resuming frontend work - originally Week 1**
 
 ### Mon Feb 23 — Project Save/Load
 - [ ] Define project file format:
