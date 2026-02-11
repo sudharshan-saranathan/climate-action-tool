@@ -125,8 +125,8 @@ class EdgeRepr(QtWidgets.QGraphicsObject):
         self._anim.setEndValue(self._style.width)
         self._anim.start()
 
+    @staticmethod
     def _compute(
-        self,
         origin: QtCore.QPointF,
         target: QtCore.QPointF,
     ) -> QtGui.QPainterPath:

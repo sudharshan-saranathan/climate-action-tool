@@ -64,7 +64,7 @@ class StreamForm(QtWidgets.QFrame):
             return
 
         # Primary — set the type label and available units
-        self._type_label.setText(flow.label)
+        self._type_label.setText(flow.name)
         self._unit_combo.clear()
         self._unit_combo.addItems(flow.units)
 
@@ -75,7 +75,7 @@ class StreamForm(QtWidgets.QFrame):
             self._table.insertRow(row)
 
             # Name (read-only)
-            name_item = QtWidgets.QTableWidgetItem(param.label)
+            name_item = QtWidgets.QTableWidgetItem(param.name)
             name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
             self._table.setItem(row, COL_NAME, name_item)
 
@@ -285,7 +285,7 @@ class ProfileEditorDialog(QtWidgets.QDialog):
             parent: Parent widget
         """
         super().__init__(parent)
-        self.setWindowTitle(f"Edit {param.label} Profile")
+        self.setWindowTitle(f"Edit {param.name} Profile")
         self.setMinimumSize(500, 300)
 
         self._param = param
@@ -386,7 +386,7 @@ class ProfileEditorDialog(QtWidgets.QDialog):
     def accept(self):
         """Update the parameter's profile and close dialog."""
         try:
-            from core.flows.profiles import (
+            from core.streams.profiles import (
                 FixedProfile,
                 LinearProfile,
                 SteppedProfile,

@@ -3,7 +3,7 @@
 # Description: Graph data structure managing nodes and edges
 
 from __future__ import annotations
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 import logging
 import uuid
 
@@ -73,7 +73,7 @@ class GraphManager:
         _node = Node(
             uid=_nuid,
             name=name,
-            properties=data,
+            meta=data,
         )
 
         # Store node reference and emit signal
@@ -86,14 +86,18 @@ class GraphManager:
         # Log after emitting signal
         logging.info(f"Created node with UID {_nuid}")
 
-    def create_edge(self, guid: str, name: str, data: Dict[str, str]) -> None:
+    def create_edge(self, guid: str, name: str, data: Dict[str, Any]) -> None:
 
         if guid not in self.graph_db:
             return
 
         # Check if keys exist and are connected
-        source_uid = data["source_uid"]
-        target_uid = data["target_uid"]
+        source_uid = data.get("source_uid", "")
+        target_uid = data.get("target_uid", "")
+
+        if not source_uid or not target_uid:
+            logging.warning(f"Missing source or target UID: {source_uid} {target_uid}")
+            return
 
         if source_uid == target_uid:
             logging.warning(f"Source and target UIDs are the same: {source_uid}")
@@ -103,6 +107,7 @@ class GraphManager:
             logging.warning(f"Connection already exists!")
             return
 
+        # Create a new edge instance
         _euid = uuid.uuid4().hex
         _edge = Edge(
             uid=_euid,
@@ -111,7 +116,7 @@ class GraphManager:
             properties=data.get("properties", {}),
         )
 
-        # Store edge reference and emit signal
+        # Store reference and update dictionaries
         self.graph_db[guid].edges[_euid] = _edge
         self.graph_db[guid].conns[(source_uid, target_uid)] = True
 

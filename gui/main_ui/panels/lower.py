@@ -20,7 +20,6 @@ from dataclasses import dataclass
 
 # Climact
 from qtawesome import icon as qta_icon
-from core.flows import ResourceDictionary
 
 
 class LowerPanel(QtWidgets.QListWidget):
@@ -50,7 +49,9 @@ class LowerPanel(QtWidgets.QListWidget):
 
         # Built-in streams
         self._first_header = self._create_first_header_item()
-        self.add_items(ResourceDictionary)
+
+        # TODO: Add streams when the backend is complete
+        self.add_items({})
 
         # User-defined
         self._second_header = self._create_second_header_item()
@@ -101,11 +102,11 @@ class LowerPanel(QtWidgets.QListWidget):
 
     def add_items(self, flows: dict, editable=False, selectable=False):
 
-        # Add flows
+        # Add streams
         for flow, _class in flows.items():
 
             item = QtWidgets.QListWidgetItem(
-                _class.Attrs.image, _class.Attrs.label, self
+                _class.Attrs.image, _class.Attrs.name, self
             )
             item.setSizeHint(QtCore.QSize(0, 28))
 

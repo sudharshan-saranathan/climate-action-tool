@@ -46,7 +46,7 @@ class SignalBus:
     _instance = None
 
     @dataclass
-    class Backend:
+    class Graph:
 
         create_graph: Signal = Signal.factory(str)
         delete_graph: Signal = Signal.factory(str)
@@ -57,7 +57,7 @@ class SignalBus:
         delete_edge_item: Signal = Signal.factory(str, str)
 
     @dataclass
-    class Frontend:
+    class Graphics:
 
         create_node_repr: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
         create_edge_repr: Signal = Signal.factory(str, str, Optional[Dict[str, object]])
@@ -78,7 +78,7 @@ class SignalBus:
         if self._initialized:
             return
 
-        self.data = self.Backend()
-        self.ui = self.Frontend()
+        self.data = self.Graph()
+        self.ui = self.Graphics()
 
         self._initialized = True

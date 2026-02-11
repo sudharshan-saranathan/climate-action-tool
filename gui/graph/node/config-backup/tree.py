@@ -40,7 +40,7 @@ class StreamTree(QtWidgets.QTreeWidget):
         # Create a row for each flow class
         for _class in flow_classes:
 
-            label = _class.Attrs.label
+            label = _class.Attrs.name
             image = _class.Attrs.image
 
             item = QtWidgets.QTreeWidgetItem(self)

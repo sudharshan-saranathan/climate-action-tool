@@ -11,7 +11,7 @@ from PySide6 import QtWidgets
 from gui.widgets import ComboBox, HLayout
 from gui.graph.node.config.tree import StreamTree
 
-from core.flows import ResourceDictionary, ParameterDictionary
+from core.streams import ResourceDictionary, ParameterDictionary
 
 
 class VertexConfig(QtWidgets.QDialog):

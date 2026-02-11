@@ -47,7 +47,7 @@ class StreamTree(QtWidgets.QTreeWidget):
         # Create a row for each flow class
         for label, flow_class in resources.items():
 
-            item = QtWidgets.QTreeWidgetItem(self, [flow_class.Attrs.label])
+            item = QtWidgets.QTreeWidgetItem(self, [flow_class.Attrs.name])
             item.setIcon(0, flow_class.Attrs.image)
 
             toolbar = ToolBar(self)
@@ -90,7 +90,7 @@ class StreamTree(QtWidgets.QTreeWidget):
     # Method to add a resource-class to the tree
     def add_top_level_item(self, flow_class):
 
-        item = QtWidgets.QTreeWidgetItem([flow_class.Attrs.label])
+        item = QtWidgets.QTreeWidgetItem([flow_class.Attrs.name])
         item.setIcon(0, flow_class.Attrs.image)
 
         widget = ToolBar(self, trailing=True)
