@@ -93,7 +93,7 @@ class VertexConfigDialog(QtWidgets.QDialog):
         frame = QtWidgets.QFrame(self)
         label = QtWidgets.QLineEdit("Process", self)
         combo = ComboBox(self, editable=True)
-        tunit = ComboBox(self, editable=True, items=Time.Attrs.units)
+        tunit = ComboBox(self, editable=True, items=Time.Attrs.unit)
 
         layout = QtWidgets.QFormLayout(
             frame,

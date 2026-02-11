@@ -15,48 +15,48 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Fundamental:
-    label: str = "Fundamental"
-    units: list[str] = field(default_factory=list)
-    attrs: dict[str, Any] = field(default_factory=dict)
+    name: str = ""
+    unit: str = ""
+    attr: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class Mass(Fundamental):
     @classmethod
     def create(cls):
-        return cls(label="Mass", units=["g", "kg", "ton", "MT"], attrs={})
+        return cls(name="Mass", unit="kg", attr={})
 
 
 @dataclass(frozen=True)
 class Length(Fundamental):
     @classmethod
     def create(cls):
-        return cls(label="Length", units=["cm", "m", "km", "mi"], attrs={})
+        return cls(name="Length", unit="m", attr={})
 
 
 @dataclass(frozen=True)
 class Time(Fundamental):
     @classmethod
     def create(cls):
-        return cls(label="Time", units=["s", "min", "h", "d"], attrs={})
+        return cls(name="Time", unit="s", attr={})
 
 
 @dataclass(frozen=True)
 class Energy(Fundamental):
     @classmethod
     def create(cls):
-        return cls(label="Energy", units=["J", "KJ", "MJ", "GJ", "TJ"], attrs={})
+        return cls(name="Energy", unit="J", attr={})
 
 
 @dataclass(frozen=True)
 class Temperature(Fundamental):
     @classmethod
     def create(cls):
-        return cls(label="Temperature", units=["°C", "°F", "K"], attrs={})
+        return cls(name="Temperature", unit="K", attr={})
 
 
 @dataclass(frozen=True)
 class Volume(Fundamental):
     @classmethod
     def create(cls):
-        return cls(label="Volume", units=["cm³", "m³", "L", "mL"], attrs={})
+        return cls(name="Volume", unit="m³", attr={})

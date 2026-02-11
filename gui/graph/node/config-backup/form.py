@@ -66,7 +66,7 @@ class StreamForm(QtWidgets.QFrame):
         # Primary — set the type label and available units
         self._type_label.setText(flow.name)
         self._unit_combo.clear()
-        self._unit_combo.addItems(flow.units)
+        self._unit_combo.addItems(flow.unit)
 
         # Secondary — populate table with flow's props
         self._table.setRowCount(0)
@@ -80,7 +80,7 @@ class StreamForm(QtWidgets.QFrame):
             self._table.setItem(row, COL_NAME, name_item)
 
             # Unit combo
-            unit_combo = ComboBox(items=param.units)
+            unit_combo = ComboBox(items=param.unit)
             self._table.setCellWidget(row, COL_UNIT, unit_combo)
 
             # Value field: show value_at(0.0) from profile

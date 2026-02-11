@@ -27,11 +27,11 @@ class Technology:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "consumed": {key: str(value) for key, value in self.consumed.items()},
-            "produced": {key: str(value) for key, value in self.produced.items()},
+            "consumed": self.consumed,
+            "produced": self.produced,
             "expenses": {
-                "capital": str(self.expenses.capital),
-                "operating": str(self.expenses.operating),
+                "capital": self.expenses.capital,
+                "operating": self.expenses.operating,
             },
         }
 
