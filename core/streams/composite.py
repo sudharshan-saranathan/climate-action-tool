@@ -23,7 +23,7 @@ class Material(Mass):
     ):
         super().__init__(data, units)
 
-        self._cost = CostPerMass(
+        self.cost = CostPerMass(
             kwargs.get("cost", 0.0),
             kwargs.get("cost_units", "INR/kilogram"),
         )
@@ -40,7 +40,7 @@ class Electricity(Power):
     ):
         super().__init__(data, units)
 
-        self._cost = CostPerEnergy(
+        self.cost = CostPerEnergy(
             kwargs.get("cost", 0.0),
             kwargs.get("cost_units", "INR/watt*hour"),
         )
@@ -57,27 +57,27 @@ class FossilFuel(Mass):
     ):
         super().__init__(data, units)
 
-        self._cost = CostPerMass(
+        self.cost = CostPerMass(
             kwargs.get("cost", 0.0),
             kwargs.get("cost_units", "INR/kilogram"),
         )
 
-        self._energy_content = SpecificEnergy(
+        self.energy_content = SpecificEnergy(
             kwargs.get("energy_content", 0.0),
             kwargs.get("energy_content_units", "joule/kilogram"),
         )
 
-        self._carbon_fraction = ResourceStream(
+        self.carbon_fraction = ResourceStream(
             kwargs.get("carbon_fraction", 0.0),
             kwargs.get("carbon_fraction_units", "dimensionless"),
         )
 
-        self._sulfur_fraction = ResourceStream(
+        self.sulfur_fraction = ResourceStream(
             kwargs.get("sulfur_fraction", 0.0),
             kwargs.get("sulfur_fraction_units", "dimensionless"),
         )
 
-        self._nitrogen_fraction = ResourceStream(
+        self.nitrogen_fraction = ResourceStream(
             kwargs.get("nitrogen_fraction", 0.0),
             kwargs.get("nitrogen_fraction_units", "dimensionless"),
         )

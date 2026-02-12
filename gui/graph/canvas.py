@@ -14,6 +14,7 @@ import logging
 import typing
 import types
 import uuid
+import json
 
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
@@ -289,20 +290,22 @@ class Canvas(QtWidgets.QGraphicsScene):
     def _raise_create_node_request(self) -> None:
 
         # Initialize data for the request
-        name = "Node"
         data = {
+            "name": "Node",
             "x": self._rmb_coordinate.x(),
             "y": self._rmb_coordinate.y(),
         }
 
+        jstr = json.dumps(data)
+
         manager = SignalBus()  # Get the singleton instance
-        manager.data.create_node_item.emit(self._uid, name, data)
+        manager.raise_request("create_node_item", self._uid, jstr)
 
     @QtCore.Slot(str)
     def _raise_delete_node_request(self, nuid: str) -> None:
 
         manager = SignalBus()  # Get the singleton instance
-        manager.data.delete_node_item.emit(self._uid, nuid)
+        manager.raise_request("delete_node_item", self._uid, nuid)
 
     @QtCore.Slot()
     def _raise_create_edge_request(self, suid: str, tuid: str) -> None:
@@ -313,8 +316,9 @@ class Canvas(QtWidgets.QGraphicsScene):
             "target_uid": tuid,
         }
 
+        payload = json.dumps(data)
         manager = SignalBus()  # Get the singleton instance
-        manager.data.create_edge_item.emit(self._uid, "Edge", data)
+        manager.raise_request("create_edge_item", self._uid, payload)
 
     @QtCore.Slot(str, str)
     def _raise_delete_edge_request(self, euid: str) -> None:
@@ -334,7 +338,10 @@ class Canvas(QtWidgets.QGraphicsScene):
     # --------------
 
     def create_node_repr(
-        self, cuid: int, nuid: str, data: dict = None
+        self,
+        cuid: int,
+        nuid: str,
+        jstr: str,
     ) -> NodeRepr | None:
         """Create a new node representation."""
 
@@ -343,7 +350,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             return None
 
         # Prepare data for item instantiation
-        data = data or {}
+        data = json.loads(jstr) or {}
         cpos = QtCore.QPointF(data.get("x", 0), data.get("y", 0))
 
         node = NodeRepr(nuid, pos=cpos)
@@ -351,14 +358,14 @@ class Canvas(QtWidgets.QGraphicsScene):
         return node
 
     def create_edge_repr(
-        self, cuid: str, euid: str, data: dict = None
+        self, cuid: str, euid: str, jstr: str = None
     ) -> EdgeRepr | None:
         """Create a new edge representation."""
 
         if self._uid != cuid:
             return None
 
-        data = data or {}
+        data = json.loads(jstr) or {}
         source_uid = data.get("source_uid")
         target_uid = data.get("target_uid")
 
@@ -403,3 +410,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             ),
             None,
         )
+
+    @property
+    def uid(self) -> str:
+        return self._uid

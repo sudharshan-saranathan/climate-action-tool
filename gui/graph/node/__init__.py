@@ -5,6 +5,9 @@
 
 from __future__ import annotations
 
+# Standard
+import logging
+
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
@@ -14,6 +17,7 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
+from core.signals import SignalBus
 
 ItemState = QtWidgets.QStyle.StateFlag
 
@@ -120,6 +124,10 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         self._init_image()
         self._init_label()
 
+        # Get the signal bus instance
+        self._signal_bus = SignalBus()
+        self._connect_to_signal_bus()
+
     def _init_image(self):
 
         # QtAwesome Icon
@@ -150,6 +158,18 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         self.objectNameChanged.connect(
             lambda text: print(f"Node name changed to {text}")
         )
+
+    def _connect_to_signal_bus(self) -> None:
+
+        self._signal_bus.ui.publish_node_data.connect(self._on_publish_node_data)
+
+    @QtCore.Slot(str, str, str)
+    def _on_publish_node_data(self, nuid: str, jstr: str) -> None:
+
+        if nuid != self._uid:
+            return
+
+        logging.info(f"Received data for node {nuid}: {jstr}")
 
     # Section: Reimplementation
     # -------------------------
@@ -235,11 +255,16 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
-        app = QtWidgets.QApplication.instance()
-        if hasattr(app, "view_ctrl"):
-            app.view_ctrl.focus_item.emit(self)
+        cuid = getattr(self.scene(), "uid", None)
+        if cuid:
+            self._signal_bus.raise_request(
+                "send_node_data",
+                cuid,
+                self.uid,
+            )
 
-        # Display the node's configuration widget
+        else:
+            logging.warning(f"Canvas UID not found for node {self.uid}")
 
     # Section: Public methods
     # -----------------------

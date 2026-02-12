@@ -5,6 +5,7 @@
 from __future__ import annotations
 from typing import Dict, Type, Any
 from types import SimpleNamespace
+import json
 
 # Dataclass
 from dataclasses import field
@@ -14,7 +15,7 @@ from dataclasses import dataclass
 from core.streams.quantity import ResourceStream
 
 
-@dataclass(frozen=True)
+@dataclass
 class Technology:
     consumed: dict[str, ResourceStream] = field(default_factory=dict)
     produced: dict[str, ResourceStream] = field(default_factory=dict)
@@ -24,6 +25,9 @@ class Technology:
             operating=0,
         )
     )
+
+    params: dict[str, ResourceStream] = field(default_factory=dict)
+    equations: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -37,13 +41,12 @@ class Technology:
 
 
 # Dataclass
-@dataclass
+@dataclass(frozen=True)
 class Node:
 
     uid: str
-    name: str
-    meta: Dict[str, object]
-    tech: dict[str, Any] = field(default_factory=dict)
+    meta: Dict[str, Any]
+    tech: dict[str, Technology] = field(default_factory=dict)
 
     def __hash__(self) -> int:
         return hash(self.uid)
@@ -57,16 +60,23 @@ class Node:
 
     @classmethod
     def from_dict(cls: Type[Node], data: dict) -> Node:
+
         return cls(
             data.get("uid", ""),
-            data.get("name", ""),
             data.get("meta", {}),
+            data.get("tech", {}),
         )
 
+    @classmethod
+    def from_json(cls: Type[Node], jstr: str) -> Node:
+        return cls.from_dict(json.loads(jstr))
+
     def to_dict(self) -> dict[str, Any]:
+
         return {
             "uid": self.uid,
-            "name": self.name,
             "meta": self.meta,
-            "tech": self.tech,
+            "tech": {
+                tech_name: tech.to_dict() for tech_name, tech in self.tech.items()
+            },
         }

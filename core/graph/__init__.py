@@ -3,9 +3,12 @@
 # Description: Graph data structure managing nodes and edges
 
 from __future__ import annotations
+
+# Standard Library
 from typing import Dict, Tuple, Any
 import logging
 import uuid
+import json
 
 # Dataclass
 from dataclasses import field
@@ -54,6 +57,9 @@ class GraphManager:
         self.signal_bus.data.create_node_item.connect(self.create_node)
         self.signal_bus.data.create_edge_item.connect(self.create_edge)
 
+        self.signal_bus.data.send_node_data.connect(self.send_node_data)
+        self.signal_bus.data.send_edge_data.connect(self.send_edge_data)
+
     def create_graph(self, guid: str) -> None:
 
         if guid not in self.graph_db:
@@ -63,37 +69,49 @@ class GraphManager:
         else:
             logging.warning(f"Graph with GUID {guid} already exists.")
 
-    def create_node(self, guid: str, name: str, data: Dict[str, object]) -> None:
+    def create_node(self, guid: str, jstr: str) -> None:
 
         if guid not in self.graph_db:
             logging.warning(f"Graph with GUID {guid} does not exist. Creating it.")
-            self.create_graph(guid)
+            return
+
+        try:
+            _data = json.loads(jstr)
+        except json.JSONDecodeError as e:
+            logging.warning(f"Invalid JSON for node creation: {e}")
+            return
 
         _nuid = uuid.uuid4().hex
         _node = Node(
             uid=_nuid,
-            name=name,
-            meta=data,
+            meta=_data,
         )
 
         # Store node reference and emit signal
         self.graph_db[guid].nodes[_nuid] = _node
 
         # Emit signal
-        manager = SignalBus()
-        manager.ui.create_node_repr.emit(guid, _nuid, data)
+        self.signal_bus.ui.create_node_repr.emit(guid, _nuid, jstr)
 
         # Log after emitting signal
         logging.info(f"Created node with UID {_nuid}")
 
-    def create_edge(self, guid: str, name: str, data: Dict[str, Any]) -> None:
+    def create_edge(self, guid: str, jstr: str) -> None:
 
         if guid not in self.graph_db:
+            logging.warning(f"Graph with GUID {guid} does not exist.")
+            return
+
+        # Parse the JSON payload
+        try:
+            _data = json.loads(jstr)
+        except json.JSONDecodeError as e:
+            logging.warning(f"Invalid JSON for edge creation: {e}")
             return
 
         # Check if keys exist and are connected
-        source_uid = data.get("source_uid", "")
-        target_uid = data.get("target_uid", "")
+        source_uid = _data.get("source_uid", "")
+        target_uid = _data.get("target_uid", "")
 
         if not source_uid or not target_uid:
             logging.warning(f"Missing source or target UID: {source_uid} {target_uid}")
@@ -113,7 +131,7 @@ class GraphManager:
             uid=_euid,
             source_uid=source_uid,
             target_uid=target_uid,
-            properties=data.get("properties", {}),
+            properties=_data.get("properties", {}),
         )
 
         # Store reference and update dictionaries
@@ -121,10 +139,24 @@ class GraphManager:
         self.graph_db[guid].conns[(source_uid, target_uid)] = True
 
         # Emit signal
-        self.signal_bus.ui.create_edge_repr.emit(guid, _euid, data)
+        self.signal_bus.ui.create_edge_repr.emit(guid, _euid, jstr)
 
         # Log after emitting signal
         logging.info(f"Created edge with UID {_euid}")
+
+    def send_node_data(self, guid: str, nuid: str) -> None:
+
+        if guid not in self.graph_db:
+            logging.warning(f"Graph with GUID {guid} does not exist.")
+            return
+
+        _node = self.graph_db[guid].nodes.get(nuid)
+        _json = json.dumps(_node.to_dict()) if _node else None
+
+        self.signal_bus.ui.publish_node_data.emit(nuid, _json)
+
+    def send_edge_data(self, guid: str, euid: str) -> None:
+        pass
 
 
 # Instantiate the singleton when this module is imported

@@ -51,7 +51,7 @@ class ResourceStream:
                     f"(expected {dims})"
                 )
 
-        self._q = ureg.Quantity(data, units)
+        self._q = ureg.Quantity(data, units)  # type: ignore
 
     @classmethod
     def _from_quantity(cls, q: "ureg.Quantity") -> ResourceStream:
@@ -82,7 +82,7 @@ class ResourceStream:
 
     @value.setter
     def value(self, value: typing.Union[int, float, np.ndarray]) -> None:
-        self._q = ureg.Quantity(value, self._q.units)
+        self._q = ureg.Quantity(value, self._q.units)  # type: ignore
 
     @property
     def units(self) -> str:
@@ -100,6 +100,20 @@ class ResourceStream:
 
         new_quantity = self._q.to(units)
         return self._from_quantity(new_quantity)
+
+    def to_dict(self) -> dict[str, typing.Any]:
+
+        result = {
+            "type": self.__class__.__name__,
+            "value": self.value.tolist() if isinstance(self.value, np.ndarray) else self.value,
+            "units": str(self.units),
+        }
+
+        for key, item in self.__dict__.items():
+            if isinstance(item, ResourceStream):
+                result[key] = item.to_dict()  # type: ignore
+
+        return result
 
     def dimensionality(self) -> "ureg.Dimensionality":
         return self._q.dimensionality
