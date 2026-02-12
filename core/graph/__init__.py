@@ -32,7 +32,7 @@ def guid_validator(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(self, guid: str, *args, **kwargs):
         if guid not in self.graph_db:
-            self.signal_bus.ui.notify(f"ALERT: Graph [UID={guid}] does not exist.")
+            self.signal_bus.ui.notify.emit(f"ALERT: Graph [UID={guid}] does not exist.")
             return None
 
         result = func(self, guid, *args, **kwargs)

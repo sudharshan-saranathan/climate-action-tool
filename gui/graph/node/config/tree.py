@@ -1,177 +1,170 @@
-#  Filename: gui/graph/vertex/config/tree.py
-#  Module Name: VertexConfigTree
-#  Description: Tree widget for VertexConfigDialog.
+# Filename: form.py
+# Module name: config
+# Description: Three-column QTreeWidget with category headers and stream items.
 
-# Standard
-import weakref
-from typing import Any
+from __future__ import annotations
 
 # PySide6 (Python/Qt)
-from PySide6 import QtGui
 from PySide6 import QtCore
+from PySide6 import QtGui
 from PySide6 import QtWidgets
+import qtawesome as qta
 
-# Climact
 
-from qtawesome import icon
-from gui.widgets.toolbar import ToolBar
+class StreamDelegate(QtWidgets.QStyledItemDelegate):
+    """Delegate that paints a hover-revealed '+' icon on top-level column-2 cells."""
+
+    add_clicked = QtCore.Signal(QtCore.QModelIndex)
+
+    _ICON_SIZE = 16
+
+    def __init__(self, icon: QtGui.QIcon, parent=None):
+        super().__init__(parent)
+        self._icon = icon
+
+    def paint(self, painter, option, index):
+        super().paint(painter, option, index)
+
+        # Only paint on top-level items in the last column
+        if index.parent().isValid() or index.column() != 2:
+            return
+
+        tree = self.parent()
+        if tree is None or tree._hovered_top_row != index.row():
+            return
+
+        # Paint "+" icon centered in the cell
+        sz = self._ICON_SIZE
+        x = option.rect.center().x() - sz // 2
+        y = option.rect.center().y() - sz // 2
+        self._icon.paint(painter, x, y, sz, sz)
+
+    def editorEvent(self, event, model, option, index):
+        if (
+            event.type() == QtCore.QEvent.Type.MouseButtonRelease
+            and not index.parent().isValid()
+            and index.column() == 2
+        ):
+            self.add_clicked.emit(index)
+            return True
+        return super().editorEvent(event, model, option, index)
 
 
 class StreamTree(QtWidgets.QTreeWidget):
-    """Tree widget for VertexConfigDialog."""
 
-    def __init__(self, parent=None):
+    def __init__(self, flow_classes: list, parent=None):
         super().__init__(parent, columnCount=3)
 
         # Customize appearance and behaviour
         self.setHeaderHidden(True)
-        self.setMouseTracking(True)
-        self.setColumnWidth(2, 140)
+        self.setColumnWidth(2, 40)
         self.setStyleSheet("QTreeWidget::item { height: 20px; }")
         self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
+        self.setMouseTracking(True)
 
         # Customize header
         header = self.header()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
-        # Strong references to prevent GC of StreamForm instances
-        self._flow_to_item_map: dict[str, QtWidgets.QTreeWidgetItem] = {}
-        self._item_to_form_map: dict[QtWidgets.QTreeWidgetItem, object] = {}
+        # Hover state: track which top-level row is hovered (-1 = none)
+        self._hovered_top_row = -1
 
-    def _init_top_level_items(self, resources: dict[str, Any]):
+        # Delegate for painting "+" on top-level column 2
+        icon = qta.icon("mdi.plus", color="white")
+        self._stream_delegate = StreamDelegate(icon, self)
+        self._stream_delegate.add_clicked.connect(self._on_add_clicked)
+        self.setItemDelegateForColumn(2, self._stream_delegate)
 
-        # Import toolbar
+        # Add the flow classes as top-level items
+        self._init_top_level_items(flow_classes)
+
+    def _init_top_level_items(self, flow_classes: list):
+
+        for _class in flow_classes:
+
+            label = getattr(_class, "_label", _class.__name__)
+            image = qta.icon("mdi.arrow-right-bold", color="gray")
+
+            item = QtWidgets.QTreeWidgetItem(self)
+            item.setText(0, label)
+            item.setIcon(0, image)
+            item.setData(0, QtCore.Qt.ItemDataRole.UserRole, _class)
+
+    @QtCore.Slot(QtCore.QModelIndex)
+    def _on_add_clicked(self, index: QtCore.QModelIndex):
+        item = self.itemFromIndex(index)
+        if item is not None:
+            self.create_row(item)
+
+    @QtCore.Slot()
+    def create_row(self, root=None):
+
         from gui.widgets.toolbar import ToolBar
 
-        # Create a row for each flow class
-        for label, flow_class in resources.items():
+        # Resolve the target root from the current selection if not provided
+        if root is None:
+            selected = self.currentItem()
+            if selected is None:
+                return
 
-            item = QtWidgets.QTreeWidgetItem(self, [flow_class.Attrs.name])
-            item.setIcon(0, flow_class.Attrs.image)
+            root = selected
+            while root.parent() is not None:
+                root = root.parent()
 
-            toolbar = ToolBar(self)
-            toggle = toolbar.addAction(
-                icon("mdi.check-bold", color_off="gray", color_on="cyan"),
-                "Toggle auto-balance",
-            )
-            create = toolbar.addAction(
-                icon("mdi.plus", color="gray", color_active="white"), "Create Entity"
-            )
+        item = QtWidgets.QTreeWidgetItem(root)
+        item.setText(0, "New Stream")
+        item.setIcon(0, qta.icon("ph.warning-fill", color="#ffcb00"))
 
-            toggle.setCheckable(True)
-            create.setData(item)
-            create.triggered.connect(self._on_item_created)
-
-            self.setItemWidget(item, self.columnCount() - 1, toolbar)
-            self._flow_to_item_map[label] = item
-
-    @QtCore.Slot()
-    def _on_item_created(self):
-
-        action = self.sender()
-        if not isinstance(action, QtGui.QAction):
-            return
-
-        root = action.data()
-        self.create_entity(root.text(0))
-
-    @QtCore.Slot()
-    def _on_item_deleted(self):
-
-        action = self.sender()
-        if not isinstance(action, QtGui.QAction):
-            return
-
-        item = action.data()
-        root = item.parent()
-        self.delete_entity(root.text(0), item.text(0))
-
-    # Method to add a resource-class to the tree
-    def add_top_level_item(self, flow_class):
-
-        item = QtWidgets.QTreeWidgetItem([flow_class.Attrs.name])
-        item.setIcon(0, flow_class.Attrs.image)
-
-        widget = ToolBar(self, trailing=True)
-        toggle = widget.addAction(
-            icon("mdi.check-bold", color_off="gray", color_on="cyan"),
-            "Toggle auto-balance",
-        )
-        create = widget.addAction(
-            icon("mdi.plus", color="gray", color_active="white"),
-            "Create Entity",
-            self._on_item_created,
-        )
-
-        toggle.setCheckable(True)
-        create.setData(item)
-        self.addTopLevelItem(item)
-        self.setItemWidget(item, self.columnCount() - 1, widget)
-        self._flow_to_item_map[item.text(0)] = item
-
-    # Method to create a new entity under the specified parent
-    def create_entity(self, flow_id: str):
-        """Create a new entity and display it under the specified flow class.
-
-        :param flow_id: The string ID of the entity's flow class (e.g., Mass, Energy, Currency)
-        """
-
-        root = self._flow_to_item_map.get(flow_id, None)
-        if not root:
-            return None
-
-        root.setExpanded(True)
-        root.setFirstColumnSpanned(True)
-        root.setToolTip(0, f"Click + to add a new {root.text(0)} entity")
-
-        item = QtWidgets.QTreeWidgetItem(root, [f"Entity {root.childCount() + 1}"])
-        item.setIcon(0, icon("ph.warning-fill", color="#ffcb00"))
-        item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable)
-
-        widget = ToolBar(
+        toolbar = ToolBar(
             self,
             trailing=True,
+            actions=[
+                (
+                    qta.icon("mdi.delete", color="red"),
+                    "Delete",
+                    lambda _, r=root, i=item: r.removeChild(i),
+                ),
+            ],
         )
 
-        as_inp = widget.addAction(
-            icon("mdi.arrow-down-bold", color_off="gray", color_on="white"),
-            "Mark as Input",
-            lambda: print(f"Mark as input"),
-        )
+        self.setItemWidget(item, self.columnCount() - 1, toolbar)
+        root.setExpanded(True)
 
-        as_out = widget.addAction(
-            icon("mdi.arrow-up-bold", color_off="gray", color_on="white"),
-            "Mark as Output",
-            lambda: print(f"Mark as output"),
-        )
+    @QtCore.Slot(str)
+    def filter_items(self, text: str):
+        for i in range(self.topLevelItemCount()):
+            item = self.topLevelItem(i)
+            item.setHidden(text.lower() not in item.text(0).lower())
 
-        delete = widget.addAction(
-            icon("mdi.delete", color="red"),
-            "Delete",
-            self._on_item_deleted,
-        )
+    # -- Hover tracking for delegate-painted "+" on top-level items --
 
-        as_inp.setCheckable(True)
-        as_out.setCheckable(True)
-        delete.setData(item)
+    def _resolve_top_row(self, pos):
+        """Return the top-level row index at *pos*, or -1."""
+        item = self.itemAt(pos)
+        if item is None:
+            return -1
+        while item.parent() is not None:
+            item = item.parent()
+        return self.indexOfTopLevelItem(item)
 
-        self.setItemWidget(item, self.columnCount() - 1, widget)
-        self.editItem(item, 0)
-        return item
+    def mouseMoveEvent(self, event):
+        row = self._resolve_top_row(event.pos())
+        if row != self._hovered_top_row:
+            self._hovered_top_row = row
+            self.viewport().update()
+        super().mouseMoveEvent(event)
 
-    def delete_entity(self, flow_id: str, entity: str):
+    def scrollContentsBy(self, dx, dy):
+        super().scrollContentsBy(dx, dy)
+        pos = self.viewport().mapFromGlobal(QtGui.QCursor.pos())
+        row = self._resolve_top_row(pos)
+        if row != self._hovered_top_row:
+            self._hovered_top_row = row
+            self.viewport().update()
 
-        root = self._flow_to_item_map.get(flow_id, None)
-        if not root:
-            return
-
-        item = next(
-            (
-                root.child(index)
-                for index in range(root.childCount())
-                if root.child(index).text(0) == entity
-            )
-        )
-
-        root.removeChild(item)
+    def leaveEvent(self, event):
+        if self._hovered_top_row != -1:
+            self._hovered_top_row = -1
+            self.viewport().update()
+        super().leaveEvent(event)

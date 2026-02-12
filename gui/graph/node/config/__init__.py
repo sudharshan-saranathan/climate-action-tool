@@ -1,191 +1,142 @@
-# Filename: gui/graph/vertex/config/__init__.py
-# Module Name: VertexConfig
-# Description: Configuration dialog for VertexItem.
+# Filename: __init__.py
+# Module name: config
+# Description: Node configuration dialog.
 
-from __future__ import annotations
-
-# Standard Library
-import weakref
-
-# PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-# Dataclasses
-from dataclasses import field
-from dataclasses import dataclass
-
-# Climact
-from gui.widgets import GLayout
-from core.streams import ResourceDictionary, ParameterDictionary
+from gui.widgets import ComboBox, HLayout
 from gui.graph.node.config.tree import StreamTree
-from qtawesome import icon as qta_icon
+
+from core.streams import CLASS_REGISTRY
 
 
-class VertexConfigDialog(QtWidgets.QDialog):
-    """Configuration dialog for VertexItem."""
-
-    @dataclass
-    class Style:
-        border: dict = field(
-            default_factory=lambda: {
-                "color": QtGui.QColor(0x363E41),
-                "width": 1,
-            }
-        )
-        background: dict = field(
-            default_factory=lambda: {
-                "color": QtGui.QColor(0x232A2E),
-                "brush": QtCore.Qt.BrushStyle.SolidPattern,
-                "alpha": 0.5,
-                "texture": ":/theme/pattern.png",
-            }
-        )
-
-    @dataclass
-    class Geometric:
-        size: dict = field(
-            default_factory=lambda: {
-                "width": 900,
-                "height": 720,
-            }
-        )
+class NodeConfig(QtWidgets.QDialog):
 
     def __init__(
         self,
-        vertex: QtWidgets.QGraphicsObject,
-        parent: QtWidgets.QWidget | None = None,
+        parent: QtWidgets.QWidget = None,
     ):
+        self._widget_map = dict()
         super().__init__(parent)
-        super().setObjectName(vertex.objectName())
 
-        # Resource(s)
-        self._vertex = weakref.ref(vertex)
-        self._style = VertexConfigDialog.Style()
-        self._geoms = VertexConfigDialog.Geometric()
-
-        # Customization
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        # Customize appearance and behaviour:
         self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.resize(900, 720)
 
-        # Set the size of the widget
-        self.setFixedSize(self._geoms.size["width"], self._geoms.size["height"])
+        self._overview = self._init_overview()
+        self._dataview = self._init_dataview()
 
-        # UI components
-        self._form = self._init_form()
-        self._tabs = self._init_tabs()
-        self._drawer = self._init_drawer()
+        HLayout(
+            self,
+            spacing=4,
+            margins=(4, 4, 4, 4),
+            widgets=[self._overview, self._dataview],
+        )
 
-        # Parent Layout
-        layout = GLayout(self, spacing=4, margins=(4, 4, 4, 4))
-        layout.addWidget(self._form, 0, 0, 2, 1)
-        layout.addWidget(self._tabs, 0, 1)
-        layout.addWidget(self._drawer, 1, 1)
-        layout.setRowStretch(0, 10)
-        layout.setColumnStretch(1, 10)
+    def _init_overview(self) -> QtWidgets.QFrame:
 
-    def _init_form(self) -> QtWidgets.QFrame:
+        container = QtWidgets.QFrame(self)
+        container.setFixedWidth(240)
 
-        from core.streams import Time
-        from gui.widgets import ComboBox
-
-        frame = QtWidgets.QFrame(self)
-        label = QtWidgets.QLineEdit("Process", self)
-        combo = ComboBox(self, editable=True)
-        tunit = ComboBox(self, editable=True, items=Time.Attrs.unit)
+        self._combo = ComboBox(editable=True)
+        self._label = QtWidgets.QLineEdit("Node", self)
 
         layout = QtWidgets.QFormLayout(
-            frame,
-            formAlignment=QtCore.Qt.AlignmentFlag.AlignCenter,
+            container,
+            formAlignment=QtCore.Qt.AlignmentFlag.AlignVCenter,
             labelAlignment=QtCore.Qt.AlignmentFlag.AlignRight,
             fieldGrowthPolicy=QtWidgets.QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow,
         )
-        layout.addRow("Entity:", label)
-        layout.addRow("Type/Tech:", combo)
-        layout.addRow("Time Unit:", tunit)
 
-        # Connect signals
-        label.returnPressed.connect(self._on_label_edited)
-        combo.currentTextChanged.connect(self._on_combo_edited)
-        tunit.currentTextChanged.connect(self._on_tunit_edited)
+        layout.addRow("Entity:", self._label)
+        layout.addRow("Type/Tech:", self._combo)
 
-        return frame
+        self._combo.sig_item_added.connect(self._on_tech_added)
+        self._combo.currentIndexChanged.connect(self._on_tech_changed)
 
-    def _init_tabs(self) -> QtWidgets.QTabWidget:
+        return container
 
-        tabs = QtWidgets.QTabWidget(self)
-        tabs.addTab(
-            StreamTree(self),
-            qta_icon("ph.arrows-down-up", color="gray"),
-            "Streams",
+    def _init_dataview(self) -> QtWidgets.QStackedWidget:
+        dummy = self._create_tab_widget("")
+        dummy.setObjectName("dummy-page")
+        dummy.setGraphicsEffect(QtWidgets.QGraphicsBlurEffect(dummy, blurRadius=5))
+
+        stack = QtWidgets.QStackedWidget(self)
+        stack.addWidget(dummy)
+        return stack
+
+    @QtCore.Slot()
+    def _on_tech_added(self, label: str) -> None:
+        page = self._create_tab_widget(label)
+        self._dataview.addWidget(page)
+        self._dataview.setCurrentWidget(page)
+
+        self._widget_map[label] = page
+
+    @QtCore.Slot()
+    def _on_tech_changed(self, index: int) -> None:
+        label = self._combo.currentText()
+        page = self._widget_map.get(label, None)
+
+        if page:
+            self._dataview.setCurrentWidget(page)
+
+    def _create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
+
+        from qtawesome import icon
+
+        stream_classes = list(CLASS_REGISTRY.values())
+        inp_tree = StreamTree(stream_classes, self)
+        out_tree = StreamTree(stream_classes, self)
+        par_tree = StreamTree(stream_classes, self)
+
+        tab = QtWidgets.QTabWidget(self)
+        tab.addTab(inp_tree, icon("mdi.arrow-down-bold", color="gray"), "Consumed")
+        tab.addTab(out_tree, icon("mdi.arrow-up-bold", color="gray"), "Produced")
+        tab.addTab(par_tree, icon("mdi.alpha", color="magenta"), "Parameters")
+        tab.addTab(
+            QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Constraints"
         )
-        tabs.addTab(
-            StreamTree(self),
-            qta_icon("mdi.alpha", color="magenta"),
-            "Parameters",
-        )
-        tabs.addTab(
-            QtWidgets.QWidget(self), qta_icon("mdi.equal", color="cyan"), "Constraints"
-        )
-        return tabs
 
-    def _init_drawer(self) -> QtWidgets.QToolBar:
+        # Corner widget: search filter
+        search = QtWidgets.QLineEdit(placeholderText="Filter...")
+        search.setClearButtonEnabled(True)
+        search.setFixedWidth(160)
+        tab.setCornerWidget(search, QtCore.Qt.Corner.TopRightCorner)
 
-        toolbar = QtWidgets.QToolBar(self)
-        toolbar.addWidget(QtWidgets.QLabel("Resource Drawer:"))
-        toolbar.addSeparator()
+        # Connect search to the active tab's filter
+        search.textChanged.connect(lambda text: self._on_filter(tab, text))
+        tab.currentChanged.connect(lambda: search.clear())
 
-        for flow_id, _class in ResourceDictionary.items():
-            label = _class.Attrs.name
-            image = _class.Attrs.image
-            toolbar.addAction(image, label, self.add_category)
+        return tab
 
-        return toolbar
-
-    def _on_label_edited(self, text: str):
-
-        vertex = self._vertex()
-        if vertex and hasattr(vertex, "rename"):
-            vertex.rename(text)
-
-    def _on_combo_edited(self, text: str):
-        pass
-
-    def _on_tunit_edited(self, text: str):
-        pass
-
-    def add_category(self):
-
-        action = self.sender()
-        if not isinstance(action, QtGui.QAction):
-            return
-
-        label = action.text()
-        widget = self._tabs.currentWidget()
-        if not isinstance(widget, StreamTree):
-            return
-
-        flow_class = (ResourceDictionary | ParameterDictionary).get(label, None)
-        if flow_class:
-            widget.add_top_level_item(flow_class)
-
-    # Public methods
-    def set_label_text(self, text: str):
-
-        label = self.findChild(QtWidgets.QLineEdit)
-        if label:
-            label.setText(text)
+    def _on_filter(self, tab: QtWidgets.QTabWidget, text: str):
+        tree = tab.currentWidget()
+        if isinstance(tree, StreamTree):
+            tree.filter_items(text)
 
     def paintEvent(self, event, /):
 
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
-        pen = QtCore.Qt.PenStyle.NoPen
-        brs = QtGui.QBrush(QtGui.QColor(0x232A2E))
-        brs.setTexture(QtGui.QPixmap(":/theme/pattern.png"))
-
-        painter.setPen(pen)
-        painter.setBrush(brs)
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.setBrush(QtGui.QColor(0x232A2E))
         painter.drawRoundedRect(self.rect(), 8, 8)
+
+        super().paintEvent(event)
+
+    @property
+    def overview(self) -> QtWidgets.QFrame:
+        return self._overview
+
+    @property
+    def dataview(self) -> QtWidgets.QStackedWidget:
+        return self._dataview
+
+    @QtCore.Slot(str)
+    def set_label_text(self, text):
+        self._label.setText(text)

@@ -127,6 +127,9 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         self._init_image()
         self._init_label()
 
+        # Config dialog (lazy init)
+        self._config_dialog = None
+
         # Get the signal bus instance
         self._signal_bus = SignalBus()
         self._connect_to_signal_bus()
@@ -250,6 +253,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
+        # Request node data from backend
         cuid = getattr(self.scene(), "uid", None)
         if cuid:
             self._signal_bus.raise_request(
@@ -257,13 +261,22 @@ class NodeRepr(QtWidgets.QGraphicsObject):
                 cuid,
                 self.uid,
             )
-
         else:
             self._logger.warning(f"Canvas UID not found for node!")
 
+        # Show the config dialog
+        from gui.graph.node.config import NodeConfig
+
+        if self._config_dialog is None:
+            self._config_dialog = NodeConfig()
+
+        self._config_dialog.set_label_text(self._attributes.label)
+        self._config_dialog.show()
+        self._config_dialog.raise_()
+
     # Callback(s)
 
-    @QtCore.Slot(str, str, str)
+    @QtCore.Slot(str, str)
     def _on_publish_node_data(self, nuid: str, jstr: str) -> None:
 
         if nuid != self._uid:
