@@ -5,10 +5,11 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple, Any, Callable
 import logging
 import uuid
 import json
+import functools
 
 # Dataclass
 from dataclasses import field
@@ -18,6 +19,44 @@ from dataclasses import dataclass
 from core.signals import SignalBus
 from core.graph.node import Node
 from core.graph.edge import Edge
+
+
+# Decorator to validate GUID
+def guid_validator(func: Callable) -> Callable:
+    """Decorator to validate that a GUID exists in graph_db before executing."""
+
+    @functools.wraps(func)
+    def wrapper(self, guid: str, *args, **kwargs):
+        if guid not in self.graph_db:
+            logging.warning(f"Graph with GUID {guid} does not exist.")
+            return None
+
+        result = func(self, guid, *args, **kwargs)
+        logging.info(f"Function {func.__name__} completed successfully.")
+        return result
+
+    return wrapper
+
+
+# Decorator to parse JSON string
+def json_parser(func: Callable) -> Callable:
+    """Decorator to parse JSON string and pass parsed dict to the function.
+
+    The wrapped function receives both jstr and data (parsed dict) as arguments.
+    """
+
+    @functools.wraps(func)
+    def wrapper(self, guid: str, jstr: str, *args, **kwargs):
+        try:
+            data = json.loads(jstr)
+        except json.JSONDecodeError as e:
+            logging.warning(f"Invalid JSON for {func.__name__}: {e}")
+            return None
+
+        # Pass both original jstr and parsed data
+        return func(self, guid, jstr, data, *args, **kwargs)
+
+    return wrapper
 
 
 class GraphManager:
@@ -50,6 +89,7 @@ class GraphManager:
 
         self._connect_to_session_manager()
         self._initialized = True
+        self._ignore = False
 
     def _connect_to_session_manager(self) -> None:
 
@@ -69,22 +109,14 @@ class GraphManager:
         else:
             logging.warning(f"Graph with GUID {guid} already exists.")
 
-    def create_node(self, guid: str, jstr: str) -> None:
-
-        if guid not in self.graph_db:
-            logging.warning(f"Graph with GUID {guid} does not exist. Creating it.")
-            return
-
-        try:
-            _data = json.loads(jstr)
-        except json.JSONDecodeError as e:
-            logging.warning(f"Invalid JSON for node creation: {e}")
-            return
+    @guid_validator
+    @json_parser
+    def create_node(self, guid: str, jstr: str, data: dict) -> None:
 
         _nuid = uuid.uuid4().hex
         _node = Node(
             uid=_nuid,
-            meta=_data,
+            meta=data,
         )
 
         # Store node reference and emit signal
@@ -96,26 +128,13 @@ class GraphManager:
         # Log after emitting signal
         logging.info(f"Created node with UID {_nuid}")
 
-    def create_edge(self, guid: str, jstr: str) -> None:
-
-        if guid not in self.graph_db:
-            logging.warning(f"Graph with GUID {guid} does not exist.")
-            return
-
-        # Parse the JSON payload
-        try:
-            _data = json.loads(jstr)
-        except json.JSONDecodeError as e:
-            logging.warning(f"Invalid JSON for edge creation: {e}")
-            return
+    @guid_validator
+    @json_parser
+    def create_edge(self, guid: str, jstr: str, data: dict) -> None:
 
         # Check if keys exist and are connected
-        source_uid = _data.get("source_uid", "")
-        target_uid = _data.get("target_uid", "")
-
-        if not source_uid or not target_uid:
-            logging.warning(f"Missing source or target UID: {source_uid} {target_uid}")
-            return
+        source_uid = data["source_uid"]  # KeyError raised if source_uid not found
+        target_uid = data["target_uid"]  # KeyError raised if target_uid not found
 
         if source_uid == target_uid:
             logging.warning(f"Source and target UIDs are the same: {source_uid}")
@@ -131,7 +150,6 @@ class GraphManager:
             uid=_euid,
             source_uid=source_uid,
             target_uid=target_uid,
-            properties=_data.get("properties", {}),
         )
 
         # Store reference and update dictionaries
@@ -144,17 +162,15 @@ class GraphManager:
         # Log after emitting signal
         logging.info(f"Created edge with UID {_euid}")
 
+    @guid_validator
     def send_node_data(self, guid: str, nuid: str) -> None:
-
-        if guid not in self.graph_db:
-            logging.warning(f"Graph with GUID {guid} does not exist.")
-            return
 
         _node = self.graph_db[guid].nodes.get(nuid)
         _json = json.dumps(_node.to_dict()) if _node else None
 
         self.signal_bus.ui.publish_node_data.emit(nuid, _json)
 
+    @guid_validator
     def send_edge_data(self, guid: str, euid: str) -> None:
         pass
 

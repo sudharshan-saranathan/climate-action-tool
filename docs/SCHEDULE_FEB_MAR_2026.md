@@ -22,8 +22,8 @@
 - [x] Basic graph operations (add/remove nodes/edges)
 
 ### Wed Feb 11 — Graph Controller Refinement
-- [ ] Review and refactor GraphCtrl signal architecture
-- [ ] Ensure clean separation: GraphInstructions (backend) vs SceneInstructions (frontend)
+- [x] Review and refactor GraphCtrl signal architecture
+- [x] Ensure clean separation: GraphInstructions (backend) vs SceneInstructions (frontend)
 - [ ] Document signal flow in core/graph/
 - [ ] Write unit tests for graph operations
 
@@ -56,32 +56,32 @@
 **Focus: Stream/flow system for edges**
 
 ### Mon Feb 16 — Stream Architecture Review
-- [ ] Review existing core.flow/ module
-- [ ] Understand Item, Mass, Energy, Credit base classes
-- [ ] Review Fuel, Material, Electricity, Product combo classes
+- [x] Review existing core.flow/ module
+- [x] Understand Item, Mass, Energy, Credit base classes
+- [x] Review Fuel, Material, Electricity, Product combo classes
 - [ ] Document current architecture in core/flow/
 
 ### Tue Feb 17 — Stream Data Model
-- [ ] Define Stream class (data flowing through edges)
-- [ ] Link Stream to Edge objects
-- [ ] Implement ResourceDictionary usage
-- [ ] Implement ParameterDictionary usage
+- [x] Define Stream class (data flowing through edges)
+- [x] Link Stream to Edge objects
+- [x] Implement ResourceDictionary usage
+- [x] Implement ParameterDictionary usage
 - [ ] Write basic tests for stream creation
 
 ### Wed Feb 18 — Stream Calculations
-- [ ] Implement flow calculations (input → output)
-- [ ] Add unit conversion utilities
+- [x] Implement flow calculations (input → output)
+- [x] Add unit conversion utilities
 - [ ] Add validation for stream data (no negative mass/energy)
 - [ ] Test: create stream, modify values, verify calculations
 
 ### Thu Feb 19 — Stream Persistence
-- [ ] Implement stream serialization (to dict/JSON)
-- [ ] Implement stream deserialization (from dict/JSON)
+- [x] Implement stream serialization (to dict/JSON)
+- [x] Implement stream deserialization (from dict/JSON)
 - [ ] Add versioning for backward compatibility
 - [ ] Test: save → load → verify identical stream data
 
 ### Fri Feb 20 — Stream-Graph Integration
-- [ ] Connect streams to graph edges
+- [x] Connect streams to graph edges
 - [ ] When edge created → attach empty stream
 - [ ] When edge deleted → clean up stream
 - [ ] Propagate stream changes through connected nodes
@@ -215,13 +215,13 @@
 By Mar 8, you should have:
 
 **Backend (Weeks 1-2):**
-- [  ] core.graph complete with clean signal architecture
-- [  ] Graph validation and constraints
-- [  ] Action system (undo/redo) stable and tested
-- [  ] core.streams complete with calculation engine
-- [  ] Stream persistence (serialization/deserialization)
-- [  ] Stream-graph integration working
-- [  ] Comprehensive tests for core.graph and core.streams
+- [x] core.graph complete with clean signal architecture
+- [ ] Graph validation and constraints
+- [ ] Action system (undo/redo) stable and tested
+- [x] core.streams complete with calculation engine
+- [x] Stream persistence (serialization/deserialization)
+- [~] Stream-graph integration working (partially complete)
+- [ ] Comprehensive tests for core.graph and core.streams
 
 **Frontend (Weeks 3-4):**
 - [  ] Data loader for plant data (Excel/SQLite)

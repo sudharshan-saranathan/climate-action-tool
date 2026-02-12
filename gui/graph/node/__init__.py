@@ -163,14 +163,6 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
         self._signal_bus.ui.publish_node_data.connect(self._on_publish_node_data)
 
-    @QtCore.Slot(str, str, str)
-    def _on_publish_node_data(self, nuid: str, jstr: str) -> None:
-
-        if nuid != self._uid:
-            return
-
-        logging.info(f"Received data for node {nuid}: {jstr}")
-
     # Section: Reimplementation
     # -------------------------
 
@@ -264,7 +256,17 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             )
 
         else:
-            logging.warning(f"Canvas UID not found for node {self.uid}")
+            logging.warning(f"Canvas UID not found for node!")
+
+    # Callback(s)
+
+    @QtCore.Slot(str, str, str)
+    def _on_publish_node_data(self, nuid: str, jstr: str) -> None:
+
+        if nuid != self._uid:
+            return
+
+        logging.info(f"Received data for node:\n{jstr}")
 
     # Section: Public methods
     # -----------------------
