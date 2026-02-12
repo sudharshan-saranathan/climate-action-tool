@@ -29,6 +29,9 @@ class ClimateActionTool(QtWidgets.QApplication):
     Main application class to manage app lifecycle and UI components.
     """
 
+    # Class logger
+    _logger = logging.getLogger("ClimateActionTool")
+
     # Flags
     backend_flag: bool = True
     startup_flag: bool = True

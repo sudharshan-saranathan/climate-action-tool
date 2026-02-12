@@ -41,6 +41,7 @@ class Canvas(QtWidgets.QGraphicsScene):
     """
 
     # Class-level clipboard for cross-canvas copy-paste
+    _logger = logging.getLogger("Canvas")
     representations: typing.ClassVar[dict[str, type]] = {
         "NodeRepr": NodeRepr,
         "EdgeRepr": EdgeRepr,
@@ -207,6 +208,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         bus.ui.delete_node_repr.connect(self.delete_node_repr)
         bus.ui.create_edge_repr.connect(self.create_edge_repr)
         bus.ui.delete_edge_repr.connect(self.delete_edge_repr)
+        bus.ui.notify.connect(self._on_notification_received)
 
         # Create a graph instance for this canvas
         bus.data.create_graph.emit(self._uid)
@@ -284,7 +286,7 @@ class Canvas(QtWidgets.QGraphicsScene):
                     instance.connect(method, QtCore.Qt.ConnectionType.QueuedConnection)
 
         else:
-            logging.warning(f"Item {item} has no signals defined.")
+            self._logger.warning(f"Item {item} has no signals defined.")
 
     @QtCore.Slot()
     def _raise_create_node_request(self) -> None:
@@ -333,6 +335,21 @@ class Canvas(QtWidgets.QGraphicsScene):
             return
 
         self._preview_on(item)
+
+    @QtCore.Slot(str, str)
+    def _on_notification_received(self, cuid: str, message: str) -> None:
+
+        if self._uid != cuid:
+            return
+
+        self._logger.info(f"Received notification: {message}")
+        QtWidgets.QMessageBox(
+            QtWidgets.QMessageBox.Icon.Information,
+            "Notification",
+            message,
+            QtWidgets.QMessageBox.StandardButton.Ok,
+            parent=None,
+        ).exec()
 
     # Public methods
     # --------------

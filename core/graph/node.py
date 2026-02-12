@@ -80,3 +80,19 @@ class Node:
                 tech_name: tech.to_dict() for tech_name, tech in self.tech.items()
             },
         }
+
+    def produced(self) -> set[str]:
+
+        return set(
+            stream_name
+            for tech in self.tech.values()
+            for stream_name in tech.produced.keys()
+        )
+
+    def consumed(self) -> set[str]:
+
+        return set(
+            stream_name
+            for tech in self.tech.values()
+            for stream_name in tech.consumed.keys()
+        )

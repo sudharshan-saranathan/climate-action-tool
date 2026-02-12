@@ -24,6 +24,9 @@ ItemState = QtWidgets.QStyle.StateFlag
 
 class NodeRepr(QtWidgets.QGraphicsObject):
 
+    # Class logger
+    _logger = logging.getLogger("NodeRepr")
+
     # Signals:
     activate_preview = QtCore.Signal(QtWidgets.QGraphicsObject)
     item_shifted = QtCore.Signal(QtWidgets.QGraphicsObject)
@@ -256,7 +259,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             )
 
         else:
-            logging.warning(f"Canvas UID not found for node!")
+            self._logger.warning(f"Canvas UID not found for node!")
 
     # Callback(s)
 
@@ -266,7 +269,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         if nuid != self._uid:
             return
 
-        logging.info(f"Received data for node:\n{jstr}")
+        self._logger.info(f"Received data for node:\n{jstr}")
 
     # Section: Public methods
     # -----------------------

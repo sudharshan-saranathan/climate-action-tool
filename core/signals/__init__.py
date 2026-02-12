@@ -17,17 +17,15 @@ from dataclasses import dataclass
 class Signal:
     """A pure Python implementation of a Signal."""
 
+    _logger = logging.getLogger("Signal")
+
     def __init__(self, *types):
         self._types = types
         self._listeners = dict()
 
     def connect(self, listener):
 
-        if hasattr(listener, "uid"):
-            uid = listener.uid
-        else:
-            uid = uuid.uuid4().hex
-
+        uid = listener.uid if hasattr(listener, "uid") else uuid.uuid4().hex
         self._listeners[uid] = listener
 
     def emit(self, *args, **kwargs):
@@ -41,9 +39,9 @@ class Signal:
 
                 import traceback
 
-                logging.error(f"Error in signal listener: {e}")
-                logging.debug(f"Listener: {listener}")
-                logging.debug(f"Args: {args}")
+                self._logger.error(f"Error in signal listener: {e}")
+                self._logger.debug(f"Listener: {listener}")
+                self._logger.debug(f"Args: {args}")
                 traceback.print_exc()
 
     @staticmethod
@@ -55,6 +53,7 @@ class SignalBus:
     """Session management for the application (Singleton)."""
 
     _instance = None
+    _logger = logging.getLogger("SignalBus")
 
     @dataclass
     class Graph:
@@ -79,6 +78,8 @@ class SignalBus:
         delete_edge_repr: Signal = Signal.factory(str, str)  # guid, euid
         publish_node_data: Signal = Signal.factory(str, str)  # nuid, payload
         publish_edge_data: Signal = Signal.factory(str, str)  # euid, payload
+
+        notify: Signal = Signal.factory(str, str)  # guid, nuid/euid
 
     def __new__(cls):
 
@@ -149,7 +150,7 @@ class SignalBus:
 
         signal = self._signal_dictionary.get(command, None)
         if signal is None:
-            logging.warning(f"Invalid request type: {command}")
+            self._logger.warning(f"Invalid request type: {command}")
             return
 
         signal.emit(*args)
