@@ -77,11 +77,93 @@ from core.streams.physical import (
     CostPerVolume,
 )
 
+# Composite resources
+from core.streams.composite import Material, Electricity, FossilFuel
+
+# Class registry for deserialization
+CLASS_REGISTRY = {
+    # Base
+    "ResourceStream": ResourceStream,
+    # Fundamental
+    "Mass": Mass,
+    "Length": Length,
+    "Time": Time,
+    "Temperature": Temperature,
+    "ElectricCurrent": ElectricCurrent,
+    "LuminousIntensity": LuminousIntensity,
+    "AmountOfSubstance": AmountOfSubstance,
+    # Derived - Mechanical
+    "Area": Area,
+    "Volume": Volume,
+    "Velocity": Velocity,
+    "Acceleration": Acceleration,
+    "Force": Force,
+    "Pressure": Pressure,
+    "Energy": Energy,
+    "Power": Power,
+    "Momentum": Momentum,
+    "AngularVelocity": AngularVelocity,
+    "SpecificVolume": SpecificVolume,
+    "SurfaceTension": SurfaceTension,
+    # Derived - Thermodynamic
+    "Entropy": Entropy,
+    "SpecificHeatCapacity": SpecificHeatCapacity,
+    "SpecificEnergy": SpecificEnergy,
+    "ChemicalPotential": ChemicalPotential,
+    "MolarEntropy": MolarEntropy,
+    "ThermalConductivity": ThermalConductivity,
+    "HeatTransferCoefficient": HeatTransferCoefficient,
+    "HeatFlux": HeatFlux,
+    "ThermalResistance": ThermalResistance,
+    "ThermalExpansionCoefficient": ThermalExpansionCoefficient,
+    # Derived - Fluid Mechanics
+    "DynamicViscosity": DynamicViscosity,
+    # Derived - Radiation
+    "Emissivity": Emissivity,
+    "Absorptivity": Absorptivity,
+    "Reflectivity": Reflectivity,
+    "Transmittance": Transmittance,
+    # Derived - Electromagnetic
+    "ElectricCharge": ElectricCharge,
+    "Voltage": Voltage,
+    "Resistance": Resistance,
+    "Capacitance": Capacitance,
+    "MagneticFlux": MagneticFlux,
+    "MagneticFluxDensity": MagneticFluxDensity,
+    "Inductance": Inductance,
+    "ElectricalConductivity": ElectricalConductivity,
+    "Resistivity": Resistivity,
+    # Derived - Chemical & Material
+    "Diffusivity": Diffusivity,
+    "CatalyticActivity": CatalyticActivity,
+    # Derived - Transport & Flow
+    "Frequency": Frequency,
+    "Density": Density,
+    "MolarMass": MolarMass,
+    "Concentration": Concentration,
+    "VolumetricFlowRate": VolumetricFlowRate,
+    "MassFlowRate": MassFlowRate,
+    "PowerDensity": PowerDensity,
+    "SpecificPower": SpecificPower,
+    "CarbonIntensity": CarbonIntensity,
+    # Derived - Economic
+    "Currency": Currency,
+    "CostPerEnergy": CostPerEnergy,
+    "CostPerMass": CostPerMass,
+    "CostPerPower": CostPerPower,
+    "CostPerVolume": CostPerVolume,
+    # Composite
+    "Material": Material,
+    "Electricity": Electricity,
+    "FossilFuel": FossilFuel,
+}
+
 
 __all__ = [
     # Base
     "ResourceStream",
     "ureg",
+    "CLASS_REGISTRY",
     # Fundamental
     "Mass",
     "Length",

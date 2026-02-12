@@ -20,11 +20,12 @@ ureg.define("INR = [currency]")
 
 class ResourceStream:
     _label: str = "Generic Stream"
-    _registry: dict = {}
+    _registry: dict = {}  # Dimensionality-based registry for arithmetic operations
 
     def __init_subclass__(cls, **kwargs):
 
         super().__init_subclass__(**kwargs)
+        # Register by dimensionality for arithmetic operations
         if hasattr(cls, "_canonical"):
             dims = ureg.parse_units(cls._canonical).dimensionality
             ResourceStream._registry[dims] = cls
@@ -105,7 +106,11 @@ class ResourceStream:
 
         result = {
             "type": self.__class__.__name__,
-            "value": self.value.tolist() if isinstance(self.value, np.ndarray) else self.value,
+            "value": (
+                self.value.tolist()
+                if isinstance(self.value, np.ndarray)
+                else self.value
+            ),
             "units": str(self.units),
         }
 
@@ -117,3 +122,44 @@ class ResourceStream:
 
     def dimensionality(self) -> "ureg.Dimensionality":
         return self._q.dimensionality
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ResourceStream":
+        """Factory method to reconstruct ResourceStream from the given dictionary.
+
+        Uses the 'type' field to instantiate the correct subclass and
+        recursively deserialize nested ResourceStream objects.
+        """
+
+        # Import CLASS_REGISTRY from core.streams
+        from core.streams import CLASS_REGISTRY
+
+        # Get the target class from CLASS_REGISTRY
+        class_name = data.get("type", "ResourceStream")
+        target_class = CLASS_REGISTRY.get(class_name, cls)
+
+        # Extract main attributes and convert lists to np.ndarray
+        value = data.get("value", 0)
+        if isinstance(value, list):
+            value = np.array(value)
+        units = data.get("units", "")
+
+        # Build kwargs by flattening nested ResourceStreams
+        kwargs = {}
+        for key, val in data.items():
+            if key in ("type", "value", "units", "_q"):
+                continue
+            # Check if this is a nested ResourceStream dict
+            if isinstance(val, dict) and "type" in val:
+                # Extract the nested stream's value and units directly as kwargs
+                nested_value = val.get("value", 0)
+                if isinstance(nested_value, list):
+                    nested_value = np.array(nested_value)
+                nested_units = val.get("units", "")
+                kwargs[key] = nested_value
+                kwargs[f"{key}_units"] = nested_units
+            else:
+                kwargs[key] = val
+
+        # Instantiate the correct class
+        return target_class(value, units, **kwargs)

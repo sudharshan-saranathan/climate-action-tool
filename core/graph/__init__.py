@@ -119,8 +119,8 @@ class GraphManager:
         source_node = graph.nodes.get(source_uid)
         target_node = graph.nodes.get(target_uid)
 
-        source_produced = source_node.produced()
-        target_consumed = target_node.consumed()
+        source_produced = source_node.get_produced()
+        target_consumed = target_node.get_consumed()
 
         if not source_produced.intersection(target_consumed):
             self._logger.warning(

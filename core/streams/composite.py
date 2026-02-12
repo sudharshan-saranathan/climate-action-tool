@@ -40,9 +40,9 @@ class Electricity(Power):
     ):
         super().__init__(data, units)
 
-        self.cost = CostPerEnergy(
+        self.tariff = CostPerEnergy(
             kwargs.get("cost", 0.0),
-            kwargs.get("cost_units", "INR/watt*hour"),
+            kwargs.get("cost_units", "INR/joule"),
         )
 
 
