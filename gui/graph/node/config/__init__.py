@@ -14,15 +14,13 @@ from gui.graph.node.config.tree import StreamTree
 
 from core.streams import (
     CLASS_REGISTRY,
-    MassFlowRate,
-    VolumetricFlowRate,
-    EnergyFlowRate,
-    MassFlux,
-    EnergyFlux,
+    Electricity,
+    Material,
+    Fuel,
 )
 
 # Flow types for input/output streams (quantities that enter/exit a node)
-_FLOW_CLASSES = [MassFlowRate, VolumetricFlowRate, EnergyFlowRate, MassFlux, EnergyFlux]
+_FLOW_CLASSES = [Electricity, Material, Fuel]
 _FLOW_NAMES = {cls.__name__ for cls in _FLOW_CLASSES}
 
 # Parameter types: everything except flows

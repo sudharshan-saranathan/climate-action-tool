@@ -63,31 +63,6 @@ class StreamTree(QtWidgets.QTreeWidget):
 
             self.setItemWidget(item, 3, toolbar)
 
-    # Override keyPressEvent to handle tab navigation
-    def keyPressEvent(self, event):
-
-        column_count = self.columnCount()
-
-        if event.key() in (QtCore.Qt.Key.Key_Tab, QtCore.Qt.Key.Key_Backtab):
-
-            if item := self.currentItem():
-                col = self.currentColumn()
-                new_col = (
-                    (col + 1) % column_count
-                    if event.key() == QtCore.Qt.Key.Key_Tab
-                    else (col - 1) % 4
-                )
-                if new_col != 3:  # Skip toolbar column
-                    self.setCurrentItem(item, new_col)
-                    if (
-                        self.editTriggers()
-                        & QtWidgets.QAbstractItemView.EditTrigger.AnyKeyPressed
-                    ):
-                        self.editItem(item, new_col)
-                event.accept()
-            return
-        super().keyPressEvent(event)
-
     @QtCore.Slot()
     def create_row(self, root=None, name="", value="", units=""):
 

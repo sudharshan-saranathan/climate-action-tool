@@ -253,7 +253,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
-        # Create dialog first (must exist before populate fires via signal)
+        # Create a configuration dialog first (must exist before populate fires via signal)
         from gui.graph.node.config import NodeConfig
 
         if self._config_dialog is None:
@@ -287,6 +287,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
         if self._config_dialog is not None and jstr:
             import json
+
             data = json.loads(jstr)
             self._config_dialog.populate(data)
 

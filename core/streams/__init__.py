@@ -78,7 +78,7 @@ from core.streams.physical import (
 )
 
 # Composite resources
-from core.streams.composite import Material, Electricity, FossilFuel
+from core.streams.composite import Material, Electricity, Fuel
 
 # Class registry for deserialization
 CLASS_REGISTRY = {
@@ -155,7 +155,7 @@ CLASS_REGISTRY = {
     # Composite
     "Material": Material,
     "Electricity": Electricity,
-    "FossilFuel": FossilFuel,
+    "Fuel": Fuel,
 }
 
 
@@ -232,4 +232,7 @@ __all__ = [
     "CostPerMass",
     "CostPerPower",
     "CostPerVolume",
+    "Material",
+    "Electricity",
+    "Fuel",
 ]
