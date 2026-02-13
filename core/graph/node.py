@@ -16,13 +16,13 @@ from dataclasses import field
 from dataclasses import dataclass
 
 # core.streams
-from core.streams.quantity import ResourceStream
+from core.streams.quantity import Quantity
 
 
 @dataclass
 class Technology:
-    consumed: dict[str, ResourceStream] = field(default_factory=dict)
-    produced: dict[str, ResourceStream] = field(default_factory=dict)
+    consumed: dict[str, Quantity] = field(default_factory=dict)
+    produced: dict[str, Quantity] = field(default_factory=dict)
     expenses: SimpleNamespace = field(
         default_factory=lambda: SimpleNamespace(
             capital=0,
@@ -30,7 +30,7 @@ class Technology:
         )
     )
 
-    params: dict[str, ResourceStream] = field(default_factory=dict)
+    params: dict[str, Quantity] = field(default_factory=dict)
     equations: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -55,11 +55,11 @@ class Technology:
 
         return cls(
             consumed={
-                name: ResourceStream.from_dict(stream_data)
+                name: Quantity.from_dict(stream_data)
                 for name, stream_data in data.get("consumed", {}).items()
             },
             produced={
-                name: ResourceStream.from_dict(stream_data)
+                name: Quantity.from_dict(stream_data)
                 for name, stream_data in data.get("produced", {}).items()
             },
             expenses=SimpleNamespace(
@@ -67,7 +67,7 @@ class Technology:
                 operating=data.get("expenses", {}).get("operating", 0),
             ),
             params={
-                name: ResourceStream.from_dict(stream_data)
+                name: Quantity.from_dict(stream_data)
                 for name, stream_data in data.get("params", {}).items()
             },
             equations=data.get("equations", []),

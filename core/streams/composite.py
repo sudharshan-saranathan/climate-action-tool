@@ -12,16 +12,23 @@ import numpy as np
 from core.streams import *
 
 
-class Material(Mass):
-    _label = "Raw Material"
+class Material:
+    _label = "Material"
+    _keywords_alias = ["material", "materials", "raw_material", "raw_materials"]
 
     def __init__(
         self,
-        data: typing.Union[int, float, np.ndarray],
-        units: str = "kilogram",
         **kwargs,
     ):
-        super().__init__(data, units)
+
+        for key, value in kwargs.items():
+            if key in CLASS_REGISTRY:
+                setattr(self, key, CLASS_REGISTRY[key](value))
+
+        self.mass = MassFlowRate(
+            kwargs.get("mass", 0.0),
+            kwargs.get("mass_units", "kilogram/second"),
+        )
 
         self.cost = CostPerMass(
             kwargs.get("cost", 0.0),
@@ -67,17 +74,17 @@ class FossilFuel(Mass):
             kwargs.get("energy_content_units", "joule/kilogram"),
         )
 
-        self.carbon_fraction = ResourceStream(
+        self.carbon_fraction = Quantity(
             kwargs.get("carbon_fraction", 0.0),
             kwargs.get("carbon_fraction_units", "dimensionless"),
         )
 
-        self.sulfur_fraction = ResourceStream(
+        self.sulfur_fraction = Quantity(
             kwargs.get("sulfur_fraction", 0.0),
             kwargs.get("sulfur_fraction_units", "dimensionless"),
         )
 
-        self.nitrogen_fraction = ResourceStream(
+        self.nitrogen_fraction = Quantity(
             kwargs.get("nitrogen_fraction", 0.0),
             kwargs.get("nitrogen_fraction_units", "dimensionless"),
         )

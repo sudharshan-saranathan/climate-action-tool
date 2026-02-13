@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 # Base class and registry
-from core.streams.quantity import ResourceStream, ureg
+from core.streams.quantity import Quantity, ureg
 
 # SI base units
 from core.streams.physical import (
@@ -26,7 +26,6 @@ from core.streams.physical import (
     EnergyFlowRate,
     Momentum,
     AngularVelocity,
-    SpecificVolume,
     SurfaceTension,
     # Thermodynamic
     Entropy,
@@ -84,7 +83,7 @@ from core.streams.composite import Material, Electricity, FossilFuel
 # Class registry for deserialization
 CLASS_REGISTRY = {
     # Base
-    "ResourceStream": ResourceStream,
+    "Quantity": Quantity,
     # Fundamental
     "Mass": Mass,
     "Length": Length,
@@ -104,7 +103,6 @@ CLASS_REGISTRY = {
     "EnergyFlowRate": EnergyFlowRate,
     "Momentum": Momentum,
     "AngularVelocity": AngularVelocity,
-    "SpecificVolume": SpecificVolume,
     "SurfaceTension": SurfaceTension,
     # Derived - Thermodynamic
     "Entropy": Entropy,
@@ -163,7 +161,7 @@ CLASS_REGISTRY = {
 
 __all__ = [
     # Base
-    "ResourceStream",
+    "Quantity",
     "ureg",
     "CLASS_REGISTRY",
     # Fundamental
@@ -185,7 +183,6 @@ __all__ = [
     "EnergyFlowRate",
     "Momentum",
     "AngularVelocity",
-    "SpecificVolume",
     "SurfaceTension",
     # Derived - Thermodynamic
     "Entropy",

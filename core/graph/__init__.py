@@ -132,17 +132,18 @@ class GraphManager:
         else:
             return True
 
-    def create_graph(self, guid: str) -> None:
+    def create_graph(self, guid: str) -> GraphManager.Graph | None:
 
         if guid in self.graph_db:
             self._logger.warning(f"Graph with GUID {guid} already exists.")
-            return
+            return None
 
         self.graph_db[guid] = GraphManager.Graph()
+        return self.graph_db[guid]
 
     @guid_validator
     @json_parser
-    def create_node(self, guid: str, jstr: str, data: dict) -> None:
+    def create_node(self, guid: str, jstr: str, data: dict) -> str:
 
         _nuid = uuid.uuid4().hex
         _node = Node(
@@ -159,9 +160,11 @@ class GraphManager:
         # Log after emitting signal
         self._logger.info(f"Created node with UID {_nuid}")
 
+        return _nuid
+
     @guid_validator
     @json_parser
-    def create_edge(self, guid: str, jstr: str, data: dict) -> None:
+    def create_edge(self, guid: str, jstr: str, data: dict) -> str:
 
         # Check if keys exist and are connected
         suid = data["source_uid"]  # KeyError raised if source_uid not found
@@ -173,7 +176,7 @@ class GraphManager:
 
         if (suid, tuid) in self.graph_db[guid].conns:
             self._logger.warning(f"Connection already exists!")
-            return
+            return ""
 
         # Check if the source and target nodes have common streams. That is, there must be at least one output
         # stream in the source node that matches with an input stream in the target node
@@ -184,7 +187,7 @@ class GraphManager:
                 "ERROR: At least one matching stream required between source and target.\n"
                 "Reconfigure the nodes and try again.",
             )
-            return
+            return ""
 
         # Create a new edge instance
         _euid = uuid.uuid4().hex
@@ -203,6 +206,8 @@ class GraphManager:
 
         # Log after emitting signal
         self._logger.info(f"Created edge with UID {_euid}")
+
+        return _euid
 
     @guid_validator
     def send_node_data(self, guid: str, nuid: str) -> None:

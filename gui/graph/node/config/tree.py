@@ -27,14 +27,12 @@ class StreamTree(QtWidgets.QTreeWidget):
         self.setHeaderLabels(["Stream", "Value", "Units", ""])
         self.setStyleSheet("QTreeWidget::item { height: 20px; }")
         self.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
-        self.setColumnWidth(3, 20)
 
         # Customize header
         header = self.header()
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeMode.Fixed)
+        header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.setColumnWidth(0, 320)
+        self.setColumnWidth(3, 20)
 
         # Add the flow classes as top-level items
         self._init_top_level_items(_stream_list)
@@ -104,6 +102,7 @@ class StreamTree(QtWidgets.QTreeWidget):
                 root = root.parent()
 
         item = QtWidgets.QTreeWidgetItem([name or "New Stream", str(value), str(units)])
+        item.setIcon(0, qta.icon("mdi.minus", color="gray"))
         item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable)
         root.addChild(item)
 

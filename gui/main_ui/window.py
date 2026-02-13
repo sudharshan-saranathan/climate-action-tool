@@ -188,8 +188,8 @@ class MainWindow(QtWidgets.QMainWindow):
         lower_title = QtWidgets.QFrame()
         upper_title = QtWidgets.QLabel(
             """
-        <span style='font-family: Bitcount; font-size: 20pt'>Clim</span>
-        <span style='font-family: Bitcount; font-size: 20pt; color: darkcyan'>Act</span>
+        <span style='font-family: Bitcount; font-size: 30pt'>Clim</span>
+        <span style='font-family: Bitcount; font-size: 30pt; color: darkcyan'>Act</span>
         """,
             alignment=QtCore.Qt.AlignmentFlag.AlignCenter,
         )

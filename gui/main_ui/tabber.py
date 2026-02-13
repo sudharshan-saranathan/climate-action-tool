@@ -240,7 +240,7 @@ class TabWidget(QtWidgets.QTabWidget):
 
         indx = self.currentIndex()
         rect = self.tabBar().tabRect(indx)
-        rect = rect.adjusted(0, 12, -4, 4)
+        rect = rect.adjusted(0, 12, -4, 8)
 
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)

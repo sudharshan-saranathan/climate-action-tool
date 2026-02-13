@@ -123,12 +123,10 @@ class NodeConfig(QtWidgets.QDialog):
         par_tree = StreamTree(_PARAM_CLASSES, self)
 
         tab = QtWidgets.QTabWidget(self)
-        tab.addTab(inp_tree, icon("mdi.arrow-down-bold", color="gray"), "Consumed")
-        tab.addTab(out_tree, icon("mdi.arrow-up-bold", color="gray"), "Produced")
-        tab.addTab(par_tree, icon("mdi.alpha", color="magenta"), "Parameters")
-        tab.addTab(
-            QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Constraints"
-        )
+        tab.addTab(inp_tree, icon("mdi.arrow-down-bold", color="gray"), "In")
+        tab.addTab(out_tree, icon("mdi.arrow-up-bold", color="gray"), "Out")
+        tab.addTab(par_tree, icon("mdi.alpha", color="magenta"), "Params")
+        tab.addTab(QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Rules")
 
         # Corner widget: search filter
         search = QtWidgets.QLineEdit(placeholderText="Filter...")

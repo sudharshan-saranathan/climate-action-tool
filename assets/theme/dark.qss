@@ -244,14 +244,14 @@ QTabWidget::tab-bar {                                      /* Tab bar style */
 }
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
-    height                      : 24px;
+    height                      : 28px;
     color                       : white;
-    width                       : 80px;
+    width                       : 60px;
     background                  : transparent;
     border-radius               : 4px;
     border                      : none;
     padding                     : 0px 16px 0px 8px;
-    margin                      : 4px 4px 4px 0px;
+    margin                      : 2px 4px 2px 0px;
     left                        : 0px;
 }
 
@@ -292,7 +292,7 @@ QTabBar::close-button:hover {
 QToolBar {                                      /* Navigation bar style */
     background                  : transparent;
     border                      : none;
-    margin                      : 1px;
+    margin                      : 2px;
     padding                     : 0px;
 }
 
@@ -543,11 +543,10 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-li
 
 QComboBox {
     color                           : white;
-    height                          : 28px;
+    height                          : 24px;
     border-radius                   : 4px;
-    background                      : #4a556d;
-    padding                         : 0px 4px 0px 4px;
-    margin                          : 1px 0px 1px 0px;
+    background                      : #363e41;
+    padding                         : 0px 2px 0px 4px;
 }
 
 QComboBox::drop-down {
@@ -561,6 +560,18 @@ QComboBox::down-arrow {
     width                           : 16px;
     image                           : url(assets/icons/pack-png/caret-down.png);
     margin-right                    : 4px;
+}
+
+QComboBox QAbstractItemView {
+    background                      : #393e41;
+    color                           : white;
+    border-radius                   : 0px;
+    selection-background-color      : #4a556d;
+}
+
+QComboBox QAbstractItemView::item {
+    width                           : 80px;
+    padding                         : 2px;
 }
 
 /*
@@ -582,7 +593,6 @@ QInputDialog QLabel {
 QInputDialog QLineEdit {
     background                  : transparent;
     color                       : white;
-    padding                     : 0px;
     border-radius               : 4px;
 }
 
@@ -608,15 +618,8 @@ QLineEdit {
     background                  : #40474d;
     height                      : 24px;
     color                       : white;
-    padding                     : 1px;
+    padding-left                : 2px;
     border-radius               : 4px;
-}
-
-QLineEdit:focus {
-    padding-bottom              : 0px;
-    border-bottom               : 2px solid #ffcb00;
-    border-bottom-left-radius   : 0px;
-    border-bottom-right-radius  : 0px;
 }
 
 /*
