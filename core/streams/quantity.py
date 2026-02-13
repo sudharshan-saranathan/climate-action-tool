@@ -31,9 +31,9 @@ class Quantity:
         super().__init_subclass__(**kwargs)
 
         # Register by dimensionality for arithmetic operations
-        # Only register classes that explicitly declare _canonical (not inherited)
-        if "_canonical" in cls.__dict__:
-            dims = ureg.parse_units(cls._canonical).dimensionality
+        # Only register classes that explicitly declare canonical (not inherited)
+        if "canonical" in cls.__dict__:
+            dims = ureg.parse_units(cls.canonical).dimensionality
             Quantity.registry[dims] = cls
 
     def __init__(
@@ -49,11 +49,11 @@ class Quantity:
 
     def _validate_units(self, units: str) -> None:
 
-        if hasattr(self, "_canonical"):
-            dims = ureg.parse_units(self._canonical).dimensionality
+        if hasattr(self, "canonical"):
+            dims = ureg.parse_units(self.canonical).dimensionality
             if ureg.parse_units(units).dimensionality != dims:
                 raise ValueError(
-                    f"Units {units} are not compatible with {self._canonical} "
+                    f"Units {units} are not compatible with {self.canonical} "
                     f"(expected {dims})"
                 )
 
