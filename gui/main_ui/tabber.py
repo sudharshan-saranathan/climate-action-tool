@@ -12,6 +12,9 @@ Shortcuts: Ctrl+T (new tab), Ctrl+W (close tab), Ctrl+Left/Right (navigate), Ctr
 import dataclasses
 from qtawesome import icon as qta_icon
 from PySide6 import QtGui, QtCore, QtWidgets
+
+# core.widgets
+from gui.widgets.field import Field
 from gui.widgets.toolbar import ToolBar
 
 
@@ -191,7 +194,7 @@ class TabWidget(QtWidgets.QTabWidget):
         )
 
         toolbar.addWidget(
-            finder := QtWidgets.QLineEdit(
+            finder := Field(
                 parent=toolbar,
                 placeholderText="Find",
                 clearButtonEnabled=True,
@@ -219,12 +222,10 @@ class TabWidget(QtWidgets.QTabWidget):
     def _find(self) -> None:
 
         # Required:
-        from core.bus import EventsBus
         from gui.widgets.viewer import Viewer
 
-        bus = EventsBus.instance()
         toolbar = self.cornerWidget()
-        finder = toolbar.findChild(QtWidgets.QLineEdit, "Search-Input")
+        finder = toolbar.findChild(Field, "finder")
         string = finder.text() if finder else ""
 
         viewer = self.currentWidget()
@@ -232,11 +233,6 @@ class TabWidget(QtWidgets.QTabWidget):
 
             canvas = viewer.scene()
             canvas.clearSelection()
-
-            if hasattr(canvas, "find_item"):
-                if item := canvas.find_item(string):
-                    bus.sig_item_focused.emit(item)
-                    item.setSelected(True)
 
         finder.clear()
 
