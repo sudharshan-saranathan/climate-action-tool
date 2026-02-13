@@ -22,7 +22,7 @@ __all__ = [
     "Force",
     "Pressure",
     "Energy",
-    "Power",
+    "EnergyFlowRate",
     "Momentum",
     "AngularVelocity",
     "SpecificVolume",
@@ -35,7 +35,6 @@ __all__ = [
     "MolarEntropy",
     "ThermalConductivity",
     "HeatTransferCoefficient",
-    "HeatFlux",
     "ThermalResistance",
     "ThermalExpansionCoefficient",
     # Fluid Mechanics
@@ -65,6 +64,8 @@ __all__ = [
     "Concentration",
     "VolumetricFlowRate",
     "MassFlowRate",
+    "MassFlux",
+    "EnergyFlux",
     "PowerDensity",
     "SpecificPower",
     "CarbonIntensity",
@@ -157,9 +158,9 @@ class Energy(ResourceStream):
     _label = "Energy"
 
 
-class Power(ResourceStream):
+class EnergyFlowRate(ResourceStream):
     _canonical = "watt"
-    _label = "Power"
+    _label = "Energy Flow Rate"
 
 
 class Momentum(ResourceStream):
@@ -220,11 +221,6 @@ class ThermalConductivity(ResourceStream):
 class HeatTransferCoefficient(ResourceStream):
     _canonical = "watt/(meter**2*kelvin)"
     _label = "Heat Transfer Coefficient"
-
-
-class HeatFlux(ResourceStream):
-    _canonical = "watt/meter**2"
-    _label = "Heat Flux"
 
 
 class ThermalResistance(ResourceStream):
@@ -370,6 +366,16 @@ class VolumetricFlowRate(ResourceStream):
 class MassFlowRate(ResourceStream):
     _canonical = "kilogram/second"
     _label = "Mass Flow Rate"
+
+
+class MassFlux(ResourceStream):
+    _canonical = "kilogram/(meter**2*second)"
+    _label = "Mass Flux"
+
+
+class EnergyFlux(ResourceStream):
+    _canonical = "joule/(meter**2*second)"
+    _label = "Energy Flux"
 
 
 class PowerDensity(ResourceStream):

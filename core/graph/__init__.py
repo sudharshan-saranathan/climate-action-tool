@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 # Core module(s)
 from core.signals import SignalBus
-from core.graph.node import Node
+from core.graph.node import Node, Technology
 from core.graph.edge import Edge
 
 
@@ -103,6 +103,7 @@ class GraphManager:
 
         self.signal_bus.data.send_node_data.connect(self.send_node_data)
         self.signal_bus.data.send_edge_data.connect(self.send_edge_data)
+        self.signal_bus.data.update_node_data.connect(self.update_node_data)
 
     def _verify_stream_matching(
         self, guid: str, source_uid: str, target_uid: str
@@ -214,6 +215,32 @@ class GraphManager:
     @guid_validator
     def send_edge_data(self, guid: str, euid: str) -> None:
         pass
+
+    @guid_validator
+    def update_node_data(self, guid: str, nuid: str, jstr: str) -> None:
+
+        _node = self.graph_db[guid].nodes.get(nuid)
+        if _node is None:
+            self._logger.warning(f"Node [UID={nuid}] not found in graph [UID={guid}].")
+            return
+
+        try:
+            data = json.loads(jstr)
+        except json.JSONDecodeError as e:
+            self._logger.warning(f"Invalid JSON for update_node_data: {e}")
+            return
+
+        # Update meta
+        if "meta" in data:
+            _node.meta.update(data["meta"])
+
+        # Rebuild tech from JSON
+        if "tech" in data:
+            _node.tech.clear()
+            for tech_name, tech_data in data["tech"].items():
+                _node.tech[tech_name] = Technology.from_dict(tech_data)
+
+        self._logger.info(f"Updated node [UID={nuid}]: {list(_node.tech.keys())}")
 
 
 # Instantiate the singleton when this module is imported

@@ -253,7 +253,18 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
-        # Request node data from backend
+        # Create dialog first (must exist before populate fires via signal)
+        from gui.graph.node.config import NodeConfig
+
+        if self._config_dialog is None:
+            self._config_dialog = NodeConfig()
+            self._config_dialog.sig_save.connect(self._on_config_save)
+
+        self._config_dialog.set_label_text(self._attributes.label)
+        self._config_dialog.show()
+        self._config_dialog.raise_()
+
+        # Request node data from backend (synchronous signal → triggers populate)
         cuid = getattr(self.scene(), "uid", None)
         if cuid:
             self._signal_bus.raise_request(
@@ -264,16 +275,6 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         else:
             self._logger.warning(f"Canvas UID not found for node!")
 
-        # Show the config dialog
-        from gui.graph.node.config import NodeConfig
-
-        if self._config_dialog is None:
-            self._config_dialog = NodeConfig()
-
-        self._config_dialog.set_label_text(self._attributes.label)
-        self._config_dialog.show()
-        self._config_dialog.raise_()
-
     # Callback(s)
 
     @QtCore.Slot(str, str)
@@ -283,6 +284,25 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             return
 
         self._logger.info(f"Received data for node:\n{jstr}")
+
+        if self._config_dialog is not None and jstr:
+            import json
+            data = json.loads(jstr)
+            self._config_dialog.populate(data)
+
+    @QtCore.Slot(str)
+    def _on_config_save(self, jstr: str) -> None:
+
+        cuid = getattr(self.scene(), "uid", None)
+        if cuid:
+            self._signal_bus.raise_request(
+                "update_node_data",
+                cuid,
+                self.uid,
+                jstr,
+            )
+        else:
+            self._logger.warning(f"Canvas UID not found — cannot save node data.")
 
     # Section: Public methods
     # -----------------------

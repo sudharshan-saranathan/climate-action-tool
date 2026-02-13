@@ -29,7 +29,7 @@ class Material(Mass):
         )
 
 
-class Electricity(Power):
+class Electricity(EnergyFlowRate):
     _label = "Electricity"
 
     def __init__(

@@ -26,7 +26,8 @@ class ResourceStream:
 
         super().__init_subclass__(**kwargs)
         # Register by dimensionality for arithmetic operations
-        if hasattr(cls, "_canonical"):
+        # Only register classes that explicitly declare _canonical (not inherited)
+        if "_canonical" in cls.__dict__:
             dims = ureg.parse_units(cls._canonical).dimensionality
             ResourceStream._registry[dims] = cls
 
@@ -39,8 +40,8 @@ class ResourceStream:
         if not isinstance(data, (int, float, np.ndarray)):
             raise TypeError(f"Invalid data type: {type(data)}")
 
-        # Default to canonical SI unit if not specified
-        if units is None:
+        # Default to canonical SI unit if not specified (or empty string)
+        if not units:
             units = getattr(self, "_canonical", "")
 
         # Validate dimensionality if canonical is defined

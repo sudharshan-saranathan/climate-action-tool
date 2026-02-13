@@ -66,8 +66,10 @@ class SignalBus:
         delete_node_item: Signal = Signal.factory(str, str)  # guid, nuid
         delete_edge_item: Signal = Signal.factory(str, str)  # guid, euid
 
-        send_node_data: Signal = Signal.factory(str, str)  # guid, nuid, payload
-        send_edge_data: Signal = Signal.factory(str, str)  # guid, euid, payload
+        send_node_data: Signal = Signal.factory(str, str)  # guid, nuid
+        send_edge_data: Signal = Signal.factory(str, str)  # guid, euid
+
+        update_node_data: Signal = Signal.factory(str, str, str)  # guid, nuid, payload
 
     @dataclass
     class Graphics:
@@ -113,6 +115,7 @@ class SignalBus:
             "delete_edge_item": self.data.delete_edge_item,
             "send_node_data": self.data.send_node_data,
             "send_edge_data": self.data.send_edge_data,
+            "update_node_data": self.data.update_node_data,
             # Target: Frontend
             "create_node_repr": self.ui.create_node_repr,
             "create_edge_repr": self.ui.create_edge_repr,
