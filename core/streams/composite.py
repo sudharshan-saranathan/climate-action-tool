@@ -9,35 +9,33 @@ import typing
 import numpy as np
 
 # core.streams
-from core.streams import *
+from core.streams.quantity import Quantity
+from core.streams.physical import (
+    Mass,
+    EnergyFlowRate,
+    SpecificEnergy,
+    CostPerEnergy,
+    CostPerMass,
+)
 
 
 class Material:
     _label = "Material"
-    _keywords_alias = ["material", "materials", "raw_material", "raw_materials"]
 
     def __init__(
         self,
         **kwargs,
     ):
+        # Lazy import Quantity from core.streams
+        from core.streams import Quantity
 
-        for key, value in kwargs.items():
-            if key in CLASS_REGISTRY:
-                setattr(self, key, CLASS_REGISTRY[key](value))
-
-        self.mass = MassFlowRate(
-            kwargs.get("mass", 0.0),
-            kwargs.get("mass_units", "kilogram/second"),
-        )
-
-        self.cost = CostPerMass(
-            kwargs.get("cost", 0.0),
-            kwargs.get("cost_units", "INR/kilogram"),
-        )
+        for attr, value in kwargs.items():
+            _class = Quantity.registry[Quantity(value).dimensionality()]
+            setattr(self, attr, _class(value))
 
 
 class Electricity(EnergyFlowRate):
-    _label = "Electricity"
+    label = "Electricity"
 
     def __init__(
         self,
@@ -54,7 +52,7 @@ class Electricity(EnergyFlowRate):
 
 
 class FossilFuel(Mass):
-    _label = "Fossil Fuel"
+    label = "Fossil Fuel"
 
     def __init__(
         self,

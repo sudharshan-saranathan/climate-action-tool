@@ -23,8 +23,8 @@ class Quantity:
     Base class for all resource streams. Uses the registry pattern for dimensionality-based dispatch.
     """
 
-    _label: str = "Generic"
-    _registry: dict = {}  # A registry for dimensionality-to-type mapping.
+    label: str = "Generic"
+    registry: dict = {}  # A registry for dimensionality-to-type mapping.
 
     def __init_subclass__(cls, **kwargs):
 
@@ -34,14 +34,14 @@ class Quantity:
         # Only register classes that explicitly declare _canonical (not inherited)
         if "_canonical" in cls.__dict__:
             dims = ureg.parse_units(cls._canonical).dimensionality
-            Quantity._registry[dims] = cls
+            Quantity.registry[dims] = cls
 
     def __init__(
         self,
         *args,
     ):
 
-        # Pass args to pint constructor first
+        # Pass args to the pint constructor first
         self._q = ureg.Quantity(*args)  # type: ignore
 
         # Validate dimensionality if canonical is defined
@@ -59,7 +59,7 @@ class Quantity:
 
     @classmethod
     def _from_quantity(cls, q: "ureg.Quantity") -> Quantity:
-        target_cls = cls._registry.get(q.dimensionality, Quantity)
+        target_cls = cls.registry.get(q.dimensionality, Quantity)
         return target_cls(q.magnitude, str(q.units))
 
     def __add__(self, other: Quantity) -> Quantity:
@@ -91,10 +91,6 @@ class Quantity:
     @property
     def units(self) -> str:
         return self._q.units
-
-    @property
-    def label(self) -> str:
-        return self._label
 
     @property
     def quantity(self) -> "ureg.Quantity":
