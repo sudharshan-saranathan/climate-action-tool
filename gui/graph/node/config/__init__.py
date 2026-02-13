@@ -9,7 +9,7 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from gui.widgets import ComboBox, HLayout
+from gui.widgets import ComboBox, Field, HLayout
 from gui.graph.node.config.tree import StreamTree
 
 from core.streams import (
@@ -66,7 +66,7 @@ class NodeConfig(QtWidgets.QDialog):
         container.setFixedWidth(240)
 
         self._combo = ComboBox(editable=True)
-        self._label = QtWidgets.QLineEdit("Node", self)
+        self._label = Field(self, placeholderText="Node")
 
         self._save_btn = QtWidgets.QPushButton("Save", self)
         self._save_btn.setAutoDefault(False)
@@ -236,9 +236,15 @@ class NodeConfig(QtWidgets.QDialog):
             params_tree = page.widget(2)
             equations_widget = page.widget(3)
 
-            consumed = consumed_tree.to_dict() if isinstance(consumed_tree, StreamTree) else {}
-            produced = produced_tree.to_dict() if isinstance(produced_tree, StreamTree) else {}
-            params = params_tree.to_dict() if isinstance(params_tree, StreamTree) else {}
+            consumed = (
+                consumed_tree.to_dict() if isinstance(consumed_tree, StreamTree) else {}
+            )
+            produced = (
+                produced_tree.to_dict() if isinstance(produced_tree, StreamTree) else {}
+            )
+            params = (
+                params_tree.to_dict() if isinstance(params_tree, StreamTree) else {}
+            )
 
             equations = []
             if isinstance(equations_widget, QtWidgets.QTextEdit):
