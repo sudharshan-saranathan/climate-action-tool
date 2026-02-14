@@ -36,74 +36,8 @@ class StreamTree(QtWidgets.QTreeWidget):
         self.setColumnWidth(0, 300)
         self.setColumnWidth(1, 160)
 
-        # Create a header toolbar (to be added to the parent layout)
-        self._header_toolbar = self._create_header_toolbar()
-
         # Add the flow classes as top-level items
         self._init_top_level_items(_stream_list)
-
-    def _create_header_toolbar(self) -> ToolBar:
-        """Create and return the header toolbar with common actions."""
-        return ToolBar(
-            None,
-            trailing=True,
-            iconSize=QtCore.QSize(18, 18),
-            actions=[
-                (
-                    qta.icon("mdi.plus", color="gray", color_active="white"),
-                    "Add Stream",
-                    self._on_add_action,
-                ),
-                (
-                    qta.icon("mdi.cursor-text", color="cyan"),
-                    "Rename",
-                    self._on_rename_action,
-                ),
-                (
-                    qta.icon("mdi.eraser", color="lightgray"),
-                    "Erase",
-                    self._on_erase_action,
-                ),
-                (
-                    qta.icon("mdi.delete", color="red"),
-                    "Delete",
-                    self._on_delete_action,
-                ),
-            ],
-        )
-
-    def get_header_toolbar(self) -> ToolBar:
-        """Return the header toolbar to be added to parent layout."""
-        return self._header_toolbar
-
-    def _on_add_action(self):
-
-        root = self._get_root_from_selection()
-        if root is None:
-            # If no selection, use the first top-level item
-            if self.topLevelItemCount() > 0:
-                root = self.topLevelItem(0)
-            else:
-                return
-        # If the selected item is not top-level, get its root
-        while root.parent():
-            root = root.parent()
-
-        self.create_row(root)
-
-    def _on_rename_action(self):
-        if selected := self.currentItem():
-            self.editItem(selected, 0)
-
-    def _on_erase_action(self):
-        if selected := self.currentItem():
-            selected.setText(1, "")
-
-    def _on_delete_action(self):
-        if selected := self.currentItem():
-            parent = selected.parent()
-            if parent:
-                parent.removeChild(selected)
 
     def _init_top_level_items(self, _stream_list: list):
 
@@ -120,6 +54,20 @@ class StreamTree(QtWidgets.QTreeWidget):
             item.setText(0, label)
             item.setIcon(0, qta.icon(image, color=color))
             item.setData(0, QtCore.Qt.ItemDataRole.UserRole, _class)
+
+            toolbar = ToolBar(
+                self,
+                trailing=True,
+                actions=[
+                    (
+                        qta.icon("mdi.plus", color="gray", color_active="white"),
+                        "Add Stream",
+                        lambda _, i=item: self.create_row(i),
+                    ),
+                ],
+            )
+
+            self.setItemWidget(item, 2, toolbar)
 
     def _get_root_from_selection(self) -> QtWidgets.QTreeWidgetItem | None:
 
@@ -183,6 +131,19 @@ class StreamTree(QtWidgets.QTreeWidget):
             item, root.data(0, QtCore.Qt.ItemDataRole.UserRole)
         )
 
+        # Column 2: Toolbar
+        toolbar = ToolBar(
+            self,
+            trailing=True,
+            iconSize=QtCore.QSize(18, 18),
+        )
+        toolbar.addAction(qta.icon("mdi.cursor-text", color="cyan"), "Rename")
+        toolbar.addAction(qta.icon("mdi.check-all", color="lightgray"), "Check")
+        toolbar.addAction(qta.icon("mdi.eraser", color="lightgray"), "Erase")
+        toolbar.addAction(qta.icon("mdi.delete", color="red"), "Delete")
+
+        # Set widgets
+        self.setItemWidget(item, 2, toolbar)
         self.editItem(item, 0)
         root.setExpanded(True)
         return item
