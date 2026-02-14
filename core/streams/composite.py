@@ -16,12 +16,11 @@ class Composite:
 
     # Attribute grouping for GUI display
     attribute_groups = {
-        "by_complexity": {
-            "simple": [],  # No predefined attributes - all dynamic
-            "advanced": [],
+        "complexity": {
+            "simple": {},  # No predefined attributes - all dynamic
+            "advanced": {},
         },
-        "by_domain": {},  # No predefined domain groups
-        "custom": [],  # Populated at runtime with user-added attributes
+        "domain": {},  # No predefined domain groups
     }
 
     def __init__(
@@ -55,19 +54,25 @@ class Composite:
 class Material(Composite):
     label = "Material"
     image = "mdi.gold"
-    color = "#FFD700"
+    color = "#f63c6b"
 
     # Attribute grouping for GUI display
     attribute_groups = {
-        "by_complexity": {
-            "simple": ["mass", "cost"],
-            "advanced": [],
+        "complexity": {
+            "simple": {
+                "mass": "Mass kg/s]",
+                "cost": "Cost [INR/kg, USD/kg]",
+            },
+            "advanced": {},
         },
-        "by_domain": {
-            "physical": ["mass"],
-            "economic": ["cost"],
+        "domain": {
+            "physical": {
+                "mass": "Mass [kg/s, t/hr]",
+            },
+            "economic": {
+                "cost": "Cost [INR/kg, USD/kg]",
+            },
         },
-        "custom": [],  # Populated at runtime with user-added attributes
     }
 
     def __init__(
@@ -90,55 +95,65 @@ class Material(Composite):
 
 class Electricity(Composite):
     label = "Electricity"
-    image = "mdi.lightning-bolt"
-    color = "#4A90E2"
+    image = "mdi.flash"
+    color = "#8491a3"
 
     # Attribute grouping for GUI display
     attribute_groups = {
-        "by_complexity": {
-            "simple": [
-                "power",
-                "tariff",
-                "capacity_factor",
-                "dispatchability",
-                "CO2_intensity",
-            ],
-            "advanced": [
-                "ramp_rate",
-                "variability",
-                "minimum_stable_generation",
-                "start_up_time",
-                "shut_down_time",
-                "voltage",
-                "power_factor",
-                "frequency",
-                "SOx_intensity",
-                "NOx_intensity",
-                "PM2_5_intensity",
-                "PM10_intensity",
-                "LCOE",
-            ],
+        "complexity": {
+            "simple": {
+                "power": "Power [W/kW/MW]",
+                "tariff": "Tariff [INR/kWh, USD/kWh]",
+                "capacity_factor": "Capacity Factor [%]",
+                "dispatchability": "Dispatchability [%]",
+                "CO2_intensity": "CO2 Intensity [kg/kWh]",
+            },
+            "advanced": {
+                "ramp_rate": "Ramp Rate [W/s, MW/min]",
+                "variability": "Variability [%]",
+                "minimum_stable_generation": "Minimum Stable Generation [%]",
+                "start_up_time": "Startup Time [s/min/hr]",
+                "shut_down_time": "Shutdown Time [s/min/hr]",
+                "voltage": "Voltage [V/kV]",
+                "power_factor": "Power Factor [—]",
+                "frequency": "Frequency [Hz]",
+                "SOx_intensity": "SOx Intensity [kg/kWh]",
+                "NOx_intensity": "NOx Intensity [kg/kWh]",
+                "PM2_5_intensity": "PM2.5 Intensity [kg/kWh]",
+                "PM10_intensity": "PM10 Intensity [kg/kWh]",
+                "LCOE": "LCOE [INR/kWh, USD/kWh]",
+            },
         },
-        "by_domain": {
-            "economic": ["power", "tariff", "LCOE"],
-            "operational": [
-                "capacity_factor",
-                "dispatchability",
-                "ramp_rate",
-                "variability",
-                "minimum_stable_generation",
-            ],
-            "rebooting": ["start_up_time", "shut_down_time"],
-            "quality": ["voltage", "power_factor", "frequency"],
-            "environmental": [
-                "CO2_intensity",
-                "SOx_intensity",
-                "NOx_intensity",
-                "PM2_5_intensity",
-                "PM10_intensity",
-            ],
+        "domain": {
+            "economic": {
+                "power": "Power [W/kW/MW]",
+                "tariff": "Tariff [INR/kWh, USD/kWh]",
+                "LCOE": "LCOE [INR/kWh, USD/kWh]",
+            },
+            "operational": {
+                "capacity_factor": "Capacity Factor [%]",
+                "dispatchability": "Dispatchability [%]",
+                "ramp_rate": "Ramp Rate [W/s, MW/min]",
+                "variability": "Variability [%]",
+                "minimum_stable_generation": "Minimum Stable Generation [%]",
+            },
+            "rebooting": {
+                "start_up_time": "Startup Time [s/min/hr]",
+                "shut_down_time": "Shutdown Time [s/min/hr]",
+            },
+            "quality": {
+                "voltage": "Voltage [V/kV]",
+                "power_factor": "Power Factor [—]",
+                "frequency": "Frequency [Hz]",
+            },
+            "environmental": {
+                "CO2_intensity": "CO2 Intensity [kg/kWh]",
+                "SOx_intensity": "SOx Intensity [kg/kWh]",
+                "NOx_intensity": "NOx Intensity [kg/kWh]",
+                "PM2_5_intensity": "PM2.5 Intensity [kg/kWh]",
+                "PM10_intensity": "PM10 Intensity [kg/kWh]",
+            },
         },
-        "custom": [],  # Populated at runtime with user-added attributes
     }
 
     def __init__(
@@ -207,63 +222,62 @@ class Electricity(Composite):
 
 class Fuel(Material):
     label = "Fuel"
-    image = "mdi.fire"
-    color = "#FF6B35"
+    image = "mdi.gas-station"
+    color = "#bd8b9c"
 
     # Attribute grouping for GUI display
     # Note: 'mass' and 'cost' are inherited from Material
     attribute_groups = {
-        "by_complexity": {
-            "simple": [
-                "energy_content",
-                "carbon_fraction",
-                "CO2_emissions",
-            ],
-            "advanced": [
-                "moisture_content",
-                "ash_content",
-                "hydrogen_fraction",
-                "oxygen_fraction",
-                "nitrogen_fraction",
-                "sulfur_fraction",
-                "CH4_emissions",
-                "SOx_emissions",
-                "NOx_emissions",
-                "PM2_5_emissions",
-                "PM10_emissions",
-                "CO_emissions",
-                "renewable_fraction",
-                "carbon_neutrality_factor",
-            ],
+        "complexity": {
+            "simple": {
+                "energy_content": "Energy Content [J/kg, kWh/kg]",
+                "carbon_fraction": "Carbon Fraction [%]",
+                "CO2_emissions": "CO2 Emissions [kg/kg]",
+            },
+            "advanced": {
+                "moisture_content": "Moisture Content [%]",
+                "ash_content": "Ash Content [%]",
+                "hydrogen_fraction": "Hydrogen Fraction [%]",
+                "oxygen_fraction": "Oxygen Fraction [%]",
+                "nitrogen_fraction": "Nitrogen Fraction [%]",
+                "sulfur_fraction": "Sulfur Fraction [%]",
+                "CH4_emissions": "CH4 Emissions [kg/kg]",
+                "SOx_emissions": "SOx Emissions [kg/kg]",
+                "NOx_emissions": "NOx Emissions [kg/kg]",
+                "PM2_5_emissions": "PM2.5 Emissions [kg/kg]",
+                "PM10_emissions": "PM10 Emissions [kg/kg]",
+                "CO_emissions": "CO Emissions [kg/kg]",
+                "renewable_fraction": "Renewable Fraction [%]",
+                "carbon_neutrality_factor": "Carbon Neutrality Factor [—]",
+            },
         },
-        "by_domain": {
-            "chemical": [
-                "energy_content",
-                "moisture_content",
-                "ash_content",
-            ],
-            "composition": [
-                "carbon_fraction",
-                "hydrogen_fraction",
-                "oxygen_fraction",
-                "nitrogen_fraction",
-                "sulfur_fraction",
-            ],
-            "emissions": [
-                "CO2_emissions",
-                "CH4_emissions",
-                "SOx_emissions",
-                "NOx_emissions",
-                "PM2_5_emissions",
-                "PM10_emissions",
-                "CO_emissions",
-            ],
-            "sustainability": [
-                "renewable_fraction",
-                "carbon_neutrality_factor",
-            ],
+        "domain": {
+            "chemical": {
+                "energy_content": "Energy Content [J/kg, kWh/kg]",
+                "moisture_content": "Moisture Content [%]",
+                "ash_content": "Ash Content [%]",
+            },
+            "composition": {
+                "carbon_fraction": "Carbon Fraction [%]",
+                "hydrogen_fraction": "Hydrogen Fraction [%]",
+                "oxygen_fraction": "Oxygen Fraction [%]",
+                "nitrogen_fraction": "Nitrogen Fraction [%]",
+                "sulfur_fraction": "Sulfur Fraction [%]",
+            },
+            "emissions": {
+                "CO2_emissions": "CO2 Emissions [kg/kg]",
+                "CH4_emissions": "CH4 Emissions [kg/kg]",
+                "SOx_emissions": "SOx Emissions [kg/kg]",
+                "NOx_emissions": "NOx Emissions [kg/kg]",
+                "PM2_5_emissions": "PM2.5 Emissions [kg/kg]",
+                "PM10_emissions": "PM10 Emissions [kg/kg]",
+                "CO_emissions": "CO Emissions [kg/kg]",
+            },
+            "sustainability": {
+                "renewable_fraction": "Renewable Fraction [%]",
+                "carbon_neutrality_factor": "Carbon Neutrality Factor [—]",
+            },
         },
-        "custom": [],  # Populated at runtime with user-added attributes
     }
 
     def __init__(

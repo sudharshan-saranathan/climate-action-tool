@@ -133,18 +133,13 @@ class NodeConfig(QtWidgets.QDialog):
         tab.setCornerWidget(search, QtCore.Qt.Corner.TopRightCorner)
 
         # Connect search to the active tab's filter
-        search.textChanged.connect(lambda text: self._on_filter(tab, text))
+        # search.textChanged.connect(lambda text: self._on_filter(tab, text))
         tab.currentChanged.connect(lambda: search.clear())
 
         return tab
 
-    def _on_filter(self, tab: QtWidgets.QTabWidget, text: str):
-        tree = tab.currentWidget()
-        if isinstance(tree, StreamTree):
-            tree.filter_items(text)
-
     def populate(self, data: dict) -> None:
-        """Populate dialog from backend node data.
+        """Populate the configuration dialog from backend node data.
 
         Expected format:
         {
@@ -189,7 +184,7 @@ class NodeConfig(QtWidgets.QDialog):
             self._combo.addItem(tech_name)
             self._combo._item_count = self._combo.count()
 
-            # Create tab page
+            # Create a tab page for the tech
             page = self._create_tab_widget(tech_name)
             self._dataview.addWidget(page)
             self._widget_map[tech_name] = page

@@ -12,6 +12,7 @@ import qtawesome as qta
 
 # core.gui.widgets
 from gui.widgets.toolbar import ToolBar
+from core.streams.composite import Composite
 
 
 class StreamTree(QtWidgets.QTreeWidget):
@@ -31,8 +32,9 @@ class StreamTree(QtWidgets.QTreeWidget):
         # Customize header
         header = self.header()
         header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setColumnWidth(0, 320)
-        self.setColumnWidth(3, 20)
+        self.setColumnWidth(0, 300)
+        self.setColumnWidth(1, 120)
+        self.setColumnWidth(2, 120)
 
         # Add the flow classes as top-level items
         self._init_top_level_items(_stream_list)
@@ -41,12 +43,16 @@ class StreamTree(QtWidgets.QTreeWidget):
 
         for _class in _stream_list:
 
-            label = getattr(_class, "_label", _class.__name__)
-            image = qta.icon("mdi.arrow-right-bold", color="gray")
+            image = "mdi.arrow-right-bold"
+            color = "gray"
+            if issubclass(_class, Composite):
+                image = _class.image
+                color = _class.color
 
+            label = getattr(_class, "_label", _class.__name__)
             item = QtWidgets.QTreeWidgetItem(self)
             item.setText(0, label)
-            item.setIcon(0, image)
+            item.setIcon(0, qta.icon(image, color=color))
             item.setData(0, QtCore.Qt.ItemDataRole.UserRole, _class)
 
             toolbar = ToolBar(
@@ -63,23 +69,64 @@ class StreamTree(QtWidgets.QTreeWidget):
 
             self.setItemWidget(item, 3, toolbar)
 
+    def _get_root_from_selection(self) -> QtWidgets.QTreeWidgetItem | None:
+
+        if selected := self.currentItem():
+            while selected.parent():
+                selected = selected.parent()
+
+            return selected
+
+        return None
+
+    def _add_grouped_attributes(
+        self,
+        root: QtWidgets.QTreeWidgetItem,
+        composite_cls: type,
+    ) -> None:
+
+        # Import the ComboBox widget from gui.widgets
+        from gui.widgets import ComboBox
+
+        groups = getattr(composite_cls, "attribute_groups", {})
+        select = ComboBox(items=groups.keys())
+        parent = root.parent()
+
+        for key in groups[select.currentText()]:
+
+            section = QtWidgets.QTreeWidgetItem([key.capitalize()])
+            section.setIcon(0, qta.icon("mdi.minus", color="gray"))
+
+            icon = "mdi.numeric-" + str(parent.childCount())
+            root.setIcon(0, qta.icon(icon, color="gray"))
+            root.addChild(section)
+
+            for attr in groups[select.currentText()][key]:
+
+                label = groups[select.currentText()][key][attr]
+                field = QtWidgets.QTreeWidgetItem(section)
+                field.setText(0, label)
+                field.setTextAlignment(0, QtCore.Qt.AlignmentFlag.AlignRight)
+
+                self.setItemWidget(field, 1, value_editor := QtWidgets.QLineEdit(self))
+                self.setItemWidget(field, 2, units_editor := QtWidgets.QLineEdit(self))
+
+        self.setItemWidget(root, 1, select)
+
     @QtCore.Slot()
-    def create_row(self, root=None, name="", value="", units=""):
+    def create_row(self, root, name="", value="", units=""):
 
         # Resolve the target root from the current selection if not provided
+        root = root or self._get_root_from_selection()
         if root is None:
-            selected = self.currentItem()
-            if selected is None:
-                return None
-
-            root = selected
-            while root.parent() is not None:
-                root = root.parent()
+            return None
 
         item = QtWidgets.QTreeWidgetItem([name or "New Stream", str(value), str(units)])
-        item.setIcon(0, qta.icon("mdi.minus", color="gray"))
         item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable)
         root.addChild(item)
+        self._add_grouped_attributes(
+            item, root.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        )
 
         # Column 3: Delete button
         toolbar = ToolBar(
