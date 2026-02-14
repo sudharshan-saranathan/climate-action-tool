@@ -431,7 +431,7 @@ QTreeWidget::item:hover{
 }
 
 QTreeWidget::item:selected{
-    background                  : #40474d;
+    background                  : #4a556d;
     color                       : white;
 }
 

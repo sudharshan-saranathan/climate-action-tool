@@ -34,7 +34,7 @@ class StreamTree(QtWidgets.QTreeWidget):
         header = self.header()
         header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.setColumnWidth(0, 300)
-        self.setColumnWidth(1, 160)
+        self.setColumnWidth(1, 200)
 
         # Add the flow classes as top-level items
         self._init_top_level_items(_stream_list)
@@ -54,6 +54,10 @@ class StreamTree(QtWidgets.QTreeWidget):
             item.setText(0, label)
             item.setIcon(0, qta.icon(image, color=color))
             item.setData(0, QtCore.Qt.ItemDataRole.UserRole, _class)
+
+            font = item.font(0)
+            font.setBold(True)
+            item.setFont(0, font)
 
             toolbar = ToolBar(
                 self,
@@ -85,25 +89,19 @@ class StreamTree(QtWidgets.QTreeWidget):
         composite_cls: type,
     ) -> None:
 
-        # Import the ComboBox widget from gui.widgets
-        from gui.widgets import ComboBox
-
-        groups = getattr(composite_cls, "attribute_groups", {})
-        select = ComboBox(items=groups.keys())
-        parent = root.parent()
-
-        for key in groups[select.currentText()]:
+        groups = getattr(composite_cls, "display_hierarchy", {})
+        for key in groups:
 
             section = QtWidgets.QTreeWidgetItem([key.capitalize()])
-            section.setIcon(0, qta.icon("mdi.circle-small", color="white"))
+            section.setIcon(0, qta.icon("mdi.minus", color="white"))
 
-            icon = "mdi.numeric-" + str(parent.childCount())
-            root.setIcon(0, qta.icon(icon, color="white"))
+            icon = "mdi.format-list-bulleted"
+            root.setIcon(0, qta.icon(icon, color="#cbcbcb"))
             root.addChild(section)
 
-            for attr in groups[select.currentText()][key]:
+            for attr in groups[key]:
 
-                label = groups[select.currentText()][key][attr]
+                label = groups[key][attr]
                 field = QtWidgets.QTreeWidgetItem(section)
                 field.setText(0, label)
                 field.setTextAlignment(
@@ -112,7 +110,7 @@ class StreamTree(QtWidgets.QTreeWidget):
                     | QtCore.Qt.AlignmentFlag.AlignRight,
                 )
 
-        # self.setItemWidget(root, 1, select)
+                self.setItemWidget(field, 1, QtWidgets.QLineEdit(self))
 
     @QtCore.Slot()
     def create_row(self, root, name="", value="", units=""):
@@ -122,22 +120,25 @@ class StreamTree(QtWidgets.QTreeWidget):
         if root is None:
             return None
 
-        # Merge value and units into a single field
-        value_with_units = f"{value} {units}".strip() if units else str(value)
-        item = QtWidgets.QTreeWidgetItem([name, value_with_units])
-        item.setText(0, f"Resource {root.childCount() + 1}")
-        root.addChild(item)
-        self._add_grouped_attributes(
-            item, root.data(0, QtCore.Qt.ItemDataRole.UserRole)
-        )
+        data = root.data(0, QtCore.Qt.ItemDataRole.UserRole)
 
-        # Column 2: Toolbar
+        # Merge value and units into a single field
+        merge = f"{value} {units}".strip() if units else str(value)
+
+        item = QtWidgets.QTreeWidgetItem([name, merge])
+        root.addChild(item)
+
+        item.setText(0, f"Resource {root.childCount() + 1}")
+        item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable)
+
+        self._add_grouped_attributes(item, data)
+
+        # Column 2: Actions toolbar
         toolbar = ToolBar(
             self,
             trailing=True,
             iconSize=QtCore.QSize(18, 18),
         )
-        toolbar.addAction(qta.icon("mdi.cursor-text", color="cyan"), "Rename")
         toolbar.addAction(qta.icon("mdi.check-all", color="lightgray"), "Check")
         toolbar.addAction(qta.icon("mdi.eraser", color="lightgray"), "Erase")
         toolbar.addAction(qta.icon("mdi.delete", color="red"), "Delete")

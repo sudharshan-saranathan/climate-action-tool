@@ -15,13 +15,7 @@ class Composite:
     color = "#FFD700"
 
     # Attribute grouping for GUI display
-    attribute_groups = {
-        "complexity": {
-            "simple": {},  # No predefined attributes - all dynamic
-            "advanced": {},
-        },
-        "domain": {},  # No predefined domain groups
-    }
+    display_hierarchy = {}
 
     def __init__(
         self,
@@ -57,21 +51,10 @@ class Material(Composite):
     color = "#f63c6b"
 
     # Attribute grouping for GUI display
-    attribute_groups = {
-        "complexity": {
-            "simple": {
-                "mass": "Mass",
-                "cost": "Cost",
-            },
-            "advanced": {},
-        },
-        "domain": {
-            "physical": {
-                "mass": "Mass",
-            },
-            "economic": {
-                "cost": "Cost",
-            },
+    display_hierarchy = {
+        "primary": {
+            "mass": "Mass",
+            "cost": "Cost",
         },
     }
 
@@ -99,60 +82,33 @@ class Electricity(Composite):
     color = "#8491a3"
 
     # Attribute grouping for GUI display
-    attribute_groups = {
-        "complexity": {
-            "simple": {
-                "power": "Power",
-                "tariff": "Tariff",
-                "capacity_factor": "Capacity Factor",
-                "dispatchability": "Dispatchability",
-                "CO2_intensity": "CO2 Intensity",
-            },
-            "advanced": {
-                "ramp_rate": "Ramp Rate",
-                "variability": "Variability",
-                "minimum_stable_generation": "Minimum Stable Generation",
-                "start_up_time": "Startup Time",
-                "shut_down_time": "Shutdown Time",
-                "voltage": "Voltage",
-                "power_factor": "Power Factor",
-                "frequency": "Frequency",
-                "SOx_intensity": "SOx Intensity",
-                "NOx_intensity": "NOx Intensity",
-                "PM2_5_intensity": "PM2.5 Intensity",
-                "PM10_intensity": "PM10 Intensity",
-                "LCOE": "LCOE",
-            },
+    display_hierarchy = {
+        "primary": {
+            "power": "Power",
+            "tariff": "Tariff",
         },
-        "domain": {
-            "economic": {
-                "power": "Power",
-                "tariff": "Tariff",
-                "LCOE": "LCOE",
-            },
-            "operational": {
-                "capacity_factor": "Capacity Factor",
-                "dispatchability": "Dispatchability",
-                "ramp_rate": "Ramp Rate",
-                "variability": "Variability",
-                "minimum_stable_generation": "Minimum Stable Generation",
-            },
-            "rebooting": {
-                "start_up_time": "Startup Time",
-                "shut_down_time": "Shutdown Time",
-            },
-            "quality": {
-                "voltage": "Voltage",
-                "power_factor": "Power Factor",
-                "frequency": "Frequency",
-            },
-            "environmental": {
-                "CO2_intensity": "CO2 Intensity",
-                "SOx_intensity": "SOx Intensity",
-                "NOx_intensity": "NOx Intensity",
-                "PM2_5_intensity": "PM2.5 Intensity",
-                "PM10_intensity": "PM10 Intensity",
-            },
+        "operational": {
+            "ramp_rate": "Ramp Rate",
+            "variability": "Variability",
+            "capacity_factor": "Capacity Factor",
+            "dispatchability": "Dispatchability",
+            "minimum_stable_generation": "Minimum Generation",
+        },
+        "cycle": {
+            "start_up_time": "Startup Time",
+            "shut_down_time": "Shutdown Time",
+        },
+        "quality": {
+            "voltage": "Voltage",
+            "power_factor": "Power Factor",
+            "frequency": "Frequency",
+        },
+        "environmental": {
+            "CO2_intensity": "CO2 Intensity",
+            "SOx_intensity": "SOx Intensity",
+            "NOx_intensity": "NOx Intensity",
+            "PM2_5_intensity": "PM2.5 Intensity",
+            "PM10_intensity": "PM10 Intensity",
         },
     }
 
@@ -227,56 +183,36 @@ class Fuel(Material):
 
     # Attribute grouping for GUI display
     # Note: 'mass' and 'cost' are inherited from Material
-    attribute_groups = {
-        "complexity": {
-            "simple": {
-                "energy_content": "Energy Content",
-                "carbon_fraction": "Carbon Fraction",
-                "CO2_emissions": "CO2 Emissions",
-            },
-            "advanced": {
-                "moisture_content": "Moisture Content",
-                "ash_content": "Ash Content",
-                "hydrogen_fraction": "Hydrogen Fraction",
-                "oxygen_fraction": "Oxygen Fraction",
-                "nitrogen_fraction": "Nitrogen Fraction",
-                "sulfur_fraction": "Sulfur Fraction",
-                "CH4_emissions": "CH4 Emissions",
-                "SOx_emissions": "SOx Emissions",
-                "NOx_emissions": "NOx Emissions",
-                "PM2_5_emissions": "PM2.5 Emissions",
-                "PM10_emissions": "PM10 Emissions",
-                "CO_emissions": "CO Emissions",
-                "renewable_fraction": "Renewable Fraction",
-                "carbon_neutrality_factor": "Carbon Neutrality Factor",
-            },
+    display_hierarchy = {
+        "primary": {
+            "mass": "Mass",
+            "cost": "Cost",
+            "energy_content": "Energy Content",
         },
-        "domain": {
-            "chemical": {
-                "energy_content": "Energy Content",
-                "moisture_content": "Moisture Content",
-                "ash_content": "Ash Content",
-            },
-            "composition": {
-                "carbon_fraction": "Carbon Fraction",
-                "hydrogen_fraction": "Hydrogen Fraction",
-                "oxygen_fraction": "Oxygen Fraction",
-                "nitrogen_fraction": "Nitrogen Fraction",
-                "sulfur_fraction": "Sulfur Fraction",
-            },
-            "emissions": {
-                "CO2_emissions": "CO2 Emissions",
-                "CH4_emissions": "CH4 Emissions",
-                "SOx_emissions": "SOx Emissions",
-                "NOx_emissions": "NOx Emissions",
-                "PM2_5_emissions": "PM2.5 Emissions",
-                "PM10_emissions": "PM10 Emissions",
-                "CO_emissions": "CO Emissions",
-            },
-            "sustainability": {
-                "renewable_fraction": "Renewable Fraction",
-                "carbon_neutrality_factor": "Carbon Neutrality Factor",
-            },
+        "chemical": {
+            "energy_content": "Energy Content",
+            "moisture_content": "Moisture Content",
+            "ash_content": "Ash Content",
+        },
+        "composition": {
+            "carbon_fraction": "Carbon Fraction",
+            "hydrogen_fraction": "Hydrogen Fraction",
+            "oxygen_fraction": "Oxygen Fraction",
+            "nitrogen_fraction": "Nitrogen Fraction",
+            "sulfur_fraction": "Sulfur Fraction",
+        },
+        "emissions": {
+            "CO2_emissions": "CO2 Emissions",
+            "CH4_emissions": "CH4 Emissions",
+            "SOx_emissions": "SOx Emissions",
+            "NOx_emissions": "NOx Emissions",
+            "PM2_5_emissions": "PM2.5 Emissions",
+            "PM10_emissions": "PM10 Emissions",
+            "CO_emissions": "CO Emissions",
+        },
+        "sustainability": {
+            "renewable_fraction": "Renewable Fraction",
+            "carbon_neutrality_factor": "Carbon Neutrality Factor",
         },
     }
 
@@ -285,11 +221,15 @@ class Fuel(Material):
         **kwargs,
     ):
         # Import required classes
-        from core.streams.physical import SpecificEnergy
+        from core.streams.physical import MassFlowRate, CostPerMass, SpecificEnergy
         from core.streams.quantity import Quantity
 
-        # Physical/Chemical properties
+        # Primary attributes
+        self.mass = MassFlowRate("0 kg/s")
+        self.cost = CostPerMass("0 INR/kg")
         self.energy_content = SpecificEnergy("0 joule/kg")  # Higher heating value
+
+        # Additional chemical properties
         self.moisture_content = Quantity("0 dimensionless")
         self.ash_content = Quantity("0 dimensionless")
 
