@@ -72,7 +72,9 @@ QStackedWidget {    /* Default appearance of stacked widgets */
 QLabel {
     background                  : transparent;
     color                       : #efefef;
+    margin                      : 0px;
     text-align                  : center;
+
 }
 
 QFrame {
@@ -232,7 +234,7 @@ QDockWidget::title {                           /* Dock widget title bar style */
 */
 
 QTabWidget::pane {                              /* Tab pane style */
-    background                  : #40474d;
+    background                  : transparent;
     border-radius               : 4px;
 }
 
@@ -398,7 +400,7 @@ QMenu::right-arrow {                                    /* Submenu arrow style *
 */
 
 QTreeWidget {
-    background                  : #363e41;
+    background                  : #40474d;
     border                      : none;
     outline                     : 0px;
     border-radius               : 4px;
@@ -419,8 +421,7 @@ QTreeWidget QHeaderView::section:last {
 
 QTreeWidget::item {
     background                  : transparent;
-    margin                      : 1px 0px;
-    color                       : gray;
+    color                       : #cdcdcd;
     height                      : 28px;
     border                      : none;
 }
@@ -430,7 +431,7 @@ QTreeWidget::item:hover{
 }
 
 QTreeWidget::item:selected{
-    background                  : #363e41;
+    background                  : #40474d;
     color                       : white;
 }
 

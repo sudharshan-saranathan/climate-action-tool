@@ -31,14 +31,11 @@ _PARAM_CLASSES = [
 
 class NodeConfig(QtWidgets.QDialog):
 
-    sig_save = QtCore.Signal(str)  # Emits serialized JSON on Save
+    sig_save = QtCore.Signal(str)
+    logger = logging.getLogger("NodeConfig")
 
-    _logger = logging.getLogger("NodeConfig")
+    def __init__(self, parent: QtWidgets.QWidget = None):
 
-    def __init__(
-        self,
-        parent: QtWidgets.QWidget = None,
-    ):
         self._widget_map = dict()
         self._nuid = None
         super().__init__(parent)
@@ -48,17 +45,17 @@ class NodeConfig(QtWidgets.QDialog):
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.resize(900, 720)
 
-        self._overview = self._init_overview()
-        self._dataview = self._init_dataview()
+        self._overview_panel = self._init_overview_panel()
+        self._dataview_panel = self._init_dataview_panel()
 
         HLayout(
             self,
             spacing=4,
             margins=(4, 4, 4, 4),
-            widgets=[self._overview, self._dataview],
+            widgets=[self._overview_panel, self._dataview_panel],
         )
 
-    def _init_overview(self) -> QtWidgets.QFrame:
+    def _init_overview_panel(self) -> QtWidgets.QFrame:
 
         container = QtWidgets.QFrame(self)
         container.setFixedWidth(240)
@@ -66,10 +63,11 @@ class NodeConfig(QtWidgets.QDialog):
         self._combo = ComboBox(editable=True)
         self._label = Field(self, placeholderText="Node")
 
-        self._save_btn = QtWidgets.QPushButton("Save", self)
-        self._save_btn.setAutoDefault(False)
-        self._save_btn.setDefault(False)
-        self._save_btn.clicked.connect(self._on_save_clicked)
+        # Push buttons (like the startup window)
+        self._consumed_resources = QtWidgets.QPushButton("Inputs")
+        self._produced_resources = QtWidgets.QPushButton("Outputs")
+        self._parameters = QtWidgets.QPushButton("Parameters")
+        self._equations = QtWidgets.QPushButton("Equations")
 
         layout = QtWidgets.QFormLayout(
             container,
@@ -80,14 +78,14 @@ class NodeConfig(QtWidgets.QDialog):
 
         layout.addRow("Entity:", self._label)
         layout.addRow("Type/Tech:", self._combo)
-        layout.addRow("", self._save_btn)
 
         self._combo.sig_item_added.connect(self._on_tech_added)
         self._combo.currentIndexChanged.connect(self._on_tech_changed)
 
         return container
 
-    def _init_dataview(self) -> QtWidgets.QStackedWidget:
+    def _init_dataview_panel(self) -> QtWidgets.QStackedWidget:
+
         dummy = self._create_tab_widget("")
         dummy.setObjectName("dummy-page")
         dummy.setGraphicsEffect(QtWidgets.QGraphicsBlurEffect(dummy, blurRadius=5))
@@ -99,8 +97,8 @@ class NodeConfig(QtWidgets.QDialog):
     @QtCore.Slot()
     def _on_tech_added(self, label: str) -> None:
         page = self._create_tab_widget(label)
-        self._dataview.addWidget(page)
-        self._dataview.setCurrentWidget(page)
+        self._dataview_panel.addWidget(page)
+        self._dataview_panel.setCurrentWidget(page)
 
         self._widget_map[label] = page
 
@@ -110,7 +108,7 @@ class NodeConfig(QtWidgets.QDialog):
         page = self._widget_map.get(label, None)
 
         if page:
-            self._dataview.setCurrentWidget(page)
+            self._dataview_panel.setCurrentWidget(page)
 
     def _create_tab_widget(self, label: str) -> QtWidgets.QTabWidget:
 
@@ -125,16 +123,6 @@ class NodeConfig(QtWidgets.QDialog):
         tab.addTab(out_tree, icon("mdi.arrow-up-bold", color="gray"), "Out")
         tab.addTab(par_tree, icon("mdi.alpha", color="magenta"), "Params")
         tab.addTab(QtWidgets.QTextEdit(), icon("mdi.equal", color="cyan"), "Rules")
-
-        # Corner widget: search filter
-        search = QtWidgets.QLineEdit(placeholderText="Filter...")
-        search.setClearButtonEnabled(True)
-        search.setFixedWidth(160)
-        tab.setCornerWidget(search, QtCore.Qt.Corner.TopRightCorner)
-
-        # Connect search to the active tab's filter
-        # search.textChanged.connect(lambda text: self._on_filter(tab, text))
-        tab.currentChanged.connect(lambda: search.clear())
 
         return tab
 
@@ -167,8 +155,9 @@ class NodeConfig(QtWidgets.QDialog):
 
         # Clear existing tech pages
         for label, page in list(self._widget_map.items()):
-            self._dataview.removeWidget(page)
+            self._dataview_panel.removeWidget(page)
             page.deleteLater()
+
         self._widget_map.clear()
 
         # Clear combo items (skip programmatic signal emission)
@@ -186,7 +175,7 @@ class NodeConfig(QtWidgets.QDialog):
 
             # Create a tab page for the tech
             page = self._create_tab_widget(tech_name)
-            self._dataview.addWidget(page)
+            self._dataview_panel.addWidget(page)
             self._widget_map[tech_name] = page
 
             # Populate consumed (tab 0)
@@ -216,7 +205,7 @@ class NodeConfig(QtWidgets.QDialog):
             first_label = self._combo.currentText()
             page = self._widget_map.get(first_label)
             if page:
-                self._dataview.setCurrentWidget(page)
+                self._dataview_panel.setCurrentWidget(page)
 
     def to_dict(self) -> dict:
         """Serialize all tech pages into the Node data format."""
@@ -259,7 +248,7 @@ class NodeConfig(QtWidgets.QDialog):
     def _on_save_clicked(self) -> None:
         data = self.to_dict()
         jstr = json.dumps(data)
-        self._logger.info(f"Saving node config: {jstr}")
+        self.logger.info(f"Saving node config: {jstr}")
         self.sig_save.emit(jstr)
 
     def paintEvent(self, event, /):
@@ -275,11 +264,11 @@ class NodeConfig(QtWidgets.QDialog):
 
     @property
     def overview(self) -> QtWidgets.QFrame:
-        return self._overview
+        return self._overview_panel
 
     @property
     def dataview(self) -> QtWidgets.QStackedWidget:
-        return self._dataview
+        return self._dataview_panel
 
     @QtCore.Slot(str)
     def set_label_text(self, text):
