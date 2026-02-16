@@ -128,7 +128,7 @@ class StreamTree(QtWidgets.QTreeWidget):
         item = QtWidgets.QTreeWidgetItem([name, merge])
         root.addChild(item)
 
-        item.setText(0, f"Resource {root.childCount() + 1}")
+        item.setText(0, f"Resource {root.childCount()}")
         item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable)
 
         self._add_grouped_attributes(item, data)
@@ -139,9 +139,20 @@ class StreamTree(QtWidgets.QTreeWidget):
             trailing=True,
             iconSize=QtCore.QSize(18, 18),
         )
-        toolbar.addAction(qta.icon("mdi.check-all", color="lightgray"), "Check")
-        toolbar.addAction(qta.icon("mdi.eraser", color="lightgray"), "Erase")
-        toolbar.addAction(qta.icon("mdi.delete", color="red"), "Delete")
+        slash = toolbar.addAction(
+            qta.icon("mdi.slash-forward-box", color="gray"), "Denominator"
+        )
+        toolbar.addAction(
+            qta.icon("mdi.check-all", color="gray", color_active="white"), "Check"
+        )
+        toolbar.addAction(
+            qta.icon("mdi.eraser", color="gray", color_active="white"), "Erase"
+        )
+        toolbar.addAction(
+            qta.icon("mdi.delete", color="red", color_active="white"), "Delete"
+        )
+
+        slash.setCheckable(True)
 
         # Set widgets
         self.setItemWidget(item, 2, toolbar)

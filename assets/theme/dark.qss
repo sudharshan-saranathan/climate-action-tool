@@ -2,6 +2,15 @@
     background                  : transparent;
 }
 
+QToolTip {
+    background                  : #363e41;
+    color                       : white;
+    border                      : none;
+    border-radius               : 4px;
+    padding                     : 4px;
+}
+
+
 QMainWindow::separator {
     background                  : transparent;
     border                      : none;
@@ -302,14 +311,6 @@ QToolBar QToolButton {
     padding                     : 0px;
     margin                      : 0px;
     color                       : white;
-}
-
-QToolBar QToolButton:hover {                    /* Hover effect for toolbar buttons */
-    background                  : #4a556d;
-}
-
-QToolBar QToolButton:pressed {                  /* Pressed effect for toolbar buttons */
-    background                  : #4A556D;
 }
 
 QToolBar QToolButton:checked {
