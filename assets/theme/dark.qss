@@ -301,35 +301,23 @@ QTabBar::close-button:hover {
 QToolBar {                                      /* Navigation bar style */
     background                  : transparent;
     border                      : none;
-    margin                      : 2px;
+    margin                      : 0px;
     padding                     : 0px;
 }
 
 QToolBar QToolButton {
     background                  : transparent;
     border-radius               : 4px;
-    padding                     : 0px;
     margin                      : 0px;
+    padding                     : 0px;
     color                       : white;
-}
-
-QToolBar QToolButton:checked {
-    background                  : lightslategray;
 }
 
 QToolBar::separator {
     width                       : 2px;
-    margin                      : 2px;
+    margin                      : 2px 8px 2px 8px;
     background                  : #3e3e3e;
     border-radius               : 2px;
-}
-
-QToolBar#traffic-lights {
-    border-radius               : 4px;
-}
-
-QToolBar#traffic-lights QToolButton:hover {
-    background                  : transparent;
 }
 
 /*
