@@ -4,6 +4,11 @@
 
 from __future__ import annotations
 
+# Standard
+import json
+import typing
+import logging
+
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
@@ -133,6 +138,9 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
 
         tabs.setCornerWidget(traffic)
         return tabs
+
+    def load(self, data: dict[str, typing.Any]) -> None:
+        print(f"Received data for config:\n{data}")
 
     def paintEvent(self, event, /):
         painter = QtGui.QPainter(self)

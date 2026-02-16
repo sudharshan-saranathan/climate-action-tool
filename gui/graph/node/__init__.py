@@ -281,8 +281,6 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         self._configurator.load(data)
         self._configurator.show()
 
-        print(f"Received data for node:\n{jstr}")
-
     @QtCore.Slot(str)
     def _on_config_save(self, jstr: str) -> None:
 
