@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 # Standard
+import json
 import logging
 
 # Dataclass
@@ -18,6 +19,7 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from core.signals import SignalBus
+from gui.graph.node.config import NodeConfigWidget
 
 ItemState = QtWidgets.QStyle.StateFlag
 
@@ -167,7 +169,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def _connect_to_signal_bus(self) -> None:
 
-        self._signal_bus.ui.publish_node_data.connect(self._on_publish_node_data)
+        self._signal_bus.ui.put_node_data.connect(self._on_show_node_data)
 
     # Section: Reimplementation
     # -------------------------
@@ -254,42 +256,32 @@ class NodeRepr(QtWidgets.QGraphicsObject):
     def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
         # Create a configuration dialog first (must exist before populate fires via signal)
-        from gui.graph.node.config import NodeConfig
+        from gui.graph.node.config import NodeConfigWidget
 
-        if self._config_dialog is None:
-            self._config_dialog = NodeConfig()
-            self._config_dialog.sig_save.connect(self._on_config_save)
-
-        self._config_dialog.set_label_text(self._attributes.label)
-        self._config_dialog.show()
-        self._config_dialog.raise_()
-
-        # Request node data from backend (synchronous signal → triggers populate)
+        # Fetch the node's data using the signal bus
         cuid = getattr(self.scene(), "uid", None)
         if cuid:
             self._signal_bus.raise_request(
-                "send_node_data",
+                "get_node_data",
                 cuid,
                 self.uid,
             )
         else:
-            self._logger.warning(f"Canvas UID not found for node!")
-
-    # Callback(s)
+            self._logger.warning(f"Canvas UID not found — cannot fetch node data.")
 
     @QtCore.Slot(str, str)
-    def _on_publish_node_data(self, nuid: str, jstr: str) -> None:
+    def _on_show_node_data(self, nuid: str, jstr: str) -> None:
 
         if nuid != self._uid:
             return
 
-        self._logger.info(f"Received data for node:\n{jstr}")
+        data = json.loads(jstr)
 
-        if self._config_dialog is not None and jstr:
-            import json
+        self._configurator = NodeConfigWidget()
+        self._configurator.load(data)
+        self._configurator.show()
 
-            data = json.loads(jstr)
-            self._config_dialog.populate(data)
+        print(f"Received data for node:\n{jstr}")
 
     @QtCore.Slot(str)
     def _on_config_save(self, jstr: str) -> None:

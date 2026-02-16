@@ -101,8 +101,8 @@ class GraphManager:
         self.signal_bus.data.create_node_item.connect(self.create_node)
         self.signal_bus.data.create_edge_item.connect(self.create_edge)
 
-        self.signal_bus.data.send_node_data.connect(self.send_node_data)
-        self.signal_bus.data.send_edge_data.connect(self.send_edge_data)
+        self.signal_bus.data.get_node_data.connect(self.send_node_data)
+        self.signal_bus.data.get_edge_data.connect(self.send_edge_data)
         self.signal_bus.data.update_node_data.connect(self.update_node_data)
 
     def _verify_stream_matching(
@@ -215,7 +215,7 @@ class GraphManager:
         _node = self.graph_db[guid].nodes.get(nuid)
         _json = json.dumps(_node.to_dict()) if _node else None
 
-        self.signal_bus.ui.publish_node_data.emit(nuid, _json)
+        self.signal_bus.ui.put_node_data.emit(nuid, _json)
 
     @guid_validator
     def send_edge_data(self, guid: str, euid: str) -> None:

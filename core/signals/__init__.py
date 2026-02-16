@@ -66,8 +66,8 @@ class SignalBus:
         delete_node_item: Signal = Signal.factory(str, str)  # guid, nuid
         delete_edge_item: Signal = Signal.factory(str, str)  # guid, euid
 
-        send_node_data: Signal = Signal.factory(str, str)  # guid, nuid
-        send_edge_data: Signal = Signal.factory(str, str)  # guid, euid
+        get_node_data: Signal = Signal.factory(str, str)  # guid, nuid
+        get_edge_data: Signal = Signal.factory(str, str)  # guid, euid
 
         update_node_data: Signal = Signal.factory(str, str, str)  # guid, nuid, payload
 
@@ -78,8 +78,9 @@ class SignalBus:
         create_edge_repr: Signal = Signal.factory(str, str, str)  # guid, euid, payload
         delete_node_repr: Signal = Signal.factory(str, str)  # guid, nuid
         delete_edge_repr: Signal = Signal.factory(str, str)  # guid, euid
-        publish_node_data: Signal = Signal.factory(str, str)  # nuid, payload
-        publish_edge_data: Signal = Signal.factory(str, str)  # euid, payload
+
+        put_node_data: Signal = Signal.factory(str, str)  # nuid, payload
+        put_edge_data: Signal = Signal.factory(str, str)  # euid, payload
 
         notify: Signal = Signal.factory(str, str)  # guid, nuid/euid
 
@@ -113,16 +114,16 @@ class SignalBus:
             "create_edge_item": self.data.create_edge_item,
             "delete_node_item": self.data.delete_node_item,
             "delete_edge_item": self.data.delete_edge_item,
-            "send_node_data": self.data.send_node_data,
-            "send_edge_data": self.data.send_edge_data,
+            "get_node_data": self.data.get_node_data,
+            "get_edge_data": self.data.get_edge_data,
             "update_node_data": self.data.update_node_data,
             # Target: Frontend
             "create_node_repr": self.ui.create_node_repr,
             "create_edge_repr": self.ui.create_edge_repr,
             "delete_node_repr": self.ui.delete_node_repr,
             "delete_edge_repr": self.ui.delete_edge_repr,
-            "publish_node_data": self.ui.publish_node_data,
-            "publish_edge_data": self.ui.publish_edge_data,
+            "put_node_data": self.ui.put_node_data,
+            "put_edge_data": self.ui.put_edge_data,
         }
 
     def raise_request(
