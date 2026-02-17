@@ -94,7 +94,7 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
 
         form.addRow("Process:", QtWidgets.QLineEdit(frame))
         form.addRow("Tech/Type:", QtWidgets.QComboBox(frame))
-        form.addRow("Primary Unit:", QtWidgets.QComboBox(frame))
+        form.addRow("Primary Stream:", QtWidgets.QComboBox(frame))
 
         dock = QtWidgets.QDockWidget("Node Config", self, floating=False)
         dock.setTitleBarWidget(QtWidgets.QFrame(self))

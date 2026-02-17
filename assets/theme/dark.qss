@@ -245,6 +245,7 @@ QDockWidget::title {                           /* Dock widget title bar style */
 QTabWidget::pane {                              /* Tab pane style */
     background                  : transparent;
     border-radius               : 4px;
+    margin-top                  : 2px;
 }
 
 QTabWidget::tab-bar {                                      /* Tab bar style */
@@ -253,7 +254,7 @@ QTabWidget::tab-bar {                                      /* Tab bar style */
 }
 
 QTabWidget QTabBar::tab {                                  /* Individual tab style */
-    height                      : 28px;
+    height                      : 22px;
     color                       : white;
     width                       : 100px;
     background                  : transparent;
