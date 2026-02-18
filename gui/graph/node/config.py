@@ -162,6 +162,10 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
         name.setText(meta.get("label", "Process"))
         name.clearFocus()
 
+        # Load the node's technical details
+        self._inp_tree.from_dict(data.get("consumed", {}))
+        self._out_tree.from_dict(data.get("produced", {}))
+
     def paintEvent(self, event, /):
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)

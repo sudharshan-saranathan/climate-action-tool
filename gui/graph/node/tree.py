@@ -9,6 +9,7 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 import qtawesome as qta
+import typing
 
 
 # core.gui.widgets
@@ -20,10 +21,7 @@ class StreamTree(QtWidgets.QTreeWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent, columnCount=3)
-        super().setEditTriggers(
-            QtWidgets.QTreeWidget.EditTrigger.DoubleClicked
-            | QtWidgets.QTreeWidget.EditTrigger.EditKeyPressed
-        )
+        super().setEditTriggers(QtWidgets.QTreeWidget.EditTrigger.DoubleClicked)
 
         # Customize appearance and behaviour
         self.setHeaderLabels(["Stream", "Value", ""])
@@ -38,6 +36,7 @@ class StreamTree(QtWidgets.QTreeWidget):
 
         # Primary action group for selecting the node's primary stream
         self._primary_group = QtGui.QActionGroup(self)
+        self._tree_data: dict[str, QtWidgets.QWidget] = {}
 
         # Initialize top-level items
         self._init_top_level([Fuel, Fluid, Material, Electricity])
@@ -114,7 +113,9 @@ class StreamTree(QtWidgets.QTreeWidget):
                 self.setItemWidget(field, 1, QtWidgets.QLineEdit(self))
 
     @QtCore.Slot()
-    def create_row(self, root, name="", value="", units=""):
+    def create_row(
+        self, root: QtWidgets.QTreeWidgetItem
+    ) -> QtWidgets.QTreeWidgetItem | None:
 
         # Resolve the target root from the current selection if not provided
         root = root or self._get_root_from_selection()
@@ -123,13 +124,8 @@ class StreamTree(QtWidgets.QTreeWidget):
 
         data = root.data(0, QtCore.Qt.ItemDataRole.UserRole)
 
-        # Merge value and units into a single field
-        merge = f"{value} {units}".strip() if units else str(value)
-
-        item = QtWidgets.QTreeWidgetItem([name, merge])
-        root.addChild(item)
-
-        item.setText(0, f"Resource {root.childCount()}")
+        item = QtWidgets.QTreeWidgetItem(root)
+        item.setText(0, f"{root.text(0)} {root.childCount()}")
         item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable)
 
         self._add_grouped_attributes(item, data)
@@ -154,4 +150,17 @@ class StreamTree(QtWidgets.QTreeWidget):
         self.setItemWidget(item, 2, toolbar)
         self.editItem(item, 0)
         root.setExpanded(True)
+
         return item
+
+    @QtCore.Slot()
+    def delete_row(self, item: QtWidgets.QTreeWidgetItem) -> None:
+        parent = item.parent()
+        if parent:
+            parent.removeChild(item)
+            parent.setText(0, f"{parent.text(0)} {parent.childCount()}")
+
+    def from_dict(self, data: dict[str, typing.Any]) -> None:
+
+        for key, value in data.items():
+            self.create_row(None, key)

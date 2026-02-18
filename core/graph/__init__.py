@@ -212,10 +212,12 @@ class GraphManager:
     @guid_validator
     def send_node_data(self, guid: str, nuid: str) -> None:
 
-        _node = self.graph_db[guid].nodes.get(nuid)
-        _json = json.dumps(_node.to_dict()) if _node else None
+        # Graph UID is already validated by `guid_validator` decorator
+        graph_node = self.graph_db[guid].nodes.get(nuid, None)
 
-        self.signal_bus.ui.put_node_data.emit(nuid, _json)
+        if graph_node:
+            jstr = json.dumps(graph_node.to_dict())
+            self.signal_bus.ui.put_node_data.emit(nuid, jstr)
 
     @guid_validator
     def send_edge_data(self, guid: str, euid: str) -> None:
