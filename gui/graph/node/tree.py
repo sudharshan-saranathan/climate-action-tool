@@ -13,7 +13,7 @@ import qtawesome as qta
 
 # core.gui.widgets
 from gui.widgets.toolbar import ToolBar
-from core.streams.composite import Composite
+from core.streams.composite import Composite, Fuel, Fluid, Material, Electricity
 
 
 class StreamTree(QtWidgets.QTreeWidget):
@@ -33,12 +33,16 @@ class StreamTree(QtWidgets.QTreeWidget):
         # Customize header
         header = self.header()
         header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setColumnWidth(0, 300)
+        self.setColumnWidth(0, 400)
         self.setColumnWidth(1, 200)
 
-    def init_top_level_items(self, _stream_list: list[type]):
+        # Primary action group for selecting the node's primary stream
+        self._primary_group = QtGui.QActionGroup(self)
 
-        self.clear()
+        # Initialize top-level items
+        self._init_top_level([Fuel, Fluid, Material, Electricity])
+
+    def _init_top_level(self, _stream_list: list[type]):
 
         for _class in _stream_list:
 
@@ -61,14 +65,12 @@ class StreamTree(QtWidgets.QTreeWidget):
             toolbar = ToolBar(
                 self,
                 trailing=True,
-                actions=[
-                    (
-                        qta.icon("mdi.plus", color="gray", color_active="white"),
-                        "Add Stream",
-                        lambda _, i=item: self.create_row(i),
-                    ),
-                ],
             )
+
+            add_stream = toolbar.addAction(
+                qta.icon("mdi.plus", color="gray", color_active="white"), "Add Stream"
+            )
+            add_stream.triggered.connect(lambda _, i=item: self.create_row(i))
 
             self.setItemWidget(item, 2, toolbar)
 
@@ -88,8 +90,8 @@ class StreamTree(QtWidgets.QTreeWidget):
         composite_cls: type,
     ) -> None:
 
-        groups = getattr(composite_cls, "display_hierarchy", {})
-        for key in groups:
+        hierarchy = getattr(composite_cls, "attribute_hierarchy", {})
+        for key in hierarchy:
 
             section = QtWidgets.QTreeWidgetItem([key.capitalize()])
             section.setIcon(0, qta.icon("mdi.minus", color="white"))
@@ -98,9 +100,9 @@ class StreamTree(QtWidgets.QTreeWidget):
             root.setIcon(0, qta.icon(icon, color="#cbcbcb"))
             root.addChild(section)
 
-            for attr in groups[key]:
+            for attr in hierarchy[key]:
 
-                label = groups[key][attr]
+                label = hierarchy[key][attr]
                 field = QtWidgets.QTreeWidgetItem(section)
                 field.setText(0, label)
                 field.setTextAlignment(
@@ -138,9 +140,6 @@ class StreamTree(QtWidgets.QTreeWidget):
             trailing=True,
             iconSize=QtCore.QSize(18, 18),
         )
-        slash = toolbar.addAction(
-            qta.icon("mdi.slash-forward-box", color="gray"), "Denominator"
-        )
         toolbar.addAction(
             qta.icon("mdi.check-all", color="gray", color_active="white"), "Check"
         )
@@ -150,8 +149,6 @@ class StreamTree(QtWidgets.QTreeWidget):
         toolbar.addAction(
             qta.icon("mdi.delete", color="red", color_active="white"), "Delete"
         )
-
-        slash.setCheckable(True)
 
         # Set widgets
         self.setItemWidget(item, 2, toolbar)

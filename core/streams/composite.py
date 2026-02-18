@@ -9,13 +9,20 @@ import typing
 import logging
 
 
+# core.streams
+from core.streams.physical import MassFlowRate
+from core.streams.physical import CostPerMass
+
+
 class Composite:
     label = "Composite"
     image = "mdi.set-center"
     color = "#FFD700"
 
-    # Attribute grouping for GUI display
-    display_hierarchy = {}
+    # Attribute dictionary for GUI
+    attribute_hierarchy = {
+        "Primary": {},
+    }
 
     def __init__(
         self,
@@ -50,21 +57,15 @@ class Material(Composite):
     image = "mdi.gold"
     color = "#f63c6b"
 
-    # Attribute grouping for GUI display
-    display_hierarchy = {
-        "primary": {
-            "mass": "Mass",
-            "cost": "Cost",
+    # Attribute dictionary for GUI
+    attribute_hierarchy = {
+        "Primary": {
+            "mass": "Mass [kg/s]",
+            "cost": "Cost [INR/kg]",
         },
     }
 
-    def __init__(
-        self,
-        **kwargs,
-    ):
-        # Import MassFlowRate from core.streams.physical
-        from core.streams.physical import MassFlowRate
-        from core.streams.physical import CostPerMass
+    def __init__(self, **kwargs):
 
         # For a Material stream, mass and cost are auto-defined.
         self.mass = MassFlowRate("0 kg/s")
@@ -81,34 +82,33 @@ class Electricity(Composite):
     image = "mdi.flash"
     color = "#8491a3"
 
-    # Attribute grouping for GUI display
-    display_hierarchy = {
-        "primary": {
-            "power": "Power",
-            "tariff": "Tariff",
+    attribute_hierarchy = {
+        "Primary": {
+            "power": "Power [kW]",
+            "tariff": "Tariff [INR/kWh]",
         },
-        "operational": {
-            "ramp_rate": "Ramp Rate",
-            "variability": "Variability",
-            "capacity_factor": "Capacity Factor",
-            "dispatchability": "Dispatchability",
-            "minimum_stable_generation": "Minimum Generation",
+        "Cycle": {
+            "start_up_time": "Start-up time [s]",
+            "shut_down_time": "Shut-down time [s]",
         },
-        "cycle": {
-            "start_up_time": "Startup Time",
-            "shut_down_time": "Shutdown Time",
+        "Quality": {
+            "voltage": "Voltage [V]",
+            "power_factor": "Power factor [dimensionless]",
+            "frequency": "Frequency [Hz]",
         },
-        "quality": {
-            "voltage": "Voltage",
-            "power_factor": "Power Factor",
-            "frequency": "Frequency",
+        "Emissions": {
+            "CO2_intensity": "CO2 intensity [kg/J]",
+            "SOx_intensity": "SOx intensity [kg/J]",
+            "NOx_intensity": "NOx intensity [kg/J]",
+            "PM2_5_intensity": "PM2.5 intensity [kg/J]",
+            "PM10_intensity": "PM10 intensity [kg/J]",
         },
-        "environmental": {
-            "CO2_intensity": "CO2 Intensity",
-            "SOx_intensity": "SOx Intensity",
-            "NOx_intensity": "NOx Intensity",
-            "PM2_5_intensity": "PM2.5 Intensity",
-            "PM10_intensity": "PM10 Intensity",
+        "Operational": {
+            "ramp_rate": "Ramp Rate [kW/s]",
+            "capacity_factor": "Capacity Factor [dimensionless]",
+            "dispatchability": "Dispatchability [dimensionless]",
+            "variability": "Variability [dimensionless]",
+            "minimum_stable_generation": "Minimum Stable Generation [dimensionless]",
         },
     }
 
@@ -176,43 +176,78 @@ class Electricity(Composite):
         super().__init__(**kwargs)
 
 
+class Fluid(Composite):
+    label = "Fluid"
+    image = "mdi.gas-cylinder"
+    color = "darkcyan"
+
+    attribute_hierarchy = {
+        "Primary": {
+            "mass": "Mass [kg/s]",
+            "cost": "Cost [INR/kg]",
+        },
+        "Thermodynamic": {
+            "vapor_fraction": "Vapor Fraction [dimensionless]",
+            "temperature": "Temperature [°C]",
+            "pressure": "Pressure [bar]",
+        },
+    }
+
+    def __init__(self, **kwargs):
+
+        # Import required classes
+        from core.streams.quantity import Quantity
+        from core.streams.physical import (
+            MassFlowRate,
+            CostPerMass,
+            Temperature,
+            Pressure,
+        )
+
+        # Primary attributes
+        self.mass = MassFlowRate("0 kg/s")
+        self.cost = CostPerMass("0 INR/kg")
+
+        # Thermodynamic attributes
+        self.vapor_fraction = Quantity("0 dimensionless")
+        self.temperature = Temperature("0 °C")
+        self.pressure = Pressure("0 bar")
+
+        # Remove from kwargs before passing to parent
+        kwargs.pop("mass", None)
+        kwargs.pop("cost", None)
+        kwargs.pop("vapor_fraction", None)
+        kwargs.pop("temperature", None)
+        kwargs.pop("pressure", None)
+        super().__init__(**kwargs)
+
+
 class Fuel(Material):
     label = "Fuel"
     image = "mdi.gas-station"
     color = "#bd8b9c"
 
-    # Attribute grouping for GUI display
-    # Note: 'mass' and 'cost' are inherited from Material
-    display_hierarchy = {
-        "primary": {
-            "mass": "Mass",
-            "cost": "Cost",
-            "energy_content": "Energy Content",
+    attribute_hierarchy = {
+        "Primary": {
+            "ash_content": "Ash Content [dimensionless]",
+            "energy_content": "Energy Content [kJ/kg]",
+            "moisture_content": "Moisture Content [dimensionless]",
         },
-        "chemical": {
-            "energy_content": "Energy Content",
-            "moisture_content": "Moisture Content",
-            "ash_content": "Ash Content",
+        "Chemical": {
+            "carbon_fraction": "Carbon Fraction [dimensionless]",
+            "sulfur_fraction": "Sulfur Fraction [dimensionless]",
+            "oxygen_fraction": "Oxygen Fraction [dimensionless]",
+            "hydrogen_fraction": "Hydrogen Fraction [dimensionless]",
+            "nitrogen_fraction": "Nitrogen Fraction [dimensionless]",
         },
-        "composition": {
-            "carbon_fraction": "Carbon Fraction",
-            "hydrogen_fraction": "Hydrogen Fraction",
-            "oxygen_fraction": "Oxygen Fraction",
-            "nitrogen_fraction": "Nitrogen Fraction",
-            "sulfur_fraction": "Sulfur Fraction",
-        },
-        "emissions": {
-            "CO2_emissions": "CO2 Emissions",
-            "CH4_emissions": "CH4 Emissions",
-            "SOx_emissions": "SOx Emissions",
-            "NOx_emissions": "NOx Emissions",
-            "PM2_5_emissions": "PM2.5 Emissions",
-            "PM10_emissions": "PM10 Emissions",
-            "CO_emissions": "CO Emissions",
-        },
-        "sustainability": {
-            "renewable_fraction": "Renewable Fraction",
-            "carbon_neutrality_factor": "Carbon Neutrality Factor",
+        "Emissions": {
+            "CO2_emissions": "CO2 Emissions [kg/kg]",
+            "CH4_emissions": "CH4 Emissions [kg/kg]",
+            "SOx_emissions": "SOx Emissions [kg/kg]",
+            "NOx_emissions": "NOx Emissions [kg/kg]",
+            "PM2_5_emissions": "PM2.5 Emissions [kg/kg]",
+            "PM10_emissions": "PM10 Emissions [kg/kg]",
+            "CO_emissions": "CO Emissions [kg/kg]",
         },
     }
 
@@ -248,12 +283,6 @@ class Fuel(Material):
         self.PM2_5_emissions = Quantity("0 dimensionless")
         self.PM10_emissions = Quantity("0 dimensionless")
         self.CO_emissions = Quantity("0 dimensionless")
-
-        # Sustainability attributes
-        self.renewable_fraction = Quantity("0 dimensionless")  # 0=fossil, 1=biomass
-        self.carbon_neutrality_factor = Quantity(
-            "0 dimensionless"
-        )  # For carbon accounting
 
         # Remove from kwargs before passing to parent
         kwargs.pop("energy_content", None)

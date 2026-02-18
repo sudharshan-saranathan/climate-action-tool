@@ -52,6 +52,22 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
             default_factory=lambda: QtCore.QSize(1200, 720)
         )
 
+    @dataclass
+    class Dictionary:
+        """Default dictionary options.
+
+        Attributes:
+            consumed: The node's default consumed streams.
+            produced: The node's default produced streams.
+            parameters: The node's default parameters.
+            equations: The node's default equations.
+        """
+
+        consumed: dict[str, typing.Any] = field(default_factory=dict)
+        produced: dict[str, typing.Any] = field(default_factory=dict)
+        parameters: dict[str, typing.Any] = field(default_factory=dict)
+        equations: dict[str, typing.Any] = field(default_factory=dict)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -76,9 +92,6 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
         self.setCentralWidget(self._tabs)
 
     def _init_dock(self) -> QtWidgets.QDockWidget:
-
-        from gui.widgets import TrafficLights
-        from qtawesome import icon as qta_icon
 
         frame = QtWidgets.QFrame(self)
         frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
@@ -139,8 +152,15 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
         tabs.setCornerWidget(traffic)
         return tabs
 
-    def load(self, data: dict[str, typing.Any]) -> None:
-        print(f"Received data for config:\n{data}")
+    def from_data(self, data: dict[str, typing.Any]) -> None:
+
+        # Metadata
+        meta = data.get("meta", {})
+
+        # Set the node's label
+        name = self._pane.findChild(QtWidgets.QLineEdit)
+        name.setText(meta.get("label", "Process"))
+        name.clearFocus()
 
     def paintEvent(self, event, /):
         painter = QtGui.QPainter(self)

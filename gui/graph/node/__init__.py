@@ -130,7 +130,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         self._init_label()
 
         # Config dialog (lazy init)
-        self._config_dialog = None
+        self._configurator = NodeConfigWidget()
 
         # Get the signal bus instance
         self._signal_bus = SignalBus()
@@ -255,9 +255,6 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
     def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
 
-        # Create a configuration dialog first (must exist before populate fires via signal)
-        from gui.graph.node.config import NodeConfigWidget
-
         # Fetch the node's data using the signal bus
         cuid = getattr(self.scene(), "uid", None)
         if cuid:
@@ -276,9 +273,7 @@ class NodeRepr(QtWidgets.QGraphicsObject):
             return
 
         data = json.loads(jstr)
-
-        self._configurator = NodeConfigWidget()
-        self._configurator.load(data)
+        self._configurator.from_data(data)
         self._configurator.show()
 
     @QtCore.Slot(str)
