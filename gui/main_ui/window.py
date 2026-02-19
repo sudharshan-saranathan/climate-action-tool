@@ -3,39 +3,32 @@
 # Description: The main UI of Climact.
 
 """
-Main window interface for the Climate Action Tool.
-
-Provides the primary window with toolbar, menubar, statusbar, and dock widgets.
-Implemented as a singleton to ensure only one window instance exists.
+Main User Interface (UI) of the application. The main window displays a toolbar, menubar, statusbar, and dock widgets.
+Implemented as a singleton to ensure only one main-window instance exists.
 """
 
 from __future__ import annotations
-from qtawesome import icon as qta_icon
-
-# PySide6 (Python/Qt)
-from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
 
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
 
-# Climact
+# QtAwesome (Python/Qt)
+from qtawesome import icon as qta_icon
+# PySide6 (Python/Qt)
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+
+# Climact module: gui.widgets
 from gui.widgets import ToolBar
 from gui.widgets import TrafficLights
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    """
-    Main application window for the Climate Action Tool.
-
-    Initializes and manages the primary UI components including menubar, toolbar, dock widgets,
-    and statusbar. Implemented as a singleton to ensure only one window instance exists at any time.
-    """
 
     @dataclass
-    class Style:
+    class Appearance:
         """Default border and background style.
 
         Attributes:
@@ -59,6 +52,22 @@ class MainWindow(QtWidgets.QMainWindow):
             }
         )
 
+    @dataclass(frozen=True)
+    class Geometric:
+        """Default options describing the main window's geometric properties.
+
+        Attributes:
+            border_radius: Radius of the node's rounded corners.
+            widget_margin: The window's default margin (on all sides).
+            dimensions: The node's default dimensions when created (fixed).
+        """
+
+        border_radius: int = 4
+        widget_margin: int = 64
+        dimensions: QtCore.QSize = field(
+            default_factory=lambda: QtCore.QSize(1200, 900)
+        )
+
     # Singleton instance:
     _instance: MainWindow | None = None
 
@@ -79,7 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         # Instantiate dataclasses
-        self._style = MainWindow.Style()
+        self._style = MainWindow.Appearance()
 
         # Initialize super class
         super().__init__()

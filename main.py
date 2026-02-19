@@ -2,32 +2,32 @@
 # Module name: N/A
 # Description: Entry point for the Climate Action Tool (CAT)
 
-# Python
+# Standard
 import argparse
 import logging
-import typing
 import sys
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
 
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-# Dataclass
-from dataclasses import field
-from dataclasses import dataclass
-
 # Climact
-import rsrc
 from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
-import core.graph  # Import to ensure GraphManager singleton is initialized
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 
+# ClimateActionTool: Main application class
 class ClimateActionTool(QtWidgets.QApplication):
-    """
-    Main application class to manage app lifecycle and UI components.
-    """
 
     # Class logger
     _logger = logging.getLogger("ClimateActionTool")
@@ -58,12 +58,13 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         Attributes:
             margin: The application's default margin (on all sides)
-            normal: The application's default geometry.
+            normal: The application's geometry when shown normally.
         """
 
         margin: int = 64
         normal: QtCore.QRect = field(default_factory=QtCore.QRect)
 
+    # Initialize Qt application and set default attribute(s)
     def __init__(self):
 
         super().__init__(sys.argv)
@@ -73,12 +74,12 @@ class ClimateActionTool(QtWidgets.QApplication):
         self._rsrc = ClimateActionTool.Resources()
         self._geom = ClimateActionTool.Geometric()
 
-        image = self._rsrc.image  # The application's taskbar logo.
-        theme = self._rsrc.theme  # Path to the QSS stylesheet.
-        bezel = self._geom.margin  #
+        image = self._rsrc.image
+        theme = self._rsrc.theme
+        bezel = self._geom.margin
         fonts = QtCore.QDir(self._rsrc.fonts)
 
-        # Compute window geometry by padding screen bounds (primary screen only)
+        # Compute window geometry by padding the primary screen's dimensions (in pixels)
         screen = QtWidgets.QApplication.primaryScreen()
         bounds = screen.availableGeometry()
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
@@ -89,18 +90,11 @@ class ClimateActionTool(QtWidgets.QApplication):
         self._init_fonts(fonts)
         self.setWindowIcon(QtGui.QIcon(image))
 
-        # Configure logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-        )
-
-        # Display the startup dialog, if enabled
-        if self.startup_flag:
-            self.startup_code = self._show_startup()
+        # If enabled, show the startup dialog to collect user input and proceed accordingly
+        self._user_input_code = self._show_startup() if self.startup_flag else 0
 
         # Create and show the main window
-        if self.startup_code:
+        if self._user_input_code:
 
             self._win = MainWindow()
             self._win.setWindowTitle("Climate Action Tool")
@@ -110,12 +104,8 @@ class ClimateActionTool(QtWidgets.QApplication):
         else:
             sys.exit(0)
 
-    def _init_geometry(self):
-        pass
-
     def _init_args(self) -> None:
-        """
-        Parse command-line arguments and update application flags.
+        """Parse command-line arguments and update application flags.
 
         Supported flags:
         - --version: Display the application version and exit.
@@ -134,17 +124,17 @@ class ClimateActionTool(QtWidgets.QApplication):
         self.startup_code = 1
 
     def _init_fonts(self, path: QtCore.QDir) -> None:
-        """
-        Install fonts from the specified directory and set platform-specific size.
+        """Install fonts from the specified directory and set platform-specific size.
 
-        Args:
-            path: Path to the 'fonts' directory.
+        :param path: Path to the 'fonts' directory.
+        :return None
         """
 
-        # For system platform detection
+        # For detecting the operating system (MacOS vs. Windows vs. Linux)
         import platform
 
-        # Get the list of TTF fonts and compute platform-specific size:
+        # Get the list of fonts (*.ttf) in the specified directory, then compute the font size: 12 for MacOS
+        # and 8 for Windows/Linux.
         font_list = path.entryList(["*.ttf"])
         font_size = 12 if platform.system().lower() == "darwin" else 8
 
@@ -157,8 +147,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         self.setFont(QtGui.QFont("Fira Code", font_size))
 
     def _init_theme(self, path: str) -> None:
-        """
-        Set the application's theme based on the specified QSS stylesheet.
+        """Set the application's theme based on the specified QSS stylesheet.
 
         :param path: Path to the QSS stylesheet file.
         :return: None
@@ -174,12 +163,9 @@ class ClimateActionTool(QtWidgets.QApplication):
 
     @staticmethod
     def _show_startup() -> int:
-        """
-        Display the startup dialog and return the result
+        """Display the startup dialog and return the result
 
-        Returns:
-            A tuple of (exit_code, project_path) where exit_code indicates
-            success (1) or cancellation (0).
+        return: An integer indicating success (1) or cancellation (0).
         """
 
         startup = StartupWindow()
