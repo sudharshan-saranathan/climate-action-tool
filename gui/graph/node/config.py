@@ -5,21 +5,22 @@
 from __future__ import annotations
 
 # Standard
-import json
 import typing
-import logging
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
 
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-# Dataclass
-from dataclasses import field
-from dataclasses import dataclass
+# Climact
+from gui.widgets import Field, HLayout
+from gui.widgets import ComboBox
 
 
-class NodeConfigWidget(QtWidgets.QMainWindow):
+class NodeConfigWidget(QtWidgets.QDialog):
 
     @dataclass
     class Appearance:
@@ -85,13 +86,14 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
         )
 
         # UI components
-        self._pane = self._init_dock()
-        self._tabs = self._init_tabs()
+        self._info_panel = self._init_dock_panel()
+        self._tech_stack = self._init_tech_stack()
 
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._pane)
-        self.setCentralWidget(self._tabs)
+        layout = HLayout(self, spacing=4)
+        layout.addWidget(self._info_panel)
+        layout.addWidget(self._tech_stack)
 
-    def _init_dock(self) -> QtWidgets.QDockWidget:
+    def _init_dock_panel(self) -> QtWidgets.QDockWidget:
 
         frame = QtWidgets.QFrame(self)
         frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
@@ -105,51 +107,41 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
             fieldGrowthPolicy=QtWidgets.QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow,
         )
 
-        form.addRow("Process:", QtWidgets.QLineEdit(frame))
-        form.addRow("Tech/Type:", QtWidgets.QComboBox(frame))
-        form.addRow("Primary Stream:", QtWidgets.QComboBox(frame))
+        name_field = Field(frame)
+        type_combo = ComboBox(frame)
+        flow_combo = ComboBox(frame)
+
+        form.addRow("Process:", name_field)
+        form.addRow("Tech/Type:", type_combo)
+        form.addRow("Primary Stream:", flow_combo)
 
         dock = QtWidgets.QDockWidget("Node Config", self, floating=False)
         dock.setTitleBarWidget(QtWidgets.QFrame(self))
         dock.setWidget(frame)
+        dock.setFixedWidth(280)
 
         return dock
 
-    def _init_tabs(self):
+    def _init_tech_stack(self) -> QtWidgets.QStackedWidget:
+        stack = QtWidgets.QStackedWidget(self)
+        return stack
 
-        from gui.widgets import TrafficLights
+    def _create_tab_widget(self):
+
         from gui.graph.node.tree import StreamTree
         from qtawesome import icon as qta_icon
 
-        traffic = TrafficLights(self)
-        traffic.close_clicked.connect(self.close)
-
-        self._inp_tree = StreamTree()
-        self._out_tree = StreamTree()
+        inp = StreamTree()
+        out = StreamTree()
+        par = StreamTree()
+        eqn = QtWidgets.QTextEdit()
 
         tabs = QtWidgets.QTabWidget(self)
-        tabs.addTab(
-            self._inp_tree,
-            qta_icon("mdi.arrow-down-bold", color="gray"),
-            "In",
-        )
-        tabs.addTab(
-            self._out_tree,
-            qta_icon("mdi.arrow-up-bold", color="gray"),
-            "Out",
-        )
-        tabs.addTab(
-            QtWidgets.QGraphicsView(self),
-            qta_icon("mdi.alpha", color="gray"),
-            "Params",
-        )
-        tabs.addTab(
-            QtWidgets.QGraphicsView(self),
-            qta_icon("mdi.equal", color="gray"),
-            "Equations",
-        )
+        tabs.addTab(inp, qta_icon("mdi.arrow-down-bold", color="gray"), "In")
+        tabs.addTab(out, qta_icon("mdi.arrow-up-bold", color="gray"), "Out")
+        tabs.addTab(par, qta_icon("mdi.alpha", color="gray"), "Params")
+        tabs.addTab(eqn, qta_icon("mdi.equal", color="gray"), "Equations")
 
-        tabs.setCornerWidget(traffic)
         return tabs
 
     def from_data(self, data: dict[str, typing.Any]) -> None:
@@ -158,13 +150,13 @@ class NodeConfigWidget(QtWidgets.QMainWindow):
         meta = data.get("meta", {})
 
         # Set the node's label
-        name = self._pane.findChild(QtWidgets.QLineEdit)
-        name.setText(meta.get("label", "Process"))
-        name.clearFocus()
+        name_field = self._info_panel.findChild(Field)
+        name_field.setText(meta.get("label", "Process"))
+        name_field.clearFocus()
 
         # Load the node's technical details
-        self._inp_tree.from_dict(data.get("consumed", {}))
-        self._out_tree.from_dict(data.get("produced", {}))
+        # self._inp_tree.from_dict(data.get("consumed", {}))
+        # self._out_tree.from_dict(data.get("produced", {}))
 
     def paintEvent(self, event, /):
         painter = QtGui.QPainter(self)
