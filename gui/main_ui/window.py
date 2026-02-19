@@ -9,12 +9,9 @@ Implemented as a singleton to ensure only one main-window instance exists.
 
 from __future__ import annotations
 
-# Dataclass
-from dataclasses import field
-from dataclasses import dataclass
+# Collections
+from collections import namedtuple
 
-# QtAwesome (Python/Qt)
-from qtawesome import icon as qta_icon
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
@@ -25,83 +22,24 @@ from gui.widgets import ToolBar
 from gui.widgets import TrafficLights
 
 
+# MainWindow: Main UI of Climact
 class MainWindow(QtWidgets.QMainWindow):
 
-    @dataclass
-    class Appearance:
-        """Default border and background style.
+    # Default visual, geometric, and layout options
+    DefaultTheme = namedtuple("Theme", ["borderline", "background"])
+    DefaultShape = namedtuple("Shape", ["border_radius", "size"])
 
-        Attributes:
-            radius: The radius of the rounded corners.
-            border: Default border styling.
-            background: Default background style.
-        """
-
-        radius: int = 8
-        border: dict = field(
-            default_factory=lambda: {
-                "color": QtGui.QColor(0x363E41),
-                "width": 1.0,
-            }
-        )
-
-        background: dict = field(
-            default_factory=lambda: {
-                "color": QtGui.QColor(0x232A2E),
-                "brush": QtCore.Qt.BrushStyle.SolidPattern,
-            }
-        )
-
-    @dataclass(frozen=True)
-    class Geometric:
-        """Default options describing the main window's geometric properties.
-
-        Attributes:
-            border_radius: Radius of the node's rounded corners.
-            widget_margin: The window's default margin (on all sides).
-            dimensions: The node's default dimensions when created (fixed).
-        """
-
-        border_radius: int = 4
-        widget_margin: int = 64
-        dimensions: QtCore.QSize = field(
-            default_factory=lambda: QtCore.QSize(1200, 900)
-        )
-
-    # Singleton instance:
-    _instance: MainWindow | None = None
-
-    def __new__(cls, **kwargs):
-        """Enforce singleton design by returning the same instance."""
-
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
+    # Constructor
     def __init__(self, **kwargs):
-        """
-        Initialize the main window. Prevents reinitialization by checking the _initialized flag.
-        """
-
-        # Prevent reinitialization of the singleton instance:
-        if hasattr(self, "_initialized"):
-            return
-
-        # Instantiate dataclasses
-        self._style = MainWindow.Appearance()
 
         # Initialize super class
         super().__init__()
         super().setObjectName("main-window")
 
-        # Frameless window with a transparent background for explicit background control:
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+        # Initialize default options, flags, and other necessary attributes
+        self._initialize_defaults()
 
-        # Window dragging properties
-        self.setProperty("dragged_via_menubar", False)
-        self.setProperty("mouse_press_pos", QtCore.QPointF())
-
+        # Initialize UI components
         self._init_menubar()
         self._init_toolbar()
         self._init_tabview()
@@ -111,17 +49,28 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create an unclosable map viewer
         self._init_map_view()
 
-        self._traffic = None  # Will be set in _init_menubar
-        self._initialized = True
+    def _initialize_defaults(self) -> None:
+
+        # Default visual theme
+        self._theme = self.DefaultTheme(
+            borderline=QtGui.QPen(QtGui.QColor(0x363E41), 1.0),
+            background=QtGui.QBrush(QtGui.QColor(0x232A2E)),
+        )
+
+        # Default shape
+        self._shape = self.DefaultShape(
+            border_radius=10,
+            size=QtCore.QSize(1200, 900),
+        )
+
+        # Additional attributes and flags
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+        self.setProperty("dragged_via_menubar", False)
+        self.setProperty("mouse_press_pos", QtCore.QPointF())
 
     def _init_menubar(self) -> None:
-        """
-        Initialize the menubar with File, Edit, View, and Help menus and traffic light controls.
 
-        Sets the menubar to use the application's custom menu bar instead of the system's native one.
-        Adds traffic light buttons (minimize, maximize, close) as a corner widget.
-        Installs event filter for window dragging via the menubar.
-        """
         # Create and configure the traffic lights widget
         self._traffic = TrafficLights(self)
         self._traffic.minimize_clicked.connect(self.showMinimized)
@@ -144,39 +93,31 @@ class MainWindow(QtWidgets.QMainWindow):
         self._traffic.installEventFilter(self)
 
     def _init_toolbar(self) -> None:
-        """
-        Initialize the left-aligned toolbar with action buttons.
 
-        Creates a vertical toolbar with action buttons for Dock, Open, Save, Optimize, and Results.
-        The toolbar is non-floatable and non-movable by default.
-        """
+        # Import QtAwesome (Python/Qt)
+        import qtawesome as qta
 
+        # Create toolbar with custom actions
         toolbar = ToolBar(
             self,
-            style="QToolBar QToolButton {margin: 1px 1px 2px 1px;}",
+            style="QToolBar QToolButton {margin: 2px 2px 4px 2px;}",
             orientation=QtCore.Qt.Orientation.Vertical,
             iconSize=QtCore.QSize(24, 24),
             trailing=False,
             actions=[
-                (qta_icon("ph.layout-fill", color="#fef9ef"), "Dock", self._execute),
-                (qta_icon("ph.folder-fill", color="#ffcb77"), "Open", self._execute),
-                (qta_icon("mdi.function", color="cyan"), "Optimize", self._execute),
-                (qta_icon("mdi.chart-box", color="#fe6d73"), "Results", self._execute),
-                (qta_icon("ph.dots-three", color="#efefef"), "More", self._execute),
+                (qta.icon("ph.layout-fill", color="#fef9ef"), "Dock", self._execute),
+                (qta.icon("ph.folder-fill", color="#ffcb77"), "Open", self._execute),
+                (qta.icon("mdi.function", color="cyan"), "Optimize", self._execute),
+                (qta.icon("mdi.chart-box", color="#fe6d73"), "Results", self._execute),
+                (qta.icon("ph.dots-three", color="#efefef"), "More", self._execute),
             ],
         )
 
         self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar)
 
     def _init_tabview(self) -> None:
-        """
-        Initialize the tab view as the central widget.
 
-        Creates a QTabWidget with closable, movable tabs positioned at the top.
-        Sets it as the central widget of the main window.
-        """
-
-        # Required:
+        # Import the tab-widge
         from gui.main_ui.tabber import TabWidget
 
         self._tabs = TabWidget(
@@ -418,15 +359,15 @@ class MainWindow(QtWidgets.QMainWindow):
         :return: None
         """
 
-        pen = QtGui.QPen(self._style.border["color"], self._style.border["width"])
-        brs = QtGui.QBrush(self._style.background["color"])
-        rad = self._style.radius
-
         painter = QtGui.QPainter(self)
-        painter.setBrush(brs)
-        painter.setPen(pen)
-        painter.drawRoundedRect(self.rect(), rad, rad)
-        painter.end()
+        painter.setBrush(self._theme.background)
+        painter.setPen(self._theme.borderline)
+
+        painter.drawRoundedRect(
+            self.rect(),
+            self._shape.border_radius,
+            self._shape.border_radius,
+        )
 
         # Call the super's paintEvent()
         super().paintEvent(event)

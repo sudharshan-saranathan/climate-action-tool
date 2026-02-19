@@ -2,66 +2,37 @@
 # Module name: startup
 # Description: A startup window based on the QDialog class (see Qt docs for more info).
 
-from PySide6 import QtCore, QtWidgets, QtGui
+
+from collections import namedtuple
+import dataclasses
+
+# PySide6 (Python/Qt)
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+
+# Climact modules: gui.widgets, gui.startup
 from gui.startup.choice import StartupChoice
 from gui.startup.ftable import StartupFileTable, FileTableItem
 from gui.widgets import GLayout
-import dataclasses
 
 
 class StartupWindow(QtWidgets.QDialog):
-    """
-    A startup window based on a QDialog class.
-    """
 
-    @dataclasses.dataclass(frozen=True)
-    class Style:
-        """
-        Configuration options for the startup window.
-
-        Attributes:
-            brush: QBrush for the window background (default: solid dark color).
-            border: QPen for window border styling (default: dark gray, 2pt).
-            texture: Path to the window background texture (default: ":/theme/pattern.png").
-        """
-
-        brush: QtGui.QBrush = dataclasses.field(default_factory=QtGui.QBrush)
-        border: QtGui.QPen = dataclasses.field(default_factory=QtGui.QPen)
-        texture: str = ":/theme/pattern.png"
-
-    @dataclasses.dataclass(frozen=True)
-    class Geometry:
-        size: QtCore.QSize = dataclasses.field(default_factory=QtCore.QSize)
-        radius: int = 10
+    DefaultTheme = namedtuple("Theme", ["borderline", "background", "texture"])
+    DefaultShape = namedtuple("Shape", ["border_radius", "size"])
 
     @dataclasses.dataclass(frozen=True)
     class Metadata:
         regex: str = "*.h5"
 
-    # Class constructor
-    def __init__(self, parent=None):
-        """
-        Initializes the startup window and sets up the UI components.
+    # Constructor
+    def __init__(self):
 
-        Args:
-            parent: Parent widget (optional).
-        """
+        super().__init__(None)
 
-        super().__init__(parent)
-        super().setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        super().setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
-
-        # Window styling and initialization
-        self._style = StartupWindow.Style(
-            brush=QtGui.QBrush(QtGui.QColor(0x232A2E)),
-            border=QtGui.QPen(QtGui.QColor(0x393E41)),
-        )
-        self._pixmap = QtGui.QPixmap(self._style.texture)
-        self._style.brush.setTexture(self._pixmap)
-
-        self._geometry = StartupWindow.Geometry(size=QtCore.QSize(900, 640), radius=10)
-        self._metadata = StartupWindow.Metadata()
-        self.resize(self._geometry.size)
+        # Initialize default options, flags, and other necessary attributes
+        self._initialize_defaults()
 
         # UI components
         self._header = self._init_header()
@@ -75,6 +46,29 @@ class StartupWindow(QtWidgets.QDialog):
         self._init_layout()
 
         self._init_connections()
+
+    def _initialize_defaults(self) -> None:
+        """
+        Initialize default options, flags, and other necessary attributes.
+        """
+
+        self._theme = self.DefaultTheme(
+            borderline=QtGui.QPen(QtGui.QColor(0x363E41), 1.0),
+            background=QtGui.QBrush(QtGui.QColor(0x232A2E)),
+            texture=QtGui.QPixmap(":/theme/pattern.png"),
+        )
+
+        self._shape = self.DefaultShape(
+            border_radius=8,
+            size=QtCore.QSize(900, 640),
+        )
+
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+        self.resize(self._shape.size)
+
+        self._theme.background.setTexture(self._theme.texture)
+        self._metadata = self.Metadata()
 
     def _init_header(self) -> QtWidgets.QLabel:
         """
@@ -282,24 +276,17 @@ class StartupWindow(QtWidgets.QDialog):
 
     @QtCore.Slot()
     def _on_quit(self) -> None:
-        """Handle quit button click by rejecting the dialog."""
         self.reject()
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
-        """
-        Paint the startup window with a rounded rectangle background.
-
-        Args:
-            event: The paint event.
-        """
 
         painter = QtGui.QPainter(self)
-        painter.setPen(self._style.border)
+        painter.setPen(self._theme.borderline)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
-        painter.setBrush(self._style.brush)
+        painter.setBrush(self._theme.background)
         painter.drawRoundedRect(
             self.rect(),
-            self._geometry.radius,
-            self._geometry.radius,
+            self._shape.border_radius,
+            self._shape.border_radius,
         )

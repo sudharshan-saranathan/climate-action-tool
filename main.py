@@ -16,6 +16,7 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 # Climact
+import rsrc  # noqa: F401 - Initializes Qt resources (QSS, fonts, images) on import
 from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
@@ -94,7 +95,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         self._user_input_code = self._show_startup() if self.startup_flag else 0
 
         # Create and show the main window
-        if self._user_input_code:
+        if self._user_input_code >= 0:
 
             self._win = MainWindow()
             self._win.setWindowTitle("Climate Action Tool")

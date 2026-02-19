@@ -11,7 +11,7 @@ QToolTip {
 }
 
 
-QMainWindow::separator {
+QMainWindow:separator {
     background                  : transparent;
     border                      : none;
     width                       : 4px;
@@ -28,18 +28,6 @@ QFrame#startup-dialog-container {
     padding                     : 0px;
     border-radius               : 6px;
     border                      : 1px solid darkgray;
-}
-
-QWidget {
-    /*
-    background: qlineargradient(
-        x1: 0, y1: 0,
-        x2: 1, y2: 0,
-        stop: 0 #393e41,
-        stop: 1 lightslategray
-    );
-    */
-    background                  : transparent;
 }
 
 QRadioButton {
@@ -635,7 +623,7 @@ QPushButton:disabled {
 */
 
 QListWidget, QListView {
-    background                  : transparent;
+    background                  : #40474d;
     color                       : white;
     border                      : none;
     outline                     : 0px;
