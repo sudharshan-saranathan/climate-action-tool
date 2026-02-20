@@ -63,6 +63,8 @@ class TabWidget(QtWidgets.QTabWidget):
             iconSize=QtCore.QSize(16, 16),
         )
 
+        self.setCornerWidget(self._corner_toolbar, QtCore.Qt.Corner.TopRightCorner)
+
     def _initialize_defaults(self) -> None:
 
         self._theme = self.DefaultTheme(
@@ -89,7 +91,7 @@ class TabWidget(QtWidgets.QTabWidget):
         widget = self._widget_factory.get(label, None)
 
         if widget:
-            super().addTab(widget[1](), image, label)
+            super().addTab(widget[1](**widget[2]), image, label)
 
     @QtCore.Slot()
     def _go_to_previous_tab(self) -> None:
@@ -132,12 +134,13 @@ class TabWidget(QtWidgets.QTabWidget):
         widget: type,
         label: str,
         image: QtGui.QIcon = QtGui.QIcon(),
+        **kwargs,
     ):
 
         action = QtGui.QAction(label, icon=image, parent=self._corner_toolbar)
         action.triggered.connect(self._add_tab_from_factory)
 
-        self._widget_factory[label] = (image, widget)
+        self._widget_factory[label] = (image, widget, kwargs)
         self._corner_toolbar.addAction(action)
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:

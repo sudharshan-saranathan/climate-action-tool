@@ -10,13 +10,19 @@ for hardware acceleration, and keyboard/mouse event handling for navigation and 
 """
 
 from __future__ import annotations
-import dataclasses
-import sys
 
+# PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtOpenGLWidgets
+
+from gui.graph import Canvas
+
+
+# Collections
+
+# Climact modules: gui.graph
 
 
 class Viewer(QtWidgets.QGraphicsView):
@@ -30,47 +36,19 @@ class Viewer(QtWidgets.QGraphicsView):
     - Standard shortcuts (Undo, Redo, Copy, Paste) passed to the scene
     """
 
-    @dataclasses.dataclass
-    class ViewerOpts:
-        """
-        Viewer animation and zoom configuration.
+    # Initializer
+    def __init__(self, **kwargs):
 
-        Attributes:
-            zoom_val: Current zoom level (default: 1.0).
-            zoom_max: Maximum allowed zoom level (default: 2.0).
-            zoom_min: Minimum allowed zoom level (default: 0.2).
-            zoom_exp: Zoom exponential factor for mouse wheel (default: 1.4).
-        """
+        # Initialize zoom-related attributes
+        self._zooming_attrs = {
+            "val": 1.0,
+            "max": 2.0,
+            "min": 0.2,
+            "exp": 1.4,
+        }
 
-        zoom_val: float = 1.0
-        zoom_max: float = 2.0
-        zoom_min: float = 0.2
-        zoom_exp: float = 1.4
-
-    def __init__(self, canvas: QtWidgets.QGraphicsScene, **kwargs):
-        """
-        Initialize the viewer with a graphics scene.
-
-        Args:
-            canvas: The QGraphicsScene to display.
-            **kwargs: Optional configuration:
-                - zoom_max: Maximum zoom level (default: 2.0)
-                - zoom_min: Minimum zoom level (default: 0.2)
-                - exp: Zoom exponent for mouse wheel (default: 1.4)
-                - Other kwargs passed to QGraphicsView
-        """
-
-        self._opts = Viewer.ViewerOpts()
-
-        # Extract viewer-specific kwargs before passing to the parent:
-        self._opts.zoom_max = kwargs.pop("zoom_max", self._opts.zoom_max)
-        self._opts.zoom_min = kwargs.pop("zoom_min", self._opts.zoom_min)
-        self._opts.zoom_exp = kwargs.pop("exp", self._opts.zoom_exp)
-
+        # Invoke super class initializer
         super().__init__(**kwargs)
-        super().setScene(canvas)
-        super().setCornerWidget(QtWidgets.QFrame())
-        super().setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 
         # Zoom animation with exponential easing
         self._zoom_anim = QtCore.QPropertyAnimation(self, b"zoom")
@@ -83,10 +61,11 @@ class Viewer(QtWidgets.QGraphicsView):
         self._focus_anim.setDuration(720)
 
         # OpenGL viewport with 4x MSAA for hardware-accelerated rendering
-        self._format = QtGui.QSurfaceFormat()
-        self._format.setSamples(4)
-        self._openGL_viewport = None
-        QtCore.QTimer.singleShot(0, self._setup_opengl_viewport)
+        if kwargs.get("opengl", True):
+            self._setup_opengl_viewport()
+
+        # Set scene
+        self.setScene(Canvas())
 
         # Register keyboard shortcuts for zoom, undo/redo, and copy/paste:
         QtGui.QShortcut(
@@ -118,22 +97,18 @@ class Viewer(QtWidgets.QGraphicsView):
 
     @QtCore.Slot()
     def _setup_opengl_viewport(self) -> None:
-        """Set up the OpenGL viewport after initialization."""
-        if self._openGL_viewport is None:
-            self._openGL_viewport = QtOpenGLWidgets.QOpenGLWidget(self)
-            self._openGL_viewport.setFormat(self._format)
-            self._openGL_viewport.setMouseTracking(True)
-            self.setViewport(self._openGL_viewport)
+
+        self._format = QtGui.QSurfaceFormat()
+        self._format.setSamples(4)
+
+        self._openGL_viewport = QtOpenGLWidgets.QOpenGLWidget(self)
+        self._openGL_viewport.setFormat(self._format)
+        self._openGL_viewport.setMouseTracking(True)
+        self.setViewport(self._openGL_viewport)
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         """
         Handle keyboard press events for view manipulation.
-
-        Modifiers:
-        - Shift: Enable scroll hand drag mode for panning.
-
-        Args:
-            event: The keyboard press event.
         """
 
         if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier:
@@ -160,7 +135,7 @@ class Viewer(QtWidgets.QGraphicsView):
         Handle mouse wheel events for zooming.
         """
         delta = event.angleDelta().y()
-        delta = self._opts.zoom_exp ** (delta / 100.0)
+        delta = self._zooming_attrs["exp"] ** (delta / 100.0)
 
         self.execute_zoom(
             delta, event.deviceType() == QtGui.QInputDevice.DeviceType.Mouse
@@ -208,7 +183,7 @@ class Viewer(QtWidgets.QGraphicsView):
     @QtCore.Property(float)
     def zoom(self) -> float:
         """Get the current zoom level (read-only property)."""
-        return self._opts.zoom_val
+        return self._zooming_attrs["val"]
 
     @zoom.setter
     def zoom(self, value: float) -> None:
@@ -218,9 +193,9 @@ class Viewer(QtWidgets.QGraphicsView):
         Args:
             value: Target zoom level to apply.
         """
-        factor = value / self._opts.zoom_val
+        factor = value / self._zooming_attrs["val"]
         self.scale(factor, factor)
-        self._opts.zoom_val = value
+        self._zooming_attrs["val"] = value
 
     def execute_zoom(self, factor: float, animate: bool = True, /) -> None:
         """
@@ -238,11 +213,13 @@ class Viewer(QtWidgets.QGraphicsView):
             self._zoom_anim.stop()
 
         # Calculate target and clamp to allowed range
-        target = self._opts.zoom_val * factor
-        target = max(self._opts.zoom_min, min(self._opts.zoom_max, target))
+        target = self._zooming_attrs["val"] * factor
+        target = max(
+            self._zooming_attrs["min"], min(self._zooming_attrs["max"], target)
+        )
 
         if animate:
-            self._zoom_anim.setStartValue(self._opts.zoom_val)
+            self._zoom_anim.setStartValue(self._zooming_attrs["val"])
             self._zoom_anim.setEndValue(target)
             self._zoom_anim.start()
         else:

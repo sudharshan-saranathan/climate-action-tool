@@ -1,5 +1,6 @@
 from .combobox import ComboBox
 from .dock import Dock
+from .tabs import TabWidget
 from .field import Field
 from .layouts import *
 from .toolbar import ToolBar
@@ -16,4 +17,5 @@ __all__ = [
     "ToolBar",
     "Viewer",
     "TrafficLights",
+    "TabWidget",
 ]

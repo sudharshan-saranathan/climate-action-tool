@@ -19,6 +19,7 @@ from PySide6 import QtWidgets
 
 # Climact module: gui.widgets
 from gui.widgets import ToolBar
+from gui.main_ui.tabber import TabWidget
 from gui.widgets import TrafficLights
 
 
@@ -42,12 +43,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Initialize UI components
         self._init_menubar()
         self._init_toolbar()
-        self._init_tabview()
         self._init_status()
         self._init_docks()
-
-        # Create an unclosable map viewer
-        self._init_map_view()
+        self._init_tabs()
 
     def _initialize_defaults(self) -> None:
 
@@ -115,19 +113,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar)
 
-    def _init_tabview(self) -> None:
-
-        # Import the tab-widge
-        from gui.main_ui.tabber import TabWidget
-
-        self._tabs = TabWidget(
-            self,
-            tabsClosable=True,
-            tabPosition=QtWidgets.QTabWidget.TabPosition.North,
-            movable=True,
-        )
-
-        self.setCentralWidget(self._tabs)
+    def _init_status(self) -> None:
+        """Initialize the status bar at the bottom of the main window."""
+        self._status = QtWidgets.QStatusBar()
+        self.setStatusBar(self._status)
 
     def _init_docks(self):
 
@@ -156,12 +145,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Store dock reference(s)
         self._docks = {"upper": upper_dock, "lower": lower_dock}
 
-    def _init_status(self) -> None:
-        """Initialize the status bar at the bottom of the main window."""
-        self._status = QtWidgets.QStatusBar()
-        self.setStatusBar(self._status)
-
-    def _init_map_view(self):
+    def _init_tabs(self) -> None:
 
         # Required
         from qtawesome import icon
@@ -173,13 +157,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         map_canvas = QtWidgets.QGraphicsScene()
         map_viewer = Viewer(
-            map_canvas,
             sceneRect=QtCore.QRectF(0, 0, 5000.0, 5000.0),
             backgroundBrush=QtGui.QBrush(QtGui.QColor(0xEFEFEF)),
         )
+        map_viewer.setScene(map_canvas)
 
-        self._tabs.new_tab(map_viewer, icon=tab_icon, label="Map")
+        self._tabs = TabWidget(self)
+        self._tabs.addTab(map_viewer, tab_icon, "Map")
         self._tabs.tabBar().setTabButton(0, position, None)
+        self.setCentralWidget(self._tabs)
 
     @QtCore.Slot()
     def _execute(self) -> None:

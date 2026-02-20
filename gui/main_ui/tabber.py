@@ -10,6 +10,7 @@ Shortcuts: Ctrl+T (new tab), Ctrl+W (close tab), Ctrl+Left/Right (navigate), Ctr
 """
 
 import dataclasses
+
 from qtawesome import icon as qta_icon
 from PySide6 import QtGui, QtCore, QtWidgets
 
@@ -112,15 +113,12 @@ class TabWidget(QtWidgets.QTabWidget):
 
         # Required
         from gui.widgets.viewer import Viewer
-        from gui.graph.canvas import Canvas
 
         count = self.count()
         label = label or f"Tab {count + 1}"
 
         if not widget:
-            canvas = Canvas()
             widget = Viewer(
-                canvas,
                 parent=self,
                 dragMode=QtWidgets.QGraphicsView.DragMode.NoDrag,
                 viewportUpdateMode=QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate,
