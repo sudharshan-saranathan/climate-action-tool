@@ -4,12 +4,13 @@
 
 from __future__ import annotations
 
+# Climact Module(s): core.graph
 from core.graph.node import Node, Technology
 from core.graph.edge import Edge
-from core.graph.manager import GraphManager
+from core.graph.server import GraphServer
 
 # Instantiate the singleton when this module is imported
-# This ensures GraphManager is listening to signals before any GUI components are created
-_graph_manager = GraphManager()
+# This ensures GraphServer is listening to signals before any GUI components are created
+graph_server = GraphServer()
 
-__all__ = ["Node", "Edge", "GraphManager"]
+__all__ = ["Node", "Edge", "GraphServer"]
