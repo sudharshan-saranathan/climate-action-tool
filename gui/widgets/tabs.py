@@ -40,6 +40,7 @@ class TabWidget(QtWidgets.QTabWidget):
         ],
     )
 
+    # Initializer
     def __init__(self, parent=None):
 
         # Initialize default options, flags, and other necessary attributes before super().__init__()
@@ -53,7 +54,7 @@ class TabWidget(QtWidgets.QTabWidget):
         )
 
         # Define a widget factory list
-        self._widget_factory: dict[type, tuple] = {}
+        self._widget_factory: dict[str, tuple] = {}
 
         # Initialize corner toolbar
         self._corner_toolbar = ToolBar(
@@ -76,19 +77,78 @@ class TabWidget(QtWidgets.QTabWidget):
             background=QtGui.QBrush(QtGui.QColor(0x232A2E)),
         )
 
-    def register_widget(self, _widget: type, _icon: QtGui.QIcon, _label: str):
+    @QtCore.Slot()
+    def _add_tab_from_factory(self):
 
-        action = QtGui.QAction(_label, icon=_icon, parent=self._corner_toolbar)
-        action.triggered.connect(lambda: self.addTab(_widget()))
-        action.setObjectName(_label)
+        action = self.sender()
+        if not isinstance(action, QtGui.QAction):
+            return
 
-        self._widget_factory[_widget] = (_icon, _label)
+        image = action.icon()
+        label = action.text()
+        widget = self._widget_factory.get(label, None)
+
+        if widget:
+            super().addTab(widget[1](), image, label)
+
+    @QtCore.Slot()
+    def _go_to_previous_tab(self) -> None:
+        """Navigate to the previous tab."""
+
+        current = self.currentIndex()
+        if current > 0:
+            self.setCurrentIndex(current - 1)
+
+    @QtCore.Slot()
+    def _go_to_next_tab(self) -> None:
+        """Navigate to the next tab."""
+
+        current = self.currentIndex()
+        if current < self.count() - 1:
+            self.setCurrentIndex(current + 1)
+
+    @QtCore.Slot()
+    def _rename_tab(self) -> None:
+
+        index = self.currentIndex()
+        if index < 0 or index >= self.count():
+            return
+
+        label = self.tabText(index)
+        label, ok = QtWidgets.QInputDialog.getText(
+            self,
+            "Rename Tab",
+            "Enter new tab name:",
+            QtWidgets.QLineEdit.EchoMode.Normal,
+            label,
+        )
+        if not ok or not label:
+            return
+
+        self.setTabText(index, label)
+
+    def register_widget(
+        self,
+        widget: type,
+        label: str,
+        image: QtGui.QIcon = QtGui.QIcon(),
+    ):
+
+        action = QtGui.QAction(label, icon=image, parent=self._corner_toolbar)
+        action.triggered.connect(self._add_tab_from_factory)
+
+        self._widget_factory[label] = (image, widget)
         self._corner_toolbar.addAction(action)
 
-    def addTab(
-        self,
-        widget: QtWidgets.QWidget = QtWidgets.QWidget(),
-        image: QtGui.QIcon = QtGui.QIcon(),
-        label: str = str(),
-    ):
-        super().addTab(widget, image, label)
+    def paintEvent(self, event: QtGui.QPaintEvent) -> None:
+
+        indx = self.currentIndex()
+        rect = self.tabBar().tabRect(indx)
+        rect = rect.adjusted(0, 12, -4, 8)
+
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setBrush(QtGui.QBrush(QtGui.QColor(0xEFEFEF)))
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.drawRect(rect)
+        painter.end()
