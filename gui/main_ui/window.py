@@ -114,7 +114,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addToolBar(QtCore.Qt.ToolBarArea.LeftToolBarArea, toolbar)
 
     def _init_status(self) -> None:
-        """Initialize the status bar at the bottom of the main window."""
         self._status = QtWidgets.QStatusBar()
         self.setStatusBar(self._status)
 
@@ -122,7 +121,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Required
         from gui.widgets.dock import Dock
-        from gui.main_ui.panels import UpperPanel, LowerPanel
+        from gui.main_ui.lower import LowerPanel
+        from gui.main_ui.upper import UpperPanel
 
         lower_title = QtWidgets.QFrame()
         upper_title = QtWidgets.QLabel(

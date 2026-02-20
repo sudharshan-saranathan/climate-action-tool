@@ -3,9 +3,11 @@
 # Description: Entry point for the Climate Action Tool (CAT)
 
 # Standard
+from collections import namedtuple
 import argparse
 import logging
 import sys
+
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
@@ -67,7 +69,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         normal: QtCore.QRect = field(default_factory=QtCore.QRect)
 
     # Initialize Qt application and set default attribute(s)
-    def __init__(self):
+    def __init__(self, startup: bool = True):
 
         super().__init__(sys.argv)
         super().setObjectName("climate-action-tool")
@@ -87,7 +89,6 @@ class ClimateActionTool(QtWidgets.QApplication):
         padded = bounds.adjusted(bezel, bezel, -bezel, -bezel)
 
         # Initialize application attributes
-        self._init_args()
         self._init_theme(theme)
         self._init_fonts(fonts)
         self.setWindowIcon(QtGui.QIcon(image))
@@ -181,7 +182,20 @@ class ClimateActionTool(QtWidgets.QApplication):
 
 
 def main() -> None:
-    """Instantiate the application and enter its event loop."""
+    """Parse command-line arguments and update application flags.
+
+    Supported flags:
+    - --version: Display the application version and exit.
+    - --no-startup: Skip the startup dialog.
+    - --no-backend: Disable the backend optimization module.
+    """
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--version", action="version", version="%(prog)s 1.0")
+    parser.add_argument("--no-startup", action="store_false", dest="startup")
+    parser.add_argument("--no-backend", action="store_false", dest="backend")
+    parser.add_argument("--headless", action="store_false", dest="headless")
+    args = parser.parse_args()
 
     application = ClimateActionTool()
     application.exec()  # This call is blocking by default.

@@ -5,8 +5,8 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import Dict, Tuple, Any, Callable
 import logging
+import typing
 import uuid
 import json
 import functools
@@ -26,8 +26,10 @@ _decorator_logger = logging.getLogger("core.graph.decorators")
 
 
 # Decorator to validate GUID
-def guid_validator(func: Callable) -> Callable:
-    """Decorator to validate that a GUID exists in graph_db before executing."""
+def guid_validator(func: typing.Callable) -> typing.Callable:
+    """
+    Decorator to validate that a GUID exists in graph_db before executing.
+    """
 
     @functools.wraps(func)
     def wrapper(self, guid: str, *args, **kwargs):
@@ -41,11 +43,11 @@ def guid_validator(func: Callable) -> Callable:
     return wrapper
 
 
-# Decorator to parse JSON string
-def json_parser(func: Callable) -> Callable:
+# Decorator to validate and parse JSON strings
+def json_parser(func: typing.Callable) -> typing.Callable:
     """Decorator to parse JSON string and pass parsed dict to the function.
 
-    The wrapped function receives both jstr and data (parsed dict) as arguments.
+    :param func: The function to decorate.
     """
 
     @functools.wraps(func)
@@ -72,9 +74,9 @@ class GraphManager:
 
     @dataclass
     class Graph:
-        nodes: Dict[str, Node] = field(default_factory=dict)
-        edges: Dict[str, Edge] = field(default_factory=dict)
-        conns: Dict[Tuple[str, str], bool] = field(default_factory=dict)
+        nodes: typing.Dict[str, Node] = field(default_factory=dict)
+        edges: typing.Dict[str, Edge] = field(default_factory=dict)
+        conns: typing.Dict[typing.Tuple[str, str], bool] = field(default_factory=dict)
 
     def __new__(cls):
         if cls._instance is None:
@@ -88,7 +90,7 @@ class GraphManager:
             return
 
         # Global graph database
-        self.graph_db: Dict[str, GraphManager.Graph] = {}
+        self.graph_db: typing.Dict[str, GraphManager.Graph] = {}
         self.signal_bus = SignalBus()
 
         self._connect_to_session_manager()
@@ -172,11 +174,11 @@ class GraphManager:
 
         if suid == tuid:
             self._logger.warning(f"Source and target UIDs are the same: {suid}")
-            return
+            return str()
 
         if (suid, tuid) in self.graph_db[guid].conns:
             self._logger.warning(f"Connection already exists!")
-            return ""
+            return str()
 
         # Check if the source and target nodes have common streams. That is, there must be at least one output
         # stream in the source node that matches with an input stream in the target node
