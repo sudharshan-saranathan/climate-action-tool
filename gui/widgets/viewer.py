@@ -17,12 +17,9 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtOpenGLWidgets
 
+# Climact modules: gui.graph, core.graph
 from gui.graph import Canvas
-
-
-# Collections
-
-# Climact modules: gui.graph
+from core.graph import GraphManager  # noqa: F401 - Initializes GraphManager singleton
 
 
 class Viewer(QtWidgets.QGraphicsView):
