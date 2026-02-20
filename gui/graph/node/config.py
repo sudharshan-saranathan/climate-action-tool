@@ -122,9 +122,11 @@ class NodeConfigWidget(QtWidgets.QDialog):
 
         return dock
 
-    def _init_tech_stack(self) -> QtWidgets.QStackedWidget:
-        stack = QtWidgets.QStackedWidget(self)
-        return stack
+    def _init_tech_stack(self) -> QtWidgets.QTabWidget:
+        tech_tabs = QtWidgets.QTabWidget(self)
+        tech_tabs.addTab(QtWidgets.QTextEdit(), "Equations")
+
+        return tech_tabs
 
     def _create_tab_widget(self):
 

@@ -15,8 +15,9 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-# Climact
+# Climact Module(s): gui.main_ui, core.graph
 import rsrc  # noqa: F401 - Initializes Qt resources (QSS, fonts, images) on import
+from core.graph import GraphManager  # noqa: F401 - Initializes GraphManager singleton
 from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
