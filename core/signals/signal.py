@@ -18,7 +18,7 @@ class Signal:
 
     def connect(self, listener):
 
-        uid = listener.uid if hasattr(listener, "uid") else uuid.uuid4().hex
+        uid = listener.nuid if hasattr(listener, "uid") else uuid.uuid4().hex
         self._listeners[uid] = listener
 
     def emit(self, *args, **kwargs):

@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+# Standard
 import logging
 import typing
 import uuid
 import json
-from dataclasses import field, dataclass
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
 
+# Climact Module(s): core.graph, core.signals
 from core.signals import SignalBus
 from core.graph.node import Node, Technology
 from core.graph.edge import Edge
@@ -16,10 +20,10 @@ from core.graph.decorators import guid_validator, json_parser
 
 class GraphServer:
     """
-    A graph-manager that manages multiple graphs (Singleton).
+    A graph-server that manages multiple graphs (Singleton).
     """
 
-    _instance = None
+    _server = None
     _logger = logging.getLogger("GraphServer")
 
     @dataclass
@@ -29,19 +33,20 @@ class GraphServer:
         conns: typing.Dict[typing.Tuple[str, str], bool] = field(default_factory=dict)
 
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialized = False
-        return cls._instance
+        if cls._server is None:
+            cls._server = super().__new__(cls)
+            cls._server._initialized = False
+        return cls._server
 
     def __init__(self):
+
         # Only initialize once
         if self._initialized:
             return
 
         # Global graph database
-        self.graph_db: typing.Dict[str, GraphServer.Graph] = {}
-        self.signal_bus = SignalBus()
+        self.database: typing.Dict[str, GraphServer.Graph] = {}
+        self.cmds_bus = SignalBus()
 
         self._connect_to_session_manager()
         self._initialized = True
@@ -49,13 +54,13 @@ class GraphServer:
 
     def _connect_to_session_manager(self) -> None:
 
-        self.signal_bus.data.create_graph.connect(self.create_graph)
-        self.signal_bus.data.create_node_item.connect(self.create_node)
-        self.signal_bus.data.create_edge_item.connect(self.create_edge)
+        self.cmds_bus.data.create_graph.connect(self.create_graph)
+        self.cmds_bus.data.create_node_item.connect(self.create_node)
+        self.cmds_bus.data.create_edge_item.connect(self.create_edge)
 
-        self.signal_bus.data.get_node_data.connect(self.send_node_data)
-        self.signal_bus.data.get_edge_data.connect(self.send_edge_data)
-        self.signal_bus.data.update_node_data.connect(self.update_node_data)
+        self.cmds_bus.data.get_node_data.connect(self.send_node_data)
+        self.cmds_bus.data.get_edge_data.connect(self.send_edge_data)
+        self.cmds_bus.data.update_node_data.connect(self.update_node_data)
 
     def _verify_stream_matching(
         self, guid: str, source_uid: str, target_uid: str
@@ -68,12 +73,12 @@ class GraphServer:
         :param target_uid: UID of the target node
         :return: True if there is at least one matching stream, False otherwise
         """
-        graph = self.graph_db.get(guid)
+        graph = self.database.get(guid)
         source_node = graph.nodes.get(source_uid)
         target_node = graph.nodes.get(target_uid)
 
-        source_produced = source_node.get_produced()
-        target_consumed = target_node.get_consumed()
+        source_produced = source_node.get_out_streams()
+        target_consumed = target_node.get_inp_streams()
 
         if not source_produced.intersection(target_consumed):
             self._logger.warning(
@@ -86,12 +91,12 @@ class GraphServer:
 
     def create_graph(self, guid: str) -> GraphServer.Graph | None:
 
-        if guid in self.graph_db:
+        if guid in self.database:
             self._logger.warning(f"Graph with GUID {guid} already exists.")
             return None
 
-        self.graph_db[guid] = GraphServer.Graph()
-        return self.graph_db[guid]
+        self.database[guid] = GraphServer.Graph()
+        return self.database[guid]
 
     @guid_validator
     @json_parser
@@ -99,15 +104,15 @@ class GraphServer:
 
         _nuid = uuid.uuid4().hex
         _node = Node(
-            uid=_nuid,
+            nuid=_nuid,
             meta=data,
         )
 
         # Store node reference and emit signal
-        self.graph_db[guid].nodes[_nuid] = _node
+        self.database[guid].nodes[_nuid] = _node
 
         # Emit signal
-        self.signal_bus.ui.create_node_repr.emit(guid, _nuid, jstr)
+        self.cmds_bus.ui.create_node_repr.emit(guid, _nuid, jstr)
 
         # Log after emitting signal
         self._logger.info(f"Created node with UID {_nuid}")
@@ -126,7 +131,7 @@ class GraphServer:
             self._logger.warning(f"Source and target UIDs are the same: {suid}")
             return str()
 
-        if (suid, tuid) in self.graph_db[guid].conns:
+        if (suid, tuid) in self.database[guid].conns:
             self._logger.warning(f"Connection already exists!")
             return str()
 
@@ -134,7 +139,7 @@ class GraphServer:
         # stream in the source node that matches with an input stream in the target node
         if not self._verify_stream_matching(guid, suid, tuid):
             self._logger.warning(f"No matching streams between source and target!")
-            self.signal_bus.ui.notify.emit(
+            self.cmds_bus.ui.notify.emit(
                 guid,
                 "ERROR: At least one matching stream required between source and target.\n"
                 "Reconfigure the nodes and try again.",
@@ -150,11 +155,11 @@ class GraphServer:
         )
 
         # Store reference and update dictionaries
-        self.graph_db[guid].edges[_euid] = _edge
-        self.graph_db[guid].conns[(suid, tuid)] = True
+        self.database[guid].edges[_euid] = _edge
+        self.database[guid].conns[(suid, tuid)] = True
 
         # Emit signal
-        self.signal_bus.ui.create_edge_repr.emit(guid, _euid, jstr)
+        self.cmds_bus.ui.create_edge_repr.emit(guid, _euid, jstr)
 
         # Log after emitting signal
         self._logger.info(f"Created edge with UID {_euid}")
@@ -165,11 +170,11 @@ class GraphServer:
     def send_node_data(self, guid: str, nuid: str) -> None:
 
         # Graph UID is already validated by `guid_validator` decorator
-        graph_node = self.graph_db[guid].nodes.get(nuid, None)
+        graph_node = self.database[guid].nodes.get(nuid, None)
 
         if graph_node:
             jstr = json.dumps(graph_node.to_dict())
-            self.signal_bus.ui.put_node_data.emit(nuid, jstr)
+            self.cmds_bus.ui.put_node_data.emit(nuid, jstr)
 
     @guid_validator
     def send_edge_data(self, guid: str, euid: str) -> None:
@@ -178,7 +183,7 @@ class GraphServer:
     @guid_validator
     def update_node_data(self, guid: str, nuid: str, jstr: str) -> None:
 
-        _node = self.graph_db[guid].nodes.get(nuid)
+        _node = self.database[guid].nodes.get(nuid)
         if _node is None:
             self._logger.warning(f"Node [UID={nuid}] not found in graph [UID={guid}].")
             return

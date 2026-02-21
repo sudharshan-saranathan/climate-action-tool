@@ -8,14 +8,17 @@ A QGraphicsScene subclass for displaying and editing graphs.
 
 from __future__ import annotations
 
-# Standard
-import qtawesome as qta
 import logging
 import typing
 import types
 import uuid
 import json
+# Dataclass
+from dataclasses import field
+from dataclasses import dataclass
 
+# Standard
+import qtawesome as qta
 # PySide6 (Python/Qt)
 from PySide6 import QtGui
 from PySide6 import QtCore
@@ -25,11 +28,6 @@ from PySide6 import QtWidgets
 from gui.graph.node import NodeRepr
 from gui.graph.edge import EdgeRepr
 from core.signals import SignalBus
-
-
-# Dataclass
-from dataclasses import field
-from dataclasses import dataclass
 
 
 class Canvas(QtWidgets.QGraphicsScene):
@@ -245,7 +243,7 @@ class Canvas(QtWidgets.QGraphicsScene):
             target = self.itemAt(event.scenePos(), QtGui.QTransform())
 
             if isinstance(target, NodeRepr) and origin is not target:
-                self._raise_create_edge_request(origin.uid, target.uid)
+                self._raise_create_edge_request(origin.nuid, target.uid)
 
         self._preview_off()
         super().mouseReleaseEvent(event)

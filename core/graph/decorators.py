@@ -17,8 +17,8 @@ def guid_validator(func: typing.Callable) -> typing.Callable:
 
     @functools.wraps(func)
     def wrapper(self, guid: str, *args, **kwargs):
-        if guid not in self.graph_db:
-            self.signal_bus.ui.notify.emit(f"ALERT: Graph [UID={guid}] does not exist.")
+        if guid not in self.database:
+            self.cmds_bus.ui.notify.emit(f"ALERT: Graph [UID={guid}] does not exist.")
             return None
 
         result = func(self, guid, *args, **kwargs)

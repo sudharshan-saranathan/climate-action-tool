@@ -3,11 +3,9 @@
 # Description: Entry point for the Climate Action Tool (CAT)
 
 # Standard
-from collections import namedtuple
 import argparse
 import logging
 import sys
-
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
@@ -19,7 +17,7 @@ from PySide6 import QtWidgets
 
 # Climact Module(s): gui.main_ui, core.graph
 import rsrc  # noqa: F401 - Initializes Qt resources (QSS, fonts, images) on import
-from core.graph import GraphManager  # noqa: F401 - Initializes GraphManager singleton
+from core.graph import GraphServer  # noqa: F401 - Initializes GraphManager singleton
 from gui.startup.window import StartupWindow
 from gui.main_ui.window import MainWindow
 
