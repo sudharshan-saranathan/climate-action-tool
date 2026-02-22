@@ -12,8 +12,8 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
+
 # Climact modules: gui.widgets
-from gui.widgets.toolbar import ToolBar
 
 
 class TabWidget(QtWidgets.QTabWidget):
@@ -53,17 +53,8 @@ class TabWidget(QtWidgets.QTabWidget):
             tabsClosable=self._attrs.closable,
         )
 
-        # Define a widget factory list
-        self._widget_factory: dict[str, tuple] = {}
-
-        # Initialize corner toolbar
-        self._corner_toolbar = ToolBar(
-            parent=self,
-            trailing=True,
-            iconSize=QtCore.QSize(16, 16),
-        )
-
-        self.setCornerWidget(self._corner_toolbar, QtCore.Qt.Corner.TopRightCorner)
+        # Initialize keyboard shortcuts
+        self._init_shortcuts()
 
     def _initialize_defaults(self) -> None:
 
@@ -79,38 +70,47 @@ class TabWidget(QtWidgets.QTabWidget):
             background=QtGui.QBrush(QtGui.QColor(0x232A2E)),
         )
 
-    @QtCore.Slot()
-    def _add_tab_from_factory(self):
+    def _init_shortcuts(self) -> None:
 
-        action = self.sender()
-        if not isinstance(action, QtGui.QAction):
-            return
-
-        image = action.icon()
-        label = action.text()
-        widget = self._widget_factory.get(label, None)
-
-        if widget:
-            super().addTab(widget[1](**widget[2]), image, label)
+        self.addAction("Ctrl+T", self.create_tab)
+        self.addAction("Ctrl+W", self.remove_tab)
+        self.addAction("Ctrl+Left", self.go_to_prev_tab)
+        self.addAction("Ctrl+Right", self.go_to_next_tab)
+        self.addAction("Ctrl+R", self.rename_tab)
 
     @QtCore.Slot()
-    def _go_to_previous_tab(self) -> None:
-        """Navigate to the previous tab."""
+    def create_tab(
+        self,
+        widget: QtWidgets.QWidget = QtWidgets.QWidget(),
+        image: QtGui.QIcon = QtGui.QIcon(),
+        label: str = str(),
+    ) -> None:
 
-        current = self.currentIndex()
-        if current > 0:
+        count = self.count() + 1
+        label = label or f"Tab {count}"
+        self.addTab(widget, image, label)
+
+    @QtCore.Slot()
+    def remove_tab(self, index: int = None):
+
+        index = index or self.currentIndex()
+        widget = self.widget(index)
+
+        self.removeTab(index)
+        widget.deleteLater()
+
+    @QtCore.Slot()
+    def go_to_prev_tab(self) -> None:
+        if current := self.currentIndex():
             self.setCurrentIndex(current - 1)
 
     @QtCore.Slot()
-    def _go_to_next_tab(self) -> None:
-        """Navigate to the next tab."""
-
-        current = self.currentIndex()
-        if current < self.count() - 1:
+    def go_to_next_tab(self) -> None:
+        if current := self.currentIndex() < self.count() - 1:
             self.setCurrentIndex(current + 1)
 
     @QtCore.Slot()
-    def _rename_tab(self) -> None:
+    def rename_tab(self) -> None:
 
         index = self.currentIndex()
         if index < 0 or index >= self.count():
@@ -128,20 +128,6 @@ class TabWidget(QtWidgets.QTabWidget):
             return
 
         self.setTabText(index, label)
-
-    def register_widget(
-        self,
-        widget: type,
-        label: str,
-        image: QtGui.QIcon = QtGui.QIcon(),
-        **kwargs,
-    ):
-
-        action = QtGui.QAction(label, icon=image, parent=self._corner_toolbar)
-        action.triggered.connect(self._add_tab_from_factory)
-
-        self._widget_factory[label] = (image, widget, kwargs)
-        self._corner_toolbar.addAction(action)
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
 

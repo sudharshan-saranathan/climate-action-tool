@@ -5,8 +5,8 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import Dict, Type, Any
 import logging
+import typing
 import json
 # Dataclass
 from dataclasses import field
@@ -23,7 +23,7 @@ class Technology:
     par: dict[str, Quantity] = field(default_factory=dict)
     eqn: dict[str, str] = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> dict[str, typing.Any]:
 
         return {
             "inp": {key: value.to_dict() for key, value in self.inp.items()},
@@ -32,8 +32,17 @@ class Technology:
             "eqn": {key: value for key, value in self.eqn.items()},
         }
 
+    def to_json(self) -> str:
+
+        try:
+            return json.dumps(self.to_dict())
+
+        except Exception as e:
+            logging.warning(f"Error converting Technology to JSON: {e}")
+            return "{}"
+
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Technology:
+    def from_dict(cls, data: dict[str, typing.Any]) -> Technology:
 
         inp = data.get("inp", {})
         out = data.get("out", {})
@@ -47,23 +56,42 @@ class Technology:
             eqn={key: value for key, value in eqn.items()},
         )
 
+    def from_json(self, jstr: str) -> Technology:
+
+        try:
+            return self.from_dict(json.loads(jstr))
+
+        except Exception as e:
+            logging.warning(f"Invalid JSON for Technology.from_json: {e}")
+            return self.from_dict({})
+
 
 # Dataclass
 @dataclass(frozen=True)
 class Node:
 
     nuid: str
-    meta: Dict[str, Any]
+    meta: dict[str, typing.Any]
     tech: dict[str, Technology] = field(default_factory=dict)
 
-    def __hash__(self) -> int:
-        return hash(self.nuid)
+    # Return a dictionary representation of the node
+    def to_dict(self) -> dict[str, typing.Any]:
 
-    def __eq__(self, other) -> bool:
-        return self.nuid == other.nuid if isinstance(other, Node) else False
+        return {
+            "nuid": self.nuid,
+            "meta": self.meta,
+            "tech": {
+                tech_name: tech.to_dict() for tech_name, tech in self.tech.items()
+            },
+        }
 
+    # Return a JSON representation of the node
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+    # Create a Node instance from a dictionary
     @classmethod
-    def from_dict(cls: Type[Node], data: dict) -> Node:
+    def from_dict(cls: typing.Type[Node], data: dict[str, typing.Any]) -> Node:
 
         # Deserialize tech dictionary
         technology = {
@@ -72,24 +100,15 @@ class Node:
         }
 
         return cls(
-            nuid=data.get("uid", ""),
+            nuid=data.get("nuid", ""),
             meta=data.get("meta", {}),
             tech=technology,
         )
 
+    # Create a Node instance from a JSON string
     @classmethod
-    def from_json(cls: Type[Node], jstr: str) -> Node:
+    def from_json(cls: typing.Type[Node], jstr: str) -> Node:
         return cls.from_dict(json.loads(jstr))
-
-    def to_dict(self) -> dict[str, Any]:
-
-        return {
-            "uid": self.nuid,
-            "meta": self.meta,
-            "tech": {
-                tech_name: tech.to_dict() for tech_name, tech in self.tech.items()
-            },
-        }
 
     def get_out_streams(self) -> set[str]:
         """
@@ -115,6 +134,7 @@ class Node:
             for stream_name in tech.inp.keys()
         )
 
+    # Create a new technology branch for this node with the given JSON string
     def create_tech_branch(self, branch: str, jstr: str) -> None:
 
         # Import SignalBus
@@ -131,3 +151,11 @@ class Node:
                 self.nuid,
                 f"ERROR: Invalid JSON for set_branch: {e}",
             )
+
+    # Return a hash of the node's unique identifier
+    def __hash__(self) -> int:
+        return hash(self.nuid)
+
+    # Check if two nodes are equal based on their unique identifiers
+    def __eq__(self, other) -> bool:
+        return self.nuid == other.nuid if isinstance(other, Node) else False
