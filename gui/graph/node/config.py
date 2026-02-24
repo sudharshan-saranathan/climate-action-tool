@@ -87,14 +87,14 @@ class NodeConfigWidget(QtWidgets.QDialog):
         )
 
         # UI components
-        self._info_panel = self._init_dock_panel()
-        self._tech_stack = self._init_tech_stack()
+        self._info = self._init_dock()
+        self._tabs = self._init_tabs()
 
         layout = HLayout(self, spacing=4)
-        layout.addWidget(self._info_panel)
-        layout.addWidget(self._tech_stack)
+        layout.addWidget(self._info)
+        layout.addWidget(self._tabs)
 
-    def _init_dock_panel(self) -> QtWidgets.QDockWidget:
+    def _init_dock(self) -> QtWidgets.QDockWidget:
 
         frame = QtWidgets.QFrame(self)
         frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
@@ -123,9 +123,16 @@ class NodeConfigWidget(QtWidgets.QDialog):
 
         return dock
 
-    def _init_tech_stack(self) -> QtWidgets.QTabWidget:
+    def _init_tabs(self) -> QtWidgets.QTabWidget:
+
+        self._default_tab = QtWidgets.QLabel(
+            "Click + on the top-right corner to define a new technology.",
+            self,
+            alignment=QtCore.Qt.AlignmentFlag.AlignCenter,
+        )
+
         tech_tabs = QtWidgets.QTabWidget(self)
-        tech_tabs.addTab(QtWidgets.QTextEdit(), "Equations")
+        tech_tabs.addTab(self._default_tab, "Default")
 
         return tech_tabs
 
@@ -153,7 +160,7 @@ class NodeConfigWidget(QtWidgets.QDialog):
         meta = data.get("meta", {})
 
         # Set the node's label
-        name_field = self._info_panel.findChild(Field)
+        name_field = self._info.findChild(Field)
         name_field.setText(meta.get("label", "Process"))
         name_field.clearFocus()
 
