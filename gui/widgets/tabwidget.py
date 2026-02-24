@@ -81,13 +81,15 @@ class TabWidget(QtWidgets.QTabWidget):
     @QtCore.Slot()
     def create_tab(
         self,
-        widget: QtWidgets.QWidget = QtWidgets.QWidget(),
-        image: QtGui.QIcon = QtGui.QIcon(),
+        widget: QtWidgets.QWidget = None,
+        image: QtGui.QIcon = None,
         label: str = str(),
     ) -> None:
 
         count = self.count() + 1
         label = label or f"Tab {count}"
+        widget = widget or QtWidgets.QWidget()
+        image = image or QtGui.QIcon()
         self.addTab(widget, image, label)
 
     @QtCore.Slot()

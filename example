@@ -1,0 +1,15 @@
+python -c "
+  import sys
+  print('Importing rsrc...')
+  import rsrc
+  print('OK')
+  print('Importing core.graph...')
+  from core.graph import GraphManager
+  print('OK')
+  print('Importing StartupWindow...')
+  from gui.startup.window import StartupWindow
+  print('OK')
+  print('Importing MainWindow...')
+  from gui.main_ui.window import MainWindow
+  print('OK')
+  "
