@@ -10,10 +10,10 @@ class SocketIO(socket.socket):
     def __init__(self, *args, **kwargs):
 
         # Extract custom kwargs before passing to socket
-        timeout = kwargs.pop("timeout", 60)
         host = kwargs.pop("host", None)
         port = kwargs.pop("port", None)
         backlog = kwargs.pop("backlog", 5)
+        timeout = kwargs.pop("timeout", 60)
 
         # Initialize socket with standard socket args
         super().__init__(*args, **kwargs)
@@ -26,13 +26,26 @@ class SocketIO(socket.socket):
             self.listen(backlog)
 
     @staticmethod
-    def recv_exact(connection: socket.socket, size: int) -> bytes:
+    def recv_line(connection: socket.socket, max_size: int = 33554432) -> bytes:
+        """
+        Read a line from socket until newline delimiter.
+
+        Args:
+            connection: The socket connection
+            max_size: Maximum line size in bytes (default 32MB)
+
+        Returns:
+            Bytes up to (but not including) the newline character
+        """
 
         data = b""
-        while len(data) < size:
-            chunk = connection.recv(size - len(data))
+        while len(data) < max_size:
+            chunk = connection.recv(4096)
             if not chunk:
-                return b""
+                return data  # Connection closed
             data += chunk
+            if b"\n" in data:
+                return data.split(b"\n")[0]  # Return without the newline
 
-        return data
+        # Line exceeded max size
+        raise OverflowError(f"Line exceeds max size of {max_size} bytes")

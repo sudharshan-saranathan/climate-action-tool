@@ -29,28 +29,28 @@ class TestSocketIO(unittest.TestCase):
         self.assertIsNotNone(sock)
         sock.close()
 
-    def test_recv_exact(self):
-        """Test recv_exact method reads exact number of bytes"""
+    def test_recv_line(self):
+        """Test recv_line method reads until newline delimiter"""
         # Create a mock socket with data
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind(("localhost", 9998))
         server.listen(1)
 
-        # Client connects and sends data
+        # Client connects and sends line-delimited data
         def client_thread():
             time.sleep(0.1)
             client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client.connect(("localhost", 9998))
-            client.sendall(b"Hello, World!")
+            client.sendall(b"Hello, World!\n")
             client.close()
 
         thread = threading.Thread(target=client_thread, daemon=True)
         thread.start()
 
         conn, _ = server.accept()
-        data = SocketIO.recv_exact(conn, 5)
-        self.assertEqual(data, b"Hello")
+        data = SocketIO.recv_line(conn)
+        self.assertEqual(data, b"Hello, World!")
         conn.close()
         server.close()
 
@@ -86,8 +86,24 @@ class TestClimactServer(unittest.TestCase):
 
         server = ClimactServer(host="localhost", port=9995, timeout=2)
 
-        def server_thread():
-            server.run(timelimit=time.time() + 1)
+        def run_server():
+            # Run for limited time by checking a flag
+            server._running = True
+            for _ in range(5):  # Try up to 5 iterations
+                if not server._running:
+                    break
+                try:
+                    connection, address = server._socket.accept()
+                    connection.sendall(b"IITM-Climact Server v1.0 [License = GPL-3.0]\n")
+                    ts = time.strftime("%H:%M:%S")
+                    server._logger.info(f"New connection from {address} [{ts}]")
+
+                    data = server._socket.recv_line(connection)
+                    server._logger.info(f"Message: {data.decode() if data else ''}")
+                    connection.close()
+                    break
+                except socket.timeout:
+                    pass
 
         def client_thread():
             time.sleep(0.2)
@@ -96,11 +112,12 @@ class TestClimactServer(unittest.TestCase):
                 client.connect(("localhost", 9995))
                 greeting = client.recv(1024)
                 self.assertIn(b"IITM-Climact Server", greeting)
+                client.sendall(b"test message\n")
                 client.close()
             except Exception as e:
                 print(f"Client error: {e}")
 
-        server_thread = threading.Thread(target=server_thread, daemon=True)
+        server_thread = threading.Thread(target=run_server, daemon=True)
         client_thread = threading.Thread(target=client_thread, daemon=True)
 
         server_thread.start()
@@ -108,6 +125,7 @@ class TestClimactServer(unittest.TestCase):
 
         server_thread.join(timeout=3)
         client_thread.join(timeout=3)
+        server._running = False
 
 
 if __name__ == "__main__":

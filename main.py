@@ -23,8 +23,9 @@ from gui.main_ui.main_ui import MainUI
 
 # Configure logging
 logging.basicConfig(
+    encoding="utf-8",
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    format="%(asctime)s [%(levelname)-8s] - (%(module)s) %(message)s",
 )
 
 

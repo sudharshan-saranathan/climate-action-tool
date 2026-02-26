@@ -4,12 +4,20 @@
 
 
 # Built-ins
+from datetime import time
 import logging
 import socket
 import time
 
 # Dataclass
 from dataclasses import dataclass
+
+# Configure logging
+logging.basicConfig(
+    encoding="utf-8",
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)-8s] - (%(module)s) %(message)s",
+)
 
 
 # Backend server for graph management and optimizations
@@ -74,33 +82,39 @@ class ClimactServer:
 
         try:
             while self._running:
-
-                connection = None
-                address = None
+                conn = None
+                addr = None
                 try:
-                    connection, address = self._socket.accept()
-                    connection.sendall(b"IITM-Climact Server v1.0 [License = GPL-3.0]")
-                    self._logger.info(f"Connection established from {address}")
+                    conn, addr = self._socket.accept()
+                    conn.sendall(b"IITM-Climact Server v1.0 [GPL-3.0]\n")
+                    self._logger.info(f"New connection from {addr}")
 
-                    # Receive and log the client's message
-                    size = int(connection.recv(4))
-                    data = self._socket.recv_exact(connection, size)
-                    self._logger.info(f"Message: {data.decode() if data else ''}")
+                    # Handle multiple messages from the same client
+                    while True:
+
+                        data = self._socket.recv_line(conn)
+                        if not data:  # Connection closed by client
+                            break
+
+                        if data.decode().strip().lower() in ["exit", "quit"]:
+                            self._logger.info(f"Client {addr} requested disconnect")
+                            break
+
+                        self._logger.info(f"Command from {addr}: {data.decode()}")
 
                 except socket.timeout:
                     self._logger.debug("Socket timeout waiting for client connection")
 
                 except UnicodeDecodeError as e:
-                    self._logger.error(f"Failed to decode message from {address}: {e}")
+                    self._logger.error(f"Failed to decode command from {addr}: {e}")
 
                 except Exception as e:
-                    self._logger.error(f"Error handling client {address}: {e}")
+                    self._logger.error(f"Error handling client {addr}: {e}")
 
                 finally:
-                    if connection:
-                        connection.close()
-
-                self._runtime += time.time() - self._timestamp
+                    if conn:
+                        conn.close()
+                        self._logger.info(f"Connection closed: {addr}")
 
         except Exception as e:
             self._logger.error(f"Server error: {e}")
@@ -113,3 +127,15 @@ class ClimactServer:
         self._running = False
         self._socket.close()
         self._logger.info("Server stopped")
+
+    def _fetch_command(self, data: bytes) -> str:
+
+        # Parse command as json
+        import json
+
+        try:
+            return json.loads(data.decode())
+
+        except json.JSONDecodeError as e:
+            self._logger.error(f"Failed to decode command: {data.decode()}")
+            return ""
