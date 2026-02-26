@@ -1,4 +1,4 @@
-# Filename: window.py
+# Filename: main_ui.py
 # Module name: startup
 # Description: A startup window based on the QDialog class (see Qt docs for more info).
 

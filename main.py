@@ -19,7 +19,7 @@ from PySide6 import QtWidgets
 import rsrc  # noqa: F401 - Initializes Qt resources (QSS, fonts, images) on import
 from core.graph import GraphServer  # noqa: F401 - Initializes GraphManager singleton
 from gui.startup.window import StartupWindow
-from gui.main_ui.window import MainWindow
+from gui.main_ui.main_ui import MainUI
 
 # Configure logging
 logging.basicConfig(
@@ -97,7 +97,7 @@ class ClimateActionTool(QtWidgets.QApplication):
         # Create and show the main window
         if self._user_input_code >= 0:
 
-            self._win = MainWindow()
+            self._win = MainUI()
             self._win.setWindowTitle("Climate Action Tool")
             self._win.setGeometry(padded)
             self._win.show()
