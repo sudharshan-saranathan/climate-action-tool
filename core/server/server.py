@@ -2,12 +2,9 @@
 # Module Name: core.server
 # Description: Backend server for the Climate Action Tool (CAT)
 
-
 # Built-ins
 import logging
-import socket
-import time
-import json
+import asyncio
 import enum
 
 # Dataclass
@@ -31,162 +28,192 @@ class ClimactServer:
     @dataclass
     class SocketConfig:
         host: str = "localhost"
-        port: int = 8080
-        timeout: int = 60
-        backlog: int = 5
+        port: int = 6000
 
     class ServerState(enum.Enum):
-        running = "running"
-        stopped = "stopped"
+        online = "online"
+        killed = "killed"
 
     class CommandVocabulary(enum.Enum):
         help = "help"
-        shutdown = "shutdown"
+        kill = "kill"
+        status = "status"
+        configure = "configure"
+        disconnect = "disconnect"
+        controllers = "controllers"
 
     # Interrupt instantiation to enforce the singleton pattern
     def __new__(cls, **kwargs):
         return cls._instance if cls._instance else super().__new__(cls)
 
-    # Initialize server configuration and socket attributes
+    # Initialize server configuration and attributes
     def __init__(self, **kwargs):
 
         # Initialize server configuration
         self.config = self.SocketConfig(
             host=kwargs.get("host", "localhost"),
-            port=kwargs.get("port", 8080),
-            timeout=kwargs.get("timeout", 60),
-            backlog=kwargs.get("backlog", 5),
+            port=kwargs.get("port", 6000),
         )
 
-        self._init_socket()
-        self._status = ClimactServer.ServerState.stopped
-        self._active = {}
-
-        # Initialize a target dictionary
-        self._targets = {
+        # Define controllers
+        self._controllers = {
             "graph": None,
             "optimizer": None,
         }
 
+        self._asyncio_server = None
+        self._kill_event = None
+        self._clients = set()
+        self._server_state = ClimactServer.ServerState.killed
 
         # Assign to the singleton
         ClimactServer._instance = self
 
-    # Initialize a socket and bind to the address
-    def _init_socket(self) -> None:
-
-        # Import custom socket
-        from core.server.sockio import SocketIO
-
-        # Create and configure the socket
-        self._socket = SocketIO(
-            socket.AF_INET,
-            socket.SOCK_STREAM,
-            timeout=self.config.timeout,
-            host=self.config.host,
-            port=self.config.port,
-            backlog=self.config.backlog,
-        )
-
     # Start listening and handle client connections
-    def run(self) -> None:
-
-        self._status = ClimactServer.ServerState.running
-        self._logger.info(f"Server started on {self.config.host}:{self.config.port}")
+    async def _run_async(self) -> None:
 
         try:
-            while self._status == ClimactServer.ServerState.running:
+            host = self.config.host
+            port = self.config.port
 
-                conn = None
-                addr = None
-                try:
-                    conn, addr = self._socket.accept()
-                    conn.sendall(b"IITM-Climact Server v1.0 [GPL-3.0]\n")
+            # Create asyncio server
+            self._server = await asyncio.start_server(self._handle_client, host, port)
+            self._logger.info(f"Server listening on {host}:{port}")
 
-                    self._logger.info(f"New connection from {addr}")
-                    self._active[conn] = addr
-
-                    # Handle multiple messages from the same client
-                    while self._status == ClimactServer.ServerState.running:
-
-                        data = self._socket.recv_line(conn)
-                        if not data:  # Connection closed by client
-                            break
-
-                        self._parse(data)
-
-                except socket.timeout:
-                    self._logger.debug("Socket timeout waiting for client connection")
-
-                except UnicodeDecodeError as e:
-                    self._logger.error(f"Failed to decode command from {addr}: {e}")
-
-                except Exception as e:
-                    self._logger.error(f"Error handling client {addr}: {e}")
-
-                finally:
-                    if conn:
-                        conn.close()
+            # Wait for the kill-event
+            async with self._server:
+                await self._kill_event.wait()
 
         except Exception as e:
             self._logger.error(f"Server error: {e}")
 
         finally:
-            if self._status == ClimactServer.ServerState.running:
-                self.shutdown()
+            await self._kill_async()
 
-    # Register a new target
-    def register_target(self, target: str, instantiator) -> None:
+    # Kill the server
+    async def _kill_async(self) -> None:
 
-        if target in self._targets:
-            self._logger.warning(f"Target {target} already exists")
+        # If already killed, do nothing
+        if self._kill_event.is_set():
             return
 
-        self._targets[target] = instantiator()
+        # Set the kill event
+        self._kill_event.set()
 
-    # Stop the server
-    def shutdown(self) -> None:
+        # Force close remaining client connections. This must be done before closing the server socket,
+        # otherwise the `await self._server.wait_closed()` will hang indefinitely.
+        for writer in self._clients:
+            writer.close()
 
-        self._logger.info(f"Shutting down server")
+        # Close the server socket (stops accepting connections)
+        if self._server:
+            self._server.close()
+            await self._server.wait_closed()
 
-        # Close all active connections
-        for conn, addr in self._active.items():
-            if conn:
-                conn.close()
+        self._server_state = ClimactServer.ServerState.killed
+        self._logger.info("Server stopped")
 
-            self._logger.info(f"\t- Connection with {addr} closed")
+    # Write a response to the client
+    @staticmethod
+    async def _write(writer, response: str, include_prompt: bool = True) -> None:
 
-        self._status = ClimactServer.ServerState.stopped
-        self._active.clear()
-        self._socket.close()
+        formatted_response = f"{response}\n>> " if include_prompt else f"{response}\n"
+        formatted_response = formatted_response.encode()
 
-    # Parse incoming data from clients
-    def _parse(self, data: bytes) -> None:
+        writer.write(formatted_response)
+        await writer.drain()
+
+    async def _handle_client(self, reader, writer):
+
+        addr = writer.get_extra_info("peername")
+        self._logger.info(f"Connection established with {addr}")
+        self._clients.add(writer)  # Track the writer
 
         try:
-            jstr = json.loads(data.decode())
-            target = jstr.get("target", None)
-            command = jstr.get("action", None)
-            payload = jstr.get("payload", "")
+            await self._write(writer, "IITM-Climact Server v1.0", include_prompt=False)
+            await self._write(writer, "Type 'help' for a list of commands\n")
 
-            self._execute(target, command, payload)
-            self._logger.info(f"JSON data: {jstr}")
+            # Check BOTH the event and if the writer is actually still open
+            while not self._kill_event.is_set():
+                try:
+                    # Short timeout so we check 'kill_event' frequently
+                    line = await asyncio.wait_for(reader.readuntil(b"\n"), timeout=1.0)
+                    if not line:
+                        break
 
-        except json.JSONDecodeError as e:
-            self._handle_direct_command(data.decode())
+                    response = await self._handle_instructions(writer, line.strip())
+                    await self._write(writer, response)
+
+                except asyncio.TimeoutError:
+                    continue  # Just loop back and check kill_event
+
+                except (ConnectionResetError, BrokenPipeError):
+                    break  # Client left on their own
+
+        except (asyncio.IncompleteReadError, ConnectionResetError):
+            self._logger.warning(f"Client {addr} disconnected")
+
+        except UnicodeDecodeError:
+            self._logger.warning(f"Client {addr} disconnected")
+
+        finally:
+
+            self._clients.discard(writer)
+            # Check if writer is already closing/closed to avoid double-closing
+            if not writer.is_closing():
+                writer.close()
+                try:
+                    await writer.wait_closed()
+                except:
+                    pass
+
+    # Parse incoming data from clients
+    async def _handle_instructions(self, writer, data: bytes) -> str:
+
+        raw_input = data.decode().strip()
+        raw_parts = raw_input.split(" ", maxsplit=1)
+
+        command = raw_parts[0] if len(raw_parts) > 0 else ""
+        payload = raw_parts[1] if len(raw_parts) > 1 else ""
+
+        # Resolve namespace
+        if "." not in command:
+            return f"Error: '{command}' must follow the pattern 'namespace.command'"
+
+        target, action = command.split(".", 1)
+        return await self._execute(writer, target, action, payload)
+
+    # Execute the JSON command struct
+    async def _execute(self, writer, target, action, payload: str) -> str:
+
+        if target == "server":
+
+            if action == ClimactServer.CommandVocabulary.kill.value:
+                await self._kill_async()
+                return "Server stopped"
+
+            elif action == ClimactServer.CommandVocabulary.status.value:
+                return self._server_state.value
+
+            elif action == ClimactServer.CommandVocabulary.help.value:
+                return "Available commands: kill, status, help"
+
+            elif action == ClimactServer.CommandVocabulary.controllers.value:
+                return "Available controllers: graph, optimizer"
+
+            else:
+                self._logger.warning(f"Unrecognized command: {action}")
+
+        return "Message not recognized"
+
+    def run(self) -> None:
+
+        if self._server_state == ClimactServer.ServerState.online:
             return
 
-    def _execute(self, target: str, action: str, payload: str = "") -> None:
-        pass
+        # Start the server
+        self._clients = set()
+        self._kill_event = asyncio.Event()
+        self._server_state = ClimactServer.ServerState.online
 
-    def _handle_direct_command(self, command: str) -> None:
-
-        if not isinstance(command, str):
-            self._logger.error(f"Invalid command: {command}")
-            return
-
-        if command.strip() == self.CommandVocabulary.shutdown.value:
-            self.shutdown()
-
-        else:
-            self._logger.warning(f"Unknown command: {command}")
+        asyncio.run(self._run_async())
