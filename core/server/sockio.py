@@ -8,25 +8,31 @@ import socket
 class SocketIO(socket.socket):
 
     def __init__(self, *args, **kwargs):
+
+        # Extract custom kwargs before passing to socket
+        timeout = kwargs.pop("timeout", 60)
+        host = kwargs.pop("host", None)
+        port = kwargs.pop("port", None)
+        backlog = kwargs.pop("backlog", 5)
+
+        # Initialize socket with standard socket args
         super().__init__(*args, **kwargs)
 
         self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.settimeout(kwargs.get("timeout", 60))
+        self.settimeout(timeout)
 
-        host = kwargs.get("host", None)
-        port = kwargs.get("port", None)
         if host and port:
             self.bind((host, port))
-            self.listen(kwargs.get("backlog", 5))
+            self.listen(backlog)
 
     @staticmethod
-    def recv_exact(connection: socket.socket, size: int) -> str:
+    def recv_exact(connection: socket.socket, size: int) -> bytes:
 
         data = b""
         while len(data) < size:
             chunk = connection.recv(size - len(data))
             if not chunk:
-                return ""
+                return b""
             data += chunk
 
-        return data.decode()
+        return data

@@ -27,7 +27,7 @@ class ClimactServer:
         backlog: int = 5
 
     # Interrupt instantiation to enforce the singleton pattern
-    def __new__(cls):
+    def __new__(cls, **kwargs):
         return cls._instance if cls._instance else super().__new__(cls)
 
     # Initialize server configuration and socket attributes
@@ -43,6 +43,8 @@ class ClimactServer:
 
         self._init_socket()
         self._running = False
+        self._runtime = 0
+        self._timestamp = None
 
         # Assign to the singleton
         ClimactServer._instance = self
@@ -63,24 +65,27 @@ class ClimactServer:
             backlog=self.config.backlog,
         )
 
-    # Start listening to incoming connections
-    def run(self, timelimit: int = -1) -> None:
+    # Start listening and handle client connections
+    def run(self) -> None:
 
         self._running = True
+        self._timestamp = time.time()
         self._logger.info(f"Server started on {self.config.host}:{self.config.port}")
 
         try:
-            while self._running and (timelimit < 0 or time.time() < timelimit):
+            while self._running:
+
                 connection = None
                 address = None
                 try:
                     connection, address = self._socket.accept()
                     connection.sendall(b"IITM-Climact Server v1.0 [License = GPL-3.0]")
+                    self._logger.info(f"Connection established from {address}")
 
                     # Receive and log the client's message
                     size = int(connection.recv(4))
                     data = self._socket.recv_exact(connection, size)
-                    self._logger.info(f"Received message from {address}: {data}")
+                    self._logger.info(f"Message: {data.decode() if data else ''}")
 
                 except socket.timeout:
                     self._logger.debug("Socket timeout waiting for client connection")
@@ -94,6 +99,8 @@ class ClimactServer:
                 finally:
                     if connection:
                         connection.close()
+
+                self._runtime += time.time() - self._timestamp
 
         except Exception as e:
             self._logger.error(f"Server error: {e}")
