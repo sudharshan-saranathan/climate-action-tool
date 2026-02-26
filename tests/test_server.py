@@ -68,7 +68,7 @@ class TestClimactServer(unittest.TestCase):
 
         # Should be the same instance
         self.assertIs(server1, server2)
-        server1.stop()
+        server1.shutdown()
 
     def test_server_initialization(self):
         """Test server initializes with correct config"""
@@ -78,7 +78,7 @@ class TestClimactServer(unittest.TestCase):
         self.assertEqual(server.config.host, "127.0.0.1")
         self.assertEqual(server.config.port, 9996)
         self.assertEqual(server.config.timeout, 30)
-        server.stop()
+        server.shutdown()
 
     def test_server_accepts_connection(self):
         """Test server can accept a client connection"""

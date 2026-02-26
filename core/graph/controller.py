@@ -1,15 +1,21 @@
-"""GraphServer for managing graph data structure via signal-driven architecture."""
+# Filename: core/graph/controller.py
+# Module Name: core.graph.controller
+# Description: Graph controller for managing graph data structure via signal-driven architecture.
 
 from __future__ import annotations
+
 
 # Standard
 import logging
 import typing
 import uuid
 import json
+
+
 # Dataclass
 from dataclasses import field
 from dataclasses import dataclass
+
 
 # Climact Module(s): core.graph, core.signals
 from core.signals import SignalBus
@@ -18,13 +24,13 @@ from core.graph.edge import Edge
 from core.graph.decorators import guid_validator, json_parser
 
 
-class GraphServer:
+class GraphController:
     """
     A graph-server that manages multiple graphs (Singleton).
     """
 
     _server = None
-    _logger = logging.getLogger("GraphServer")
+    _logger = logging.getLogger("GraphController")
 
     @dataclass
     class Graph:
@@ -45,7 +51,7 @@ class GraphServer:
             return
 
         # Global graph database
-        self.database: typing.Dict[str, GraphServer.Graph] = {}
+        self.database: typing.Dict[str, GraphController.Graph] = {}
         self.cmds_bus = SignalBus()
 
         self._connect_to_session_manager()
@@ -89,13 +95,13 @@ class GraphServer:
         else:
             return True
 
-    def create_graph(self, guid: str) -> GraphServer.Graph | None:
+    def create_graph(self, guid: str) -> GraphController.Graph | None:
 
         if guid in self.database:
             self._logger.warning(f"Graph with GUID {guid} already exists.")
             return None
 
-        self.database[guid] = GraphServer.Graph()
+        self.database[guid] = GraphController.Graph()
         return self.database[guid]
 
     @guid_validator

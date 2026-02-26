@@ -4,10 +4,11 @@
 
 
 # Built-ins
-from datetime import time
 import logging
 import socket
 import time
+import json
+import enum
 
 # Dataclass
 from dataclasses import dataclass
@@ -34,6 +35,14 @@ class ClimactServer:
         timeout: int = 60
         backlog: int = 5
 
+    class ServerState(enum.Enum):
+        running = "running"
+        stopped = "stopped"
+
+    class CommandVocabulary(enum.Enum):
+        help = "help"
+        shutdown = "shutdown"
+
     # Interrupt instantiation to enforce the singleton pattern
     def __new__(cls, **kwargs):
         return cls._instance if cls._instance else super().__new__(cls)
@@ -50,14 +59,20 @@ class ClimactServer:
         )
 
         self._init_socket()
-        self._running = False
-        self._runtime = 0
-        self._timestamp = None
+        self._status = ClimactServer.ServerState.stopped
+        self._active = {}
+
+        # Initialize a target dictionary
+        self._targets = {
+            "graph": None,
+            "optimizer": None,
+        }
+
 
         # Assign to the singleton
         ClimactServer._instance = self
 
-    # Initialize socket and bind to the address
+    # Initialize a socket and bind to the address
     def _init_socket(self) -> None:
 
         # Import custom socket
@@ -76,31 +91,29 @@ class ClimactServer:
     # Start listening and handle client connections
     def run(self) -> None:
 
-        self._running = True
-        self._timestamp = time.time()
+        self._status = ClimactServer.ServerState.running
         self._logger.info(f"Server started on {self.config.host}:{self.config.port}")
 
         try:
-            while self._running:
+            while self._status == ClimactServer.ServerState.running:
+
                 conn = None
                 addr = None
                 try:
                     conn, addr = self._socket.accept()
                     conn.sendall(b"IITM-Climact Server v1.0 [GPL-3.0]\n")
+
                     self._logger.info(f"New connection from {addr}")
+                    self._active[conn] = addr
 
                     # Handle multiple messages from the same client
-                    while True:
+                    while self._status == ClimactServer.ServerState.running:
 
                         data = self._socket.recv_line(conn)
                         if not data:  # Connection closed by client
                             break
 
-                        if data.decode().strip().lower() in ["exit", "quit"]:
-                            self._logger.info(f"Client {addr} requested disconnect")
-                            break
-
-                        self._logger.info(f"Command from {addr}: {data.decode()}")
+                        self._parse(data)
 
                 except socket.timeout:
                     self._logger.debug("Socket timeout waiting for client connection")
@@ -114,28 +127,66 @@ class ClimactServer:
                 finally:
                     if conn:
                         conn.close()
-                        self._logger.info(f"Connection closed: {addr}")
 
         except Exception as e:
             self._logger.error(f"Server error: {e}")
 
         finally:
-            self._socket.close()
-            self._logger.info("Socket closed")
+            if self._status == ClimactServer.ServerState.running:
+                self.shutdown()
 
-    def stop(self) -> None:
-        self._running = False
+    # Register a new target
+    def register_target(self, target: str, instantiator) -> None:
+
+        if target in self._targets:
+            self._logger.warning(f"Target {target} already exists")
+            return
+
+        self._targets[target] = instantiator()
+
+    # Stop the server
+    def shutdown(self) -> None:
+
+        self._logger.info(f"Shutting down server")
+
+        # Close all active connections
+        for conn, addr in self._active.items():
+            if conn:
+                conn.close()
+
+            self._logger.info(f"\t- Connection with {addr} closed")
+
+        self._status = ClimactServer.ServerState.stopped
+        self._active.clear()
         self._socket.close()
-        self._logger.info("Server stopped")
 
-    def _fetch_command(self, data: bytes) -> str:
-
-        # Parse command as json
-        import json
+    # Parse incoming data from clients
+    def _parse(self, data: bytes) -> None:
 
         try:
-            return json.loads(data.decode())
+            jstr = json.loads(data.decode())
+            target = jstr.get("target", None)
+            command = jstr.get("action", None)
+            payload = jstr.get("payload", "")
+
+            self._execute(target, command, payload)
+            self._logger.info(f"JSON data: {jstr}")
 
         except json.JSONDecodeError as e:
-            self._logger.error(f"Failed to decode command: {data.decode()}")
-            return ""
+            self._handle_direct_command(data.decode())
+            return
+
+    def _execute(self, target: str, action: str, payload: str = "") -> None:
+        pass
+
+    def _handle_direct_command(self, command: str) -> None:
+
+        if not isinstance(command, str):
+            self._logger.error(f"Invalid command: {command}")
+            return
+
+        if command.strip() == self.CommandVocabulary.shutdown.value:
+            self.shutdown()
+
+        else:
+            self._logger.warning(f"Unknown command: {command}")

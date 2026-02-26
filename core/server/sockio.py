@@ -3,9 +3,18 @@
 #  Description: Socket I/O utilities for Climact.
 
 import socket
+import enum
+
 
 
 class SocketIO(socket.socket):
+
+    class SocketStatus(enum.IntFlag):
+        active = 1
+        paused = 2
+        stopped = 4
+        listening = 8
+        busy = 16
 
     def __init__(self, *args, **kwargs):
 
@@ -15,7 +24,7 @@ class SocketIO(socket.socket):
         backlog = kwargs.pop("backlog", 5)
         timeout = kwargs.pop("timeout", 60)
 
-        # Initialize socket with standard socket args
+        # Initialize the socket with standard socket args
         super().__init__(*args, **kwargs)
 
         self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -28,7 +37,7 @@ class SocketIO(socket.socket):
     @staticmethod
     def recv_line(connection: socket.socket, max_size: int = 33554432) -> bytes:
         """
-        Read a line from socket until newline delimiter.
+        Read a line from the socket until a newline delimiter.
 
         Args:
             connection: The socket connection
@@ -49,3 +58,4 @@ class SocketIO(socket.socket):
 
         # Line exceeded max size
         raise OverflowError(f"Line exceeds max size of {max_size} bytes")
+
