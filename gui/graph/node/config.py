@@ -19,6 +19,7 @@ from PySide6 import QtWidgets
 # Climact
 from gui.widgets import Field, HLayout
 from gui.widgets import ComboBox
+from gui.widgets import TabWidget
 
 
 class NodeConfigWidget(QtWidgets.QDialog):
@@ -108,7 +109,7 @@ class NodeConfigWidget(QtWidgets.QDialog):
             fieldGrowthPolicy=QtWidgets.QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow,
         )
 
-        name_field = Field(frame)
+        name_field = Field(frame, readOnly=True)
         type_combo = ComboBox(frame)
         flow_combo = ComboBox(frame)
 
@@ -131,7 +132,7 @@ class NodeConfigWidget(QtWidgets.QDialog):
             alignment=QtCore.Qt.AlignmentFlag.AlignCenter,
         )
 
-        tech_tabs = QtWidgets.QTabWidget(self)
+        tech_tabs = TabWidget(self)
         tech_tabs.addTab(self._default_tab, "Default")
 
         return tech_tabs

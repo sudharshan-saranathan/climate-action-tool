@@ -13,9 +13,6 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 
-# Climact modules: gui.widgets
-
-
 class TabWidget(QtWidgets.QTabWidget):
     """
     Custom tab widget with configurable appearance and keyboard shortcuts.
@@ -72,11 +69,11 @@ class TabWidget(QtWidgets.QTabWidget):
 
     def _init_shortcuts(self) -> None:
 
-        self.addAction("Ctrl+T", self.create_tab)
-        self.addAction("Ctrl+W", self.remove_tab)
-        self.addAction("Ctrl+Left", self.go_to_prev_tab)
-        self.addAction("Ctrl+Right", self.go_to_next_tab)
-        self.addAction("Ctrl+R", self.rename_tab)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+T"), self, self.create_tab)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.remove_tab)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Left"), self, self.go_to_prev_tab)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Right"), self, self.go_to_next_tab)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+R"), self, self.rename_tab)
 
     @QtCore.Slot()
     def create_tab(
@@ -99,7 +96,8 @@ class TabWidget(QtWidgets.QTabWidget):
         widget = self.widget(index)
 
         self.removeTab(index)
-        widget.deleteLater()
+        if widget:
+            widget.deleteLater()
 
     @QtCore.Slot()
     def go_to_prev_tab(self) -> None:
@@ -130,16 +128,3 @@ class TabWidget(QtWidgets.QTabWidget):
             return
 
         self.setTabText(index, label)
-
-    def paintEvent(self, event: QtGui.QPaintEvent) -> None:
-
-        indx = self.currentIndex()
-        rect = self.tabBar().tabRect(indx)
-        rect = rect.adjusted(0, 12, -4, 8)
-
-        painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-        painter.setBrush(QtGui.QBrush(QtGui.QColor(0xEFEFEF)))
-        painter.setPen(QtCore.Qt.PenStyle.NoPen)
-        painter.drawRect(rect)
-        painter.end()

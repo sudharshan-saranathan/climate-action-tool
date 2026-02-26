@@ -240,9 +240,11 @@ class TabWidget(QtWidgets.QTabWidget):
         rect = self.tabBar().tabRect(indx)
         rect = rect.adjusted(0, 12, -4, 8)
 
+        """
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         painter.setBrush(QtGui.QBrush(QtGui.QColor(0xEFEFEF)))
         painter.setPen(QtCore.Qt.PenStyle.NoPen)
         painter.drawRect(rect)
         painter.end()
+        """
