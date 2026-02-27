@@ -15,9 +15,10 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-# Climact Module(s): gui.main_ui, core.graph
+# Climact Module(s): gui.main_ui, core.graph, core.server
 import rsrc  # noqa: F401 - Initializes Qt resources (QSS, fonts, images) on import
 from core.graph import GraphController  # noqa: F401 - Initializes GraphManager singleton
+from core.server.thread import ServerThread
 from gui.startup.window import StartupWindow
 from gui.main_ui.main_ui import MainUI
 
@@ -77,6 +78,11 @@ class ClimateActionTool(QtWidgets.QApplication):
         self._rsrc = ClimateActionTool.Resources()
         self._geom = ClimateActionTool.Geometric()
 
+        # Start the server in a background thread
+        self._server_thread = ServerThread()
+        self._server_thread.start()
+        self._logger.info("Server thread started")
+
         image = self._rsrc.image
         theme = self._rsrc.theme
         bezel = self._geom.margin
@@ -104,7 +110,11 @@ class ClimateActionTool(QtWidgets.QApplication):
             self._win.show()
 
         else:
+            self._cleanup()
             sys.exit(0)
+
+        # Connect cleanup on application quit
+        self.aboutToQuit.connect(self._cleanup)
 
     def _init_args(self) -> None:
         """Parse command-line arguments and update application flags.
@@ -175,6 +185,14 @@ class ClimateActionTool(QtWidgets.QApplication):
 
         result: int = startup.result()
         return result
+
+    def _cleanup(self) -> None:
+        """Stop the server and clean up resources."""
+        if self._server_thread and self._server_thread.is_alive():
+            self._logger.info("Cleaning up server thread...")
+            self._server_thread.stop()
+            self._server_thread.join(timeout=5)
+            self._logger.info("Server thread stopped")
 
     def resources(self):
         return self._rsrc

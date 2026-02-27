@@ -61,7 +61,14 @@ class Viewer(QtWidgets.QGraphicsView):
             self._setup_opengl_viewport()
 
         # Set scene
-        self.setScene(Canvas())
+        canvas = Canvas()
+        self.setScene(canvas)
+
+        # Initialize client connection with default graph for testing
+        # TODO: Replace with actual graph selection mechanism
+        import uuid
+        test_guid = uuid.uuid4().hex
+        canvas.load_graph(test_guid)
 
         # Register keyboard shortcuts for zoom, undo/redo, and copy/paste:
         QtGui.QShortcut(

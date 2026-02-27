@@ -44,13 +44,10 @@ class ClimactServer:
         return cls._instance if cls._instance else super().__new__(cls)
 
     # Initialize server configuration and attributes
-    def __init__(self, **kwargs):
+    def __init__(self, host, port):
 
         # Initialize server configuration
-        self.config = self.SocketConfig(
-            host=kwargs.get("host", "localhost"),
-            port=kwargs.get("port", 6000),
-        )
+        self.config = self.SocketConfig(host=host, port=port)
 
         # Initialize asyncio server
         self._status = ServerState.STOPPED
@@ -159,10 +156,6 @@ class ClimactServer:
         self._active.add(writer)
 
         try:
-            writer.write(b"IITM-Climact Server v1.0\n")
-            writer.write(b"Type 'help' for a list of commands\n")
-            await writer.drain()
-
             # Check BOTH the event and if the writer is actually still open
             while not self._kill_event.is_set():
 

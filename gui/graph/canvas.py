@@ -27,6 +27,7 @@ from PySide6 import QtWidgets
 # Climact
 from gui.graph.node import NodeRepr
 from gui.graph.edge import EdgeRepr
+from gui.client import ClimactClient
 
 
 class Canvas(QtWidgets.QGraphicsScene):
@@ -86,6 +87,10 @@ class Canvas(QtWidgets.QGraphicsScene):
             vector=EdgeRepr(uuid.uuid4().hex),
         )
         self.addItem(self._preview.vector)
+
+        # Server client
+        self._client = ClimactClient()
+        self._graph_guid = None
 
     def _init_menu(self) -> QtWidgets.QMenu:
         """
@@ -271,6 +276,10 @@ class Canvas(QtWidgets.QGraphicsScene):
     @QtCore.Slot()
     def _raise_create_node_request(self) -> None:
 
+        if not self._client or not self._graph_guid:
+            self._logger.warning("Client not connected to server")
+            return
+
         # Initialize data for the request
         data = {
             "name": "Node",
@@ -278,10 +287,15 @@ class Canvas(QtWidgets.QGraphicsScene):
             "y": self._rmb_coordinate.y(),
         }
 
-        jstr = json.dumps(data)
+        # Send to server
+        nuid = self._client.create_node(data)
 
-        # manager = SignalBus()  # Get the singleton instance
-        # manager.raise_request("create_node_item", self._uid, jstr)
+        if nuid:
+            # Server created the node, now render it locally
+            jstr = json.dumps(data)
+            self.create_node_repr(self._uid, nuid, jstr)
+        else:
+            self._logger.warning("Failed to create node on server")
 
     @QtCore.Slot(str)
     def _raise_delete_node_request(self, nuid: str) -> None:
@@ -292,15 +306,20 @@ class Canvas(QtWidgets.QGraphicsScene):
     @QtCore.Slot()
     def _raise_create_edge_request(self, suid: str, tuid: str) -> None:
 
-        # Initialize data for the request
-        data = {
-            "source_uid": suid,
-            "target_uid": tuid,
-        }
+        if not self._client or not self._graph_guid:
+            self._logger.warning("Client not connected to server")
+            return
 
-        payload = json.dumps(data)
-        # manager = SignalBus()  # Get the singleton instance
-        # manager.raise_request("create_edge_item", self._uid, payload)
+        # Send to server
+        euid = self._client.create_edge(suid, tuid)
+
+        if euid:
+            # Server created the edge, now render it locally
+            data = {"source_uid": suid, "target_uid": tuid}
+            jstr = json.dumps(data)
+            self.create_edge_repr(self._uid, euid, jstr)
+        else:
+            self._logger.warning("Failed to create edge on server")
 
     @QtCore.Slot(str, str)
     def _raise_delete_edge_request(self, euid: str) -> None:
@@ -407,6 +426,25 @@ class Canvas(QtWidgets.QGraphicsScene):
             ),
             None,
         )
+
+    def load_graph(self, guid: str) -> bool:
+        """
+        Load a graph from the server and initialize the client.
+
+        Args:
+            guid: The unique identifier for the graph
+
+        Returns:
+            True if successful, False otherwise
+        """
+        self._graph_guid = guid
+
+        if not self._client.connect(guid):
+            self._logger.error(f"Failed to connect to server for graph {guid}")
+            return False
+
+        self._logger.info(f"Loaded graph {guid}")
+        return True
 
     @property
     def uid(self) -> str:
