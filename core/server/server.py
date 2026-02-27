@@ -114,7 +114,7 @@ class ClimactServer:
 
         asyncio.run(self._run_async())
 
-    # Method to post response as a JSON string
+    # Method to post a response as a JSON string
     async def respond(self, writer, response: dict) -> None:
 
         # Convert response to JSON string

@@ -27,7 +27,6 @@ from PySide6 import QtWidgets
 # Climact
 from gui.graph.node import NodeRepr
 from gui.graph.edge import EdgeRepr
-from core.signals import SignalBus
 
 
 class Canvas(QtWidgets.QGraphicsScene):
@@ -87,9 +86,6 @@ class Canvas(QtWidgets.QGraphicsScene):
             vector=EdgeRepr(uuid.uuid4().hex),
         )
         self.addItem(self._preview.vector)
-
-        # Connect to application signals
-        self._connect_to_signal_bus()
 
     def _init_menu(self) -> QtWidgets.QMenu:
         """
@@ -197,20 +193,6 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         return cxt_menu
 
-    def _connect_to_signal_bus(self) -> None:
-        """Connect to application-level controller signals."""
-
-        # Connect to the session-manager's signals
-        bus = SignalBus()  # Get the singleton instance
-        bus.ui.create_node_repr.connect(self.create_node_repr)
-        bus.ui.delete_node_repr.connect(self.delete_node_repr)
-        bus.ui.create_edge_repr.connect(self.create_edge_repr)
-        bus.ui.delete_edge_repr.connect(self.delete_edge_repr)
-        bus.ui.notify.connect(self._on_notification_received)
-
-        # Create a graph instance for this canvas
-        bus.data.create_graph.emit(self._uid)
-
     def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent) -> None:
         """
         Display the context menu at the location of the right-click event.
@@ -298,14 +280,14 @@ class Canvas(QtWidgets.QGraphicsScene):
 
         jstr = json.dumps(data)
 
-        manager = SignalBus()  # Get the singleton instance
-        manager.raise_request("create_node_item", self._uid, jstr)
+        # manager = SignalBus()  # Get the singleton instance
+        # manager.raise_request("create_node_item", self._uid, jstr)
 
     @QtCore.Slot(str)
     def _raise_delete_node_request(self, nuid: str) -> None:
-
-        manager = SignalBus()  # Get the singleton instance
-        manager.raise_request("delete_node_item", self._uid, nuid)
+        pass
+        # manager = SignalBus()  # Get the singleton instance
+        # manager.raise_request("delete_node_item", self._uid, nuid)
 
     @QtCore.Slot()
     def _raise_create_edge_request(self, suid: str, tuid: str) -> None:
@@ -317,14 +299,14 @@ class Canvas(QtWidgets.QGraphicsScene):
         }
 
         payload = json.dumps(data)
-        manager = SignalBus()  # Get the singleton instance
-        manager.raise_request("create_edge_item", self._uid, payload)
+        # manager = SignalBus()  # Get the singleton instance
+        # manager.raise_request("create_edge_item", self._uid, payload)
 
     @QtCore.Slot(str, str)
     def _raise_delete_edge_request(self, euid: str) -> None:
-
-        manager = SignalBus()  # Get the singleton instance
-        manager.data.delete_edge_item.emit(self._uid, euid)
+        pass
+        # manager = SignalBus()  # Get the singleton instance
+        # manager.data.delete_edge_item.emit(self._uid, euid)
 
     @QtCore.Slot(NodeRepr)
     def _on_activate_preview(self, item: NodeRepr):

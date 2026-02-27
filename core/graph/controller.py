@@ -65,6 +65,7 @@ class GraphController:
         :param target_uid: UID of the target node
         :return: True if there is at least one matching stream, False otherwise
         """
+
         graph = self.database.get(guid)
         source_node = graph.nodes.get(source_uid)
         target_node = graph.nodes.get(target_uid)

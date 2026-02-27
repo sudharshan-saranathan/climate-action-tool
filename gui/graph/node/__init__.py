@@ -18,7 +18,6 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from core.signals import SignalBus
 from gui.graph.node.config import NodeConfigWidget
 
 ItemState = QtWidgets.QStyle.StateFlag
@@ -132,10 +131,6 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         # Config dialog (lazy init)
         self._configurator = NodeConfigWidget()
 
-        # Get the signal bus instance
-        self._signal_bus = SignalBus()
-        self._connect_to_signal_bus()
-
     def _init_image(self):
 
         # QtAwesome Icon
@@ -166,10 +161,6 @@ class NodeRepr(QtWidgets.QGraphicsObject):
         self.objectNameChanged.connect(
             lambda text: print(f"Node name changed to {text}")
         )
-
-    def _connect_to_signal_bus(self) -> None:
-
-        self._signal_bus.ui.put_node_data.connect(self._on_show_node_data)
 
     # Section: Reimplementation
     # -------------------------
@@ -257,14 +248,14 @@ class NodeRepr(QtWidgets.QGraphicsObject):
 
         # Fetch the node's data using the signal bus
         cuid = getattr(self.scene(), "uid", None)
-        if cuid:
-            self._signal_bus.raise_request(
-                "get_node_data",
-                cuid,
-                self.uid,
-            )
-        else:
-            self._logger.warning(f"Canvas UID not found — cannot fetch node data.")
+        # if cuid:
+        #     self._signal_bus.raise_request(
+        #         "get_node_data",
+        #         cuid,
+        #         self.uid,
+        #     )
+        # else:
+        #     self._logger.warning(f"Canvas UID not found — cannot fetch node data.")
 
     @QtCore.Slot(str, str)
     def _on_show_node_data(self, nuid: str, jstr: str) -> None:
@@ -280,15 +271,15 @@ class NodeRepr(QtWidgets.QGraphicsObject):
     def _on_config_save(self, jstr: str) -> None:
 
         cuid = getattr(self.scene(), "uid", None)
-        if cuid:
-            self._signal_bus.raise_request(
-                "update_node_data",
-                cuid,
-                self.uid,
-                jstr,
-            )
-        else:
-            self._logger.warning(f"Canvas UID not found — cannot save node data.")
+        # if cuid:
+        #     self._signal_bus.raise_request(
+        #         "update_node_data",
+        #         cuid,
+        #         self.uid,
+        #         jstr,
+        #     )
+        # else:
+        #     self._logger.warning(f"Canvas UID not found — cannot save node data.")
 
     # Section: Public methods
     # -----------------------
